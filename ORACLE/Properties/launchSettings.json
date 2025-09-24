@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ORACLE": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\MXTrackData\\Testdata\\01_KTM-FR\\Wintax\\2025\\MX\\250\\05_Race_Track\\RT19_ESP-Lugo\\R1\\AA01\\Run_413\""
+    }
+  }
+}

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ORACLE", "ORACLE\ORACLE.csproj", "{FDC8622C-F0D2-9941-4524-F8147276B7D9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Debug|x64.ActiveCfg = Debug|x64
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Debug|x64.Build.0 = Debug|x64
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Release|x64.ActiveCfg = Release|x64
+		{FDC8622C-F0D2-9941-4524-F8147276B7D9}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C0F9537D-EA7D-4EC2-8A24-9CC083DD4DB8}
+	EndGlobalSection
+EndGlobal
