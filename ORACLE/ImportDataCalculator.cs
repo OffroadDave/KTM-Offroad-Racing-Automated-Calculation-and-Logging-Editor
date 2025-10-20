@@ -28,6 +28,7 @@ namespace ORACLE
         private List<string> channelNames = new();
 
         // Expose channel names read-only for other classes
+
         public IReadOnlyList<string> ChannelNames => channelNames.AsReadOnly();
 
         private const double EarthRadiusMeters = 6371000.0;

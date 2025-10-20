@@ -107,7 +107,7 @@ class Program
             // Hole die Werte aus dem Dictionary, falls vorhanden, sonst nutze die bisherigen Variablen
             bikeName = hedValues.TryGetValue("bikeName", out var bikeNameVal) ? bikeNameVal : bikeName;
             trackName = hedValues.TryGetValue("trackName", out var trackNameVal) ? trackNameVal : trackName;
-            trackLength = hedValues.TryGetValue("tracklength", out var trackLengthVal) ? trackLengthVal : trackLength;
+            trackLength = hedValues.TryGetValue("trackLength", out var trackLengthVal) ? trackLengthVal : trackLength;
             riderName = hedValues.TryGetValue("riderName", out var riderNameVal) ? riderNameVal : riderName;
         }
         else
@@ -223,7 +223,7 @@ class Program
                         string.Equals(t.Countrycode, countrycode, StringComparison.OrdinalIgnoreCase) &&
                         string.Equals(t.Track, trackName, StringComparison.OrdinalIgnoreCase));
             }
-            trackLength = foundTrack?.Tracklength ?? "";
+            trackLength = foundTrack?.trackLength ?? "";
             string country = foundTrack?.Country ?? "";
 
             RiderInfo foundRider = null;
@@ -248,7 +248,7 @@ class Program
             Console.WriteLine($"type: {typeName}");
             Console.WriteLine($"countrycode: {countrycode}");
             Console.WriteLine($"track: {trackName}");
-            Console.WriteLine($"tracklength: {trackLength}");
+            Console.WriteLine($"trackLength: {trackLength}");
             Console.WriteLine($"calendarweek: {calendarweek}");
             Console.WriteLine($"event: {eventName}");
             Console.WriteLine($"session: {sessionName}");
@@ -269,7 +269,7 @@ typeName = {typeName}
 countrycode = {countrycode}
 countryName = {country}
 trackName = {trackName}
-tracklength = {trackLength}
+trackLength = {trackLength}
 eventName = {eventName}
 sessionName = {sessionName}
 runNumber = {run}";
@@ -285,7 +285,7 @@ runNumber = {run}";
         var (validRuns, invalidRuns) = FindCableDataInFolders(runPath);
 
         // 2. XML-Dateien bearbeiten mit XmlRunEditor
-        // Alias, Track, TrackLength, Rider werden aus den extrahierten oder HED-Werten übergeben
+        // Alias, Track, trackLength, Rider werden aus den extrahierten oder HED-Werten übergeben
         var xmlEditor = new XmlRunEditor();
         xmlEditor.EditXMLFiles(validRuns.ToArray(), bikeName, trackName, trackLength, riderName);
         // --- Ende XML-Bearbeitung ---
@@ -319,7 +319,7 @@ runNumber = {run}";
         public string? Country { get; set; }
         public string? Countrycode { get; set; }
         public string? Track { get; set; }
-        public string? Tracklength { get; set; }
+        public string? trackLength { get; set; }
         public string? Latitude { get; set; }
         public string? Longitude { get; set; }
     }

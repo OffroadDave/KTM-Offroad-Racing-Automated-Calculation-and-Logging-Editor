@@ -121,7 +121,7 @@ namespace ORACLE
         /// <param name="trackLen">Track-Länge.</param>
         public void EditSessionXML(string[] validRuns, int runIdx, string track, string trackLen)
         {
-            Console.WriteLine($"Writing track \"{track}\" and tracklength \"{trackLen}\" m in Session.xml file.");
+            Console.WriteLine($"Writing track \"{track}\" and trackLength \"{trackLen}\" m in Session.xml file.");
             string sessionFilePath = Path.Combine(validRuns[runIdx], "Session.xml");
             if (!File.Exists(sessionFilePath))
             {
