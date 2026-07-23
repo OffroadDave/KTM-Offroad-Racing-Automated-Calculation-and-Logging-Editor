@@ -1,29 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using KtmDataHandler.DataStorage;
+﻿using KtmDataHandler.DataStorage;
 using KtmDataHandler.Generic.Data;
 using KtmDataHandler.Marelli.Sysma;
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 using KtmDataHandler.Models.Symbols;
 using KtmSharedUtils.ObjectUtils;
-using System.Configuration;
-using System.IO;
-// Math.NET Numerics für numerische Berechnungen
-using MathNet.Numerics;
 using MathNet.Numerics.Interpolation;
 
 namespace ORACLE
 {
     public class ImportDataCalculator
     {
-        // Define Objects 
-        private IMarelliDataAccessWrite ztxAccessWrite = new MarelliDataAccess();
-        private IMarelliDataAccessRead ztxAccessRead = new MarelliDataAccess();
-        private IMarelliDataBrowse ztxBrowse = new MarelliDataBrowse();
+        // Reader/Writer werden pro Run frisch erzeugt (vermeidet State-Leaks nach ReleaseObjects)
+        private IMarelliDataAccessWrite ztxAccessWrite = null!;
+        private IMarelliDataAccessRead ztxAccessRead = null!;
 
         private List<string> channelNames = new();
 
@@ -32,47 +22,103 @@ namespace ORACLE
         public IReadOnlyList<string> ChannelNames => channelNames.AsReadOnly();
 
         private const double EarthRadiusMeters = 6371000.0;
-        private List<string> NecessaryChannels = new();
         private string? currentRunPath; // Aktueller Run-Pfad
         private IDataset resultDataset = new Dataset(); // Globale Variable für berechnete Ergebnisse
 
         /// <summary>
-        /// Hauptfunktion: Führt alle Berechnungsschritte aus.
+        /// Hauptfunktion: Führt alle Berechnungsschritte für einen einzelnen Run aus.
+        /// Erzeugt frische Reader/Writer-Instanzen pro Aufruf, damit die Methode
+        /// sicher mehrfach hintereinander aufgerufen werden kann.
         /// </summary>
         /// <param name="runPath">Pfad zum Run-Ordner (Basis für das Laden der Daten)</param>
         public void RunCalculationPipeline(string runPath)
         {
             currentRunPath = runPath;
+            resultDataset = new Dataset();
+            channelNames = new();
 
-            // 1. Datensatz laden
-            var dataSet = LoadDataSet(runPath);
-            if (dataSet == null)
+            // Frische Reader/Writer-Instanzen pro Run (vermeidet State-Leaks nach ReleaseObjects)
+            ztxAccessRead = KtmDataHandlerFactory.CreateReader();
+            ztxAccessWrite = KtmDataHandlerFactory.CreateWriter();
+
+            try
             {
-                Console.WriteLine("Datensatz konnte nicht geladen werden.");
-                return;
+                // 1. Datensatz laden
+                if (!LoadDataSet(runPath))
+                {
+                    Console.WriteLine("Datensatz konnte nicht geladen werden.");
+                    return;
+                }
+
+                // 2. Berechnungsfunktionen der Reihe nach ausführen
+                SVehicleCalc();
+
+                // 3. Ergebnisse speichern (nur wenn Berechnungen Ergebnisse erzeugt haben)
+                if (resultDataset.NumElements() > 0)
+                {
+                    SaveResults(resultDataset);
+                    Console.WriteLine($"{resultDataset.NumElements()} berechnete(r) Channel(s) gespeichert.");
+                }
+                else
+                {
+                    Console.WriteLine("Keine Berechnungsergebnisse zum Speichern.");
+                }
+            }
+            finally
+            {
+                ztxAccessRead.ReleaseObjects();
+                ztxAccessWrite.ReleaseObjects();
+            }
+        }
+
+        /// <summary>
+        /// Führt die Berechnungspipeline für mehrere Runs sequentiell aus.
+        /// Jeder Run wird mit frischen Reader/Writer-Instanzen verarbeitet,
+        /// um State-Leaks zwischen Runs zu vermeiden.
+        /// </summary>
+        /// <param name="runPaths">Liste der Run-Pfade</param>
+        /// <returns>Anzahl erfolgreich verarbeiteter Runs</returns>
+        public int RunCalculationPipelineForRuns(IReadOnlyList<string> runPaths)
+        {
+            if (runPaths == null || runPaths.Count == 0)
+            {
+                Console.WriteLine("[calc] Keine Runs für Berechnungen angegeben.");
+                return 0;
             }
 
-            // 2. Berechnungsfunktionen der Reihe nach ausführen
-            SVehicleCalc(dataSet); // Berechnung von sVehicle aus GPS Koordinaten
-            //CalculateStep2(dataSet);
-            //CalculateStep3(dataSet);
-            // ... weitere Berechnungsschritte hier ergänzen
+            Console.WriteLine($"[calc] Starte Berechnungspipeline für {runPaths.Count} Run(s)...");
+            int successCount = 0;
 
-            // 3. Ergebnisse speichern
-            SaveResults(resultDataset);
+            for (int idx = 0; idx < runPaths.Count; idx++)
+            {
+                var runPath = runPaths[idx];
+                Console.WriteLine($"[calc] ── Run {idx + 1}/{runPaths.Count}: {Path.GetFileName(runPath)}");
+                try
+                {
+                    RunCalculationPipeline(runPath);
+                    successCount++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[calc] ❌ Fehler bei {Path.GetFileName(runPath)}: {ex.Message}");
+                }
+            }
+
+            Console.WriteLine($"[calc] Abgeschlossen: {successCount}/{runPaths.Count} Run(s) erfolgreich.");
+            return successCount;
         }
 
         /// <summary>
         /// Lädt den Datensatz aus dem angegebenen Run-Ordner.
         /// </summary>
         /// <param name="runPath">Pfad zum Run-Ordner</param>
-        /// <returns>Geladener Datensatz oder null bei Fehler</returns>
-        private object? LoadDataSet(string runPath)
+        /// <returns>True bei Erfolg, false bei Fehler</returns>
+        private bool LoadDataSet(string runPath)
         {
             try
             {
                 // Setze den Datenpfad und lade den Run
-                ztxAccessRead.SetDataLocation(new string[] { runPath });
+                ztxAccessRead.SetDataLocation([runPath]);
                 ztxAccessRead.LoadRun();
                 Console.WriteLine($"Datensatz erfolgreich geladen aus: {runPath}");
 
@@ -82,39 +128,37 @@ namespace ORACLE
                     channelNames = names.ToList();
 
                 Console.WriteLine("Channelliste aus Datensatz extrahiert.");
-
-                // TODO: Rückgabe des eigentlichen Datensatz-Objekts, falls verfügbar
-                return ztxAccessRead; // oder ein spezifisches Objekt, falls vorhanden
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Fehler beim Laden des Datensatzes: {ex.Message}");
-                return null;
+                return false;
             }
         }
 
         /// <summary>
         /// Berechnung der kumulierten Distanz aus GPS-Koordinaten und Hinzufügen als neuen Channel.
         /// </summary>
-        /// <param name="dataSet">Das geladene Datensatzobjekt</param>
-        private void SVehicleCalc(object dataSet)
+        private void SVehicleCalc()
         {
             Console.WriteLine("Kumulierte Distanz aus GPS wird berechnet...");
 
             // Setze die für diese Berechnung notwendigen Kanäle
             string LatChannelName = "Lat_dez";
             string LonChannelName = "Lon_dez";
-            NecessaryChannels = new List<string> { LatChannelName, LonChannelName };  
+            var necessaryChannels = new List<string> { LatChannelName, LonChannelName };  
 
             // Prüfe, ob alle notwendigen Kanäle vorhanden sind
-            var missingChannels = NecessaryChannels.Except(channelNames).ToList();
+            var missingChannels = necessaryChannels.Except(channelNames).ToList();
             if (missingChannels.Any())
             {
                 Console.WriteLine($"Fehlende Kanäle: {string.Join(", ", missingChannels)}. Berechnung wird abgebrochen.");
                 return;
             }
             // Daten vom Datensatz abrufen 
-            IDataset processingDataset = ztxAccessRead.GetChannels(NecessaryChannels.ToArray());
+            IDataset processingDataset = ztxAccessRead.GetChannels(necessaryChannels.ToArray());
+            Console.WriteLine($"Notwendige Kanäle: {string.Join(", ", necessaryChannels)} wurden erfolgreich geladen.");
 
             // Extract latitude and longitude signals
             ITimeseries latitudeSignal = processingDataset.GetElement(LatChannelName);
@@ -148,8 +192,6 @@ namespace ORACLE
                 return;
             }
 
-            Console.WriteLine($"Notwendige Kanäle: {string.Join(", ", NecessaryChannels)}  Wurden erfolgreich geladen.");
-
             // Convert to radians
             double[] latRad = latitudes.Select(x => Math.PI / 180.0 * x).ToArray();
             double[] lonRad = longitudes.Select(x => Math.PI / 180.0 * x).ToArray();
@@ -171,7 +213,11 @@ namespace ORACLE
             double[] distance = new double[latRad.Length];
             distance[0] = 0;
             for (int i = 1; i < distance.Length; i++)
-                distance[i] = Math.Round(distance[i - 1] + segmentDistances[i - 1], 2);
+                distance[i] = distance[i - 1] + segmentDistances[i - 1];
+
+            // Runde erst am Ende auf 2 Dezimalstellen, um Fehlerakkumulation zu vermeiden
+            for (int i = 0; i < distance.Length; i++)
+                distance[i] = Math.Round(distance[i], 2);
 
             // Create new timeseries for sVehicle
             var sVehicle = new KtmDataHandler.Models.Channels.Timeseries();
@@ -183,24 +229,6 @@ namespace ORACLE
             resultDataset.Add(sVehicle);
 
             Console.WriteLine("Berechnung von sVehicle erfolgreich abgeschlossen.");
-        }
-
-        // Beispiel-Berechnungsfunktion 2
-        private void CalculateStep2(object dataSet)
-        {
-            Console.WriteLine("Berechnungsschritt 2 wird ausgeführt...");
-            // Beispiel: Setze die für diese Berechnung notwendigen Kanäle
-            NecessaryChannels = new List<string> { "Speed", "Time" };
-            // TODO: Implementiere Berechnung
-        }
-
-        // Beispiel-Berechnungsfunktion 3
-        private void CalculateStep3(object dataSet)
-        {
-            Console.WriteLine("Berechnungsschritt 3 wird ausgeführt...");
-            // Beispiel: Setze die für diese Berechnung notwendigen Kanäle
-            NecessaryChannels = new List<string> { "RPM" };
-            // TODO: Implementiere Berechnung
         }
 
         /// <summary>
@@ -215,9 +243,8 @@ namespace ORACLE
                 Console.WriteLine("Fehler: runPath ist nicht gesetzt.");
                 return;
             }
-            ztxAccessWrite.SetDataLocation(new string[] { currentRunPath });
+            ztxAccessWrite.SetDataLocation([currentRunPath]);
             ztxAccessWrite.AddImportDataToRun(dataSet);
-            ztxAccessWrite.ReleaseObjects();
         }
 
         /// <summary>
@@ -229,7 +256,7 @@ namespace ORACLE
         private double[] InterpolateZerosMathNet(double[] data, double[] time, string name)
         {
             if (data == null || data.Length == 0 || time == null || time.Length != data.Length)
-                return data;
+                return data ?? [];
 
             const double tol = 1e-9;
             int n = data.Length;

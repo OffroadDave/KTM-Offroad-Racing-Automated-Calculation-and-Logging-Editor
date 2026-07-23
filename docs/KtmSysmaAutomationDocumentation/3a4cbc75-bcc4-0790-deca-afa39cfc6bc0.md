@@ -1,0 +1,50 @@
+KTM Sysma Automation
+
+# IApplicationReplaceCLXProject Method   
+  
+---  
+  
+Replace CLX in the project 
+
+**Namespace:** Â [KtmSysmaAutomation.Marelli.Sysma](ba2bbb0a-de50-ed52-ed74-82ced428a61a.md) **Assembly:** Â KtmSysmaAutomation (in KtmSysmaAutomation.dll) Version: 1.1.0.0
+    
+    
+    void ReplaceCLXProject(
+    	string CLXToRemName,
+    	string CLXToAddFullPath
+    )
+    
+    
+    Sub ReplaceCLXProject ( 
+    	CLXToRemName As String,
+    	CLXToAddFullPath As String
+    )
+    
+    
+    void ReplaceCLXProject(
+    	String^ CLXToRemName, 
+    	String^ CLXToAddFullPath
+    )
+    
+    
+    abstract ReplaceCLXProject : 
+            CLXToRemName : string * 
+            CLXToAddFullPath : string -> unit 
+    
+
+#### Parameters
+
+CLXToRemName
+    Type:Â SystemStringName of the CLX to remove
+CLXToAddFullPath
+    Type:Â SystemStringPath of the CLX to add
+
+| Exception | Condition |
+| --- | --- |
+| Exception | When CLX not exist or cannot replace CLX to the project |
+  
+#### Reference
+
+[IApplication Interface](1002a7ad-96bf-208c-1c98-4d3b4aed961d.md)
+
+[KtmSysmaAutomation.Marelli.Sysma Namespace](ba2bbb0a-de50-ed52-ed74-82ced428a61a.md)

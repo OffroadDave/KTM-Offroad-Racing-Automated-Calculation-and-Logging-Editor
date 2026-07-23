@@ -1,0 +1,76 @@
+Ktm Shared Utils
+
+# ArrayDataType Class  
+  
+---  
+  
+Data type conversion for arrays 
+
+SystemObjectÂ Â KtmSharedUtils.ArrayArrayDataType
+
+**Namespace:** Â [KtmSharedUtils.Array](5cd2c134-d21b-c6c4-cce2-e951dfd4a402.md) **Assembly:** Â KtmSharedUtils (in KtmSharedUtils.dll) Version: 1.5.10.0
+    
+    
+    [SerializableAttribute]
+    public class ArrayDataType : IArrayDataType
+    
+    
+    <SerializableAttribute>
+    Public Class ArrayDataType
+    	Implements IArrayDataType
+    
+    
+    [SerializableAttribute]
+    public ref class ArrayDataType : IArrayDataType
+    
+    
+    [<SerializableAttribute>]
+    type ArrayDataType =  
+        class
+            interface IArrayDataType
+        end
+
+The ArrayDataType type exposes the following members.
+
+| Â | Name | Description |
+| --- | --- | --- |
+|  | [ArrayDataType](f07217f4-973e-1226-422e-faff2656afab.md) | Initializes a new instance of the ArrayDataType class |
+  
+| Â | Name | Description |
+| --- | --- | --- |
+|  | [ConvertTypeG(G, Type)](d8e2bf70-d260-7286-67f2-01c51d068190.md) | Convert Scalar |
+|  | [ConvertTypeG(G, Type)](c9485394-3c00-7d1f-772e-f0647d444bc2.md) | Convert Vector |
+|  | [ConvertTypeG(G, Type)](9b82c535-17bc-56f8-1fdb-53e46f51c9f1.md) | Convert 3D arrays |
+|  | [ConvertTypeG(G, Type)](337be813-edfa-efc3-6626-96accfc4da00.md) | Convert 2D arrays |
+|  | [ConvertTypeT, G(G)](8554abbb-ad4a-5e3d-4903-e29b32259442.md) | Convert Scalar |
+|  | [ConvertTypeT, G(G)](a807f781-531b-b72b-24c3-0864f20a714b.md) | Convert Vector |
+|  | [ConvertTypeT, G(G)](3fd3e85a-592c-5a84-3172-f33a22e39995.md) | Convert 3D arrays |
+|  | [ConvertTypeT, G(G)](1a0c5eb3-4d2d-2ae7-d3e8-11ac7eb30367.md) | Convert 2D arrays |
+|  | Equals | Determines whether the specified object is equal to the current object. (Inherited from Object.) |
+|  | Finalize | Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection. (Inherited from Object.) |
+|  | [GetDim1T](024f78d5-02b1-5b5a-7eae-ec8f5ff6956e.md) | Returns the 'dim1' of this matrix as a 1D-Array. |
+|  | [GetDim2T](2f197ca1-ed66-a32c-0fce-8ae8eceae130.md) | Returns the 'dim2' of this matrix as a 1D-Array. |
+|  | GetHashCode | Serves as the default hash function.  (Inherited from Object.) |
+|  | GetType | Gets the Type of the current instance. (Inherited from Object.) |
+|  | [IsDecreasingMonotonicallyT](415732de-bcc6-5eba-002e-635112eab66f.md) | Returns true if the elements in the are decreasing monotonically. |
+|  | [IsDecreasingStrictlyMonotonicallyT](93b5965a-b200-d547-89fa-a4ffd38b9329.md) | Returns true if the elements in the are decreasing strictly monotonically. |
+|  | [IsIncreasingMonotonicallyT](8d7749e0-86c2-9cf4-a620-810fc339b9d7.md) | Returns true if the elements of the array are increasing monotonically. |
+|  | [IsIncreasingStrictlyMonotonicallyT](0e3ba024-8bd5-4dcd-7f55-bfca8fcddec6.md) | Returns true if the elements in the are increasing strictly monotonically. |
+|  | [JaggedTo2DT](9efbc19b-6060-a91c-1818-e8c6b4d83166.md) | Covnvert a Jagged array to a 2d array. |
+|  | MemberwiseClone | Creates a shallow copy of the current Object. (Inherited from Object.) |
+|  | [ResizeArrayT](f6e8b9f2-4933-9841-22ea-a05308b18aad.md) | Resize a bidimensional Array |
+|  | [SetDim1T](4cc18f96-4737-26b6-afb1-5e11dc440fcb.md) | Sets the row with number 'row' of this 2D-matrix to the parameter 'rowVector'. |
+|  | [SetDim2T](e7f7d5d5-f937-62d1-135e-fa3cc24b739c.md) | Sets the 'dim2' of this 2D-matrix to the parameter 'dim2Vector'. |
+|  | [StringToMatrixT](e586cdf4-603b-f6e1-a01d-c39a3a63a810.md) | Convert a string with row elements separated by 'r' and column elements separated by 'c' |
+|  | [StringToVectorT](35292806-b9e9-5f88-4a29-c3f8aa5b7d69.md) | Convert a String with elements separated by 'c' character. |
+|  | [ToJaggedArrayT](898b4022-687a-af42-e54a-43734093be64.md) | convert two dimension array to jagged ([,] to [][]) |
+|  | ToString | Returns a string that represents the current object. (Inherited from Object.) |
+|  | [TransposeMatrixT](4c4eac5b-df1b-d5e0-b26a-4cfe3cfe9b6b.md) | Return the transpose Matrix |
+  
+| Â | Name | Description |
+| --- | --- | --- |
+|  | [Copy](5065b4fe-71c7-485f-462d-7b8b2aa03232.md) | (Defined by [Utils](d98f079c-03c9-bf35-3dc0-c99f1e75c801.md).) |
+  
+#### Reference
+
+[KtmSharedUtils.Array Namespace](5cd2c134-d21b-c6c4-cce2-e951dfd4a402.md)

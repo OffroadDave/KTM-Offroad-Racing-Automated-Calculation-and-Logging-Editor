@@ -1,0 +1,2658 @@
+{
+    "006d6162-65f2-5aba-6bb4-56ca64322f4f": {
+        "title": "Application.GetChannels Method (String[], Double, Double, String[], Boolean)",
+        "filename": "006d6162-65f2-5aba-6bb4-56ca64322f4f.md"
+    },
+    "00823eb6-5ef6-2e1d-c2d4-71c6088060fb": {
+        "title": "SymbolAccess Constructor",
+        "filename": "00823eb6-5ef6-2e1d-c2d4-71c6088060fb.md"
+    },
+    "011b610e-edb5-551b-b130-ffffd2a87793": {
+        "title": "MarelliDataAccess.GetLastSampleTime Method",
+        "filename": "011b610e-edb5-551b-b130-ffffd2a87793.md"
+    },
+    "01fb95c4-e874-ab32-2ddc-44c214a034e5": {
+        "title": "IApplicationGUI Interface",
+        "filename": "01fb95c4-e874-ab32-2ddc-44c214a034e5.md"
+    },
+    "0315dcfc-1b0f-b3ac-0944-528c8ae1f6c5": {
+        "title": "ChannelListModel.Finalize Method",
+        "filename": "0315dcfc-1b0f-b3ac-0944-528c8ae1f6c5.md"
+    },
+    "027e339d-c248-6f28-6c3f-18a97ee97a9a": {
+        "title": "Application.Launch Method",
+        "filename": "027e339d-c248-6f28-6c3f-18a97ee97a9a.md"
+    },
+    "035cf55a-b486-e9e4-8e48-7a5381428703": {
+        "title": "MarelliDataAccess.AddRunConstant Method",
+        "filename": "035cf55a-b486-e9e4-8e48-7a5381428703.md"
+    },
+    "035f1490-5d80-37e5-2ff5-a0d9bb846233": {
+        "title": "IDataset.Properties Property",
+        "filename": "035f1490-5d80-37e5-2ff5-a0d9bb846233.md"
+    },
+    "04a3461c-f80e-a146-22dd-708dff8b1a17": {
+        "title": "KtmDataHandler.KTM.Tyres Namespace",
+        "filename": "04a3461c-f80e-a146-22dd-708dff8b1a17.md"
+    },
+    "03b10285-35e1-4c3b-9a8a-0e236f465dfe": {
+        "title": "MarelliCLXAccess.GetCalibration Method",
+        "filename": "03b10285-35e1-4c3b-9a8a-0e236f465dfe.md"
+    },
+    "03a1bae2-20c3-52b3-ef33-ef7dfbe99840": {
+        "title": "ChannelListElementListModel Properties",
+        "filename": "03a1bae2-20c3-52b3-ef33-ef7dfbe99840.md"
+    },
+    "04b1e064-8e0b-6d92-58b0-dbec9c58d8bd": {
+        "title": "IMarelliDataAccess Properties",
+        "filename": "04b1e064-8e0b-6d92-58b0-dbec9c58d8bd.md"
+    },
+    "0527823e-b9c4-5dc9-0af5-4963be4e7877": {
+        "title": "x2DDataAccess.GetDataLocation Method",
+        "filename": "0527823e-b9c4-5dc9-0af5-4963be4e7877.md"
+    },
+    "03b2d1db-4759-3196-a639-3565a5300c5b": {
+        "title": "Application.SetPluginsLibrary Method",
+        "filename": "03b2d1db-4759-3196-a639-3565a5300c5b.md"
+    },
+    "040db784-c569-0187-cc9b-23d477cc4a2b": {
+        "title": "ChannelListModel Methods",
+        "filename": "040db784-c569-0187-cc9b-23d477cc4a2b.md"
+    },
+    "05de97ea-a5e8-b483-d413-1a4fa2d5bfba": {
+        "title": "IDataAccessCommon.GetDataLocation Method",
+        "filename": "05de97ea-a5e8-b483-d413-1a4fa2d5bfba.md"
+    },
+    "07d18525-8510-5f29-6412-52c3e1d10bd0": {
+        "title": "Dataset Constructor",
+        "filename": "07d18525-8510-5f29-6412-52c3e1d10bd0.md"
+    },
+    "077bdc1a-b695-ee88-1c86-9351271026c4": {
+        "title": "Timeseries Class",
+        "filename": "077bdc1a-b695-ee88-1c86-9351271026c4.md"
+    },
+    "087a4a4b-cdb4-b6a0-219e-da51a86ea8eb": {
+        "title": "TyreInformationRecord.GetHashCode Method",
+        "filename": "087a4a4b-cdb4-b6a0-219e-da51a86ea8eb.md"
+    },
+    "07e0cb40-215f-0339-cecb-5b141a57c984": {
+        "title": "GlobalLogHelper.EnableLog Method",
+        "filename": "07e0cb40-215f-0339-cecb-5b141a57c984.md"
+    },
+    "08e42c5e-1ae3-1b27-015a-953793111ce5": {
+        "title": "RecastMode Enumeration",
+        "filename": "08e42c5e-1ae3-1b27-015a-953793111ce5.md"
+    },
+    "09df7087-9d42-b3cd-5341-e9613a5b18ae": {
+        "title": "SymbolAccess.Finalize Method",
+        "filename": "09df7087-9d42-b3cd-5341-e9613a5b18ae.md"
+    },
+    "0ac67475-250d-c426-2b1e-671f055d3662": {
+        "title": "ISymbolAccess.Load Method",
+        "filename": "0ac67475-250d-c426-2b1e-671f055d3662.md"
+    },
+    "0a025dcd-068b-aaa8-8992-81b6059d3154": {
+        "title": "IMultipleSourceDataAccess.SourceList Property",
+        "filename": "0a025dcd-068b-aaa8-8992-81b6059d3154.md"
+    },
+    "0a513e16-7d16-ad15-7e89-6437f57d1c03": {
+        "title": "IMarelliCLXNameValidation.NameValidationRegex Property",
+        "filename": "0a513e16-7d16-ad15-7e89-6437f57d1c03.md"
+    },
+    "0b3dacdf-a8fd-3784-5da4-a623a6128cf5": {
+        "title": "TyreInformationDataAccess.Write Method",
+        "filename": "0b3dacdf-a8fd-3784-5da4-a623a6128cf5.md"
+    },
+    "0b952fef-6834-a7e7-0158-fe7c71fbbe06": {
+        "title": "AddressMode Enumeration",
+        "filename": "0b952fef-6834-a7e7-0158-fe7c71fbbe06.md"
+    },
+    "0c38fd3c-3482-14a3-4a15-1c923b66268f": {
+        "title": "Application.LoadRun Method (String[])",
+        "filename": "0c38fd3c-3482-14a3-4a15-1c923b66268f.md"
+    },
+    "0ca7ae1a-4770-42ef-65de-4c86eda7ae54": {
+        "title": "IUpdatableCalibrationValue.UpdateCalibrationValue Method",
+        "filename": "0ca7ae1a-4770-42ef-65de-4c86eda7ae54.md"
+    },
+    "0ebfbf71-879f-47a4-c151-973b99d5f654": {
+        "title": "IMarelliDataAccessWrite.AddRunProperty Method",
+        "filename": "0ebfbf71-879f-47a4-c151-973b99d5f654.md"
+    },
+    "0f99ebd5-6fb6-017e-7c2a-0a7b56362977": {
+        "title": "IMarelliCLXAccess.ClxSearchFolders Property",
+        "filename": "0f99ebd5-6fb6-017e-7c2a-0a7b56362977.md"
+    },
+    "0f104935-a3aa-b63f-bf5c-d4c7c716e708": {
+        "title": "IApplicationRead.GetConditionsLibrary Method",
+        "filename": "0f104935-a3aa-b63f-bf5c-d4c7c716e708.md"
+    },
+    "0f95f172-76fd-8451-f805-5b6f255453fe": {
+        "title": "MarelliCLXAccess.MarelliCLXProperties Property",
+        "filename": "0f95f172-76fd-8451-f805-5b6f255453fe.md"
+    },
+    "0dbaec7e-fff8-8ee2-dddf-a5d9007a0f59": {
+        "title": "IChannelList Methods",
+        "filename": "0dbaec7e-fff8-8ee2-dddf-a5d9007a0f59.md"
+    },
+    "0f0ee94b-ee26-2178-3ed9-34da8f1d729a": {
+        "title": "IDataset.Add Method",
+        "filename": "0f0ee94b-ee26-2178-3ed9-34da8f1d729a.md"
+    },
+    "12846694-f647-3dcf-62dc-f52bf19c51e1": {
+        "title": "Application.GetChannels Method (String[], UInt32[], String[], Boolean)",
+        "filename": "12846694-f647-3dcf-62dc-f52bf19c51e1.md"
+    },
+    "1318d97b-939f-f80e-3ee9-b742262b8a13": {
+        "title": "DataAccess Constructor",
+        "filename": "1318d97b-939f-f80e-3ee9-b742262b8a13.md"
+    },
+    "12a31034-ea6e-1b27-e53f-b047cb6fd1d7": {
+        "title": "IMarelliDataAccessWrite.AddRunConstant Method",
+        "filename": "12a31034-ea6e-1b27-e53f-b047cb6fd1d7.md"
+    },
+    "13228a99-e787-8298-6cb2-980b00c1dd42": {
+        "title": "IMarelliCLXAccess.UpdateGlobalExtendedCustomFields Method",
+        "filename": "13228a99-e787-8298-6cb2-980b00c1dd42.md"
+    },
+    "14f90afc-b5ca-0140-8889-cc686762a9a7": {
+        "title": "IApplicationCommon.LoadRun Method",
+        "filename": "14f90afc-b5ca-0140-8889-cc686762a9a7.md"
+    },
+    "13d1a4e7-bf8a-0231-674a-88a7cfb06487": {
+        "title": "Misc Properties",
+        "filename": "13d1a4e7-bf8a-0231-674a-88a7cfb06487.md"
+    },
+    "14c8d242-2c46-1afa-9888-071fcc3dc367": {
+        "title": "MarelliCLXAccess.WriteSymbols Method",
+        "filename": "14c8d242-2c46-1afa-9888-071fcc3dc367.md"
+    },
+    "10f2ab91-66bd-bd41-deac-16bc34b506c3": {
+        "title": "VersionCheck Methods",
+        "filename": "10f2ab91-66bd-bd41-deac-16bc34b506c3.md"
+    },
+    "116defb4-6cfa-fa7a-2a7e-7a2f598b3122": {
+        "title": "IMarelliGetRunAssociatedFiles.ClxSearchFolders Property",
+        "filename": "116defb4-6cfa-fa7a-2a7e-7a2f598b3122.md"
+    },
+    "13c378c4-9ee4-59fb-2b76-c676400e00af": {
+        "title": "MarelliCLXAccess.UpdateCalibrationValue Method",
+        "filename": "13c378c4-9ee4-59fb-2b76-c676400e00af.md"
+    },
+    "1168e6de-eec8-024d-ccfb-badf7d2ee7a5": {
+        "title": "TyreInformationFile Class",
+        "filename": "1168e6de-eec8-024d-ccfb-badf7d2ee7a5.md"
+    },
+    "14b38c28-c1ca-2192-c210-40c24580fd94": {
+        "title": "IMarelliDataAccessProperties.SetConstants Method",
+        "filename": "14b38c28-c1ca-2192-c210-40c24580fd94.md"
+    },
+    "133d0c3f-3988-0a20-c0bb-e90ae3632421": {
+        "title": "Dataset.Exist Method",
+        "filename": "133d0c3f-3988-0a20-c0bb-e90ae3632421.md"
+    },
+    "127a8c73-a881-99ce-c301-3e01ded75a36": {
+        "title": "KtmDataHandler.Globals Namespace",
+        "filename": "127a8c73-a881-99ce-c301-3e01ded75a36.md"
+    },
+    "12812e42-b39a-a171-be69-1f8042172264": {
+        "title": "IApplicationRead.SetMathLibrary Method",
+        "filename": "12812e42-b39a-a171-be69-1f8042172264.md"
+    },
+    "17a15e2d-f666-a2a8-dc93-f5d15aa7831a": {
+        "title": "IDataset.GetElement Method",
+        "filename": "17a15e2d-f666-a2a8-dc93-f5d15aa7831a.md"
+    },
+    "1641db01-146c-b6e1-0450-5e9e9a317293": {
+        "title": "IApplicationCommon.LoadData Method",
+        "filename": "1641db01-146c-b6e1-0450-5e9e9a317293.md"
+    },
+    "1753348f-146e-6c47-f76a-aa2dda36b424": {
+        "title": "SymbolAccess.UpdateCalibrationValue Method",
+        "filename": "1753348f-146e-6c47-f76a-aa2dda36b424.md"
+    },
+    "1607306f-3a4d-ca9d-8150-7490ec91c521": {
+        "title": "IApplicationWrite.RemoveChannel Method",
+        "filename": "1607306f-3a4d-ca9d-8150-7490ec91c521.md"
+    },
+    "187dacd8-7ccd-0450-7c87-a6eea96790db": {
+        "title": "Dataset.Remove Method",
+        "filename": "187dacd8-7ccd-0450-7c87-a6eea96790db.md"
+    },
+    "16e94d94-bed5-fd41-2c38-8e647274f034": {
+        "title": "MarelliDataAccess.LoadRun Method",
+        "filename": "16e94d94-bed5-fd41-2c38-8e647274f034.md"
+    },
+    "191a88a6-f221-1196-76e6-201fb567bf0d": {
+        "title": "IDataAccessWrite Interface",
+        "filename": "191a88a6-f221-1196-76e6-201fb567bf0d.md"
+    },
+    "1cf86948-c1ba-9c58-eb5e-ce10bde7df72": {
+        "title": "MarelliDataAccess.RemoveLapUserRecord Method",
+        "filename": "1cf86948-c1ba-9c58-eb5e-ce10bde7df72.md"
+    },
+    "1ae20da1-3ae3-2b1e-5262-23c801ef238f": {
+        "title": "ITimeseriesFilter.Type Property",
+        "filename": "1ae20da1-3ae3-2b1e-5262-23c801ef238f.md"
+    },
+    "1b6c505e-5f08-92b5-384e-5d54952dd347": {
+        "title": "IChannel.TimeNsec Property",
+        "filename": "1b6c505e-5f08-92b5-384e-5d54952dd347.md"
+    },
+    "1a116a86-5149-fac6-1ba7-0bafa60ba543": {
+        "title": "IMarelliDataAccessProperties.RemoveMeteoFiles Method",
+        "filename": "1a116a86-5149-fac6-1ba7-0bafa60ba543.md"
+    },
+    "1b66f9d9-48dd-a0ab-6ed3-7ed2f32a7c5d": {
+        "title": "IMarelliDataAccessRead Methods",
+        "filename": "1b66f9d9-48dd-a0ab-6ed3-7ed2f32a7c5d.md"
+    },
+    "1accf388-d282-6528-792b-2af51fcb328a": {
+        "title": "IMarelliDataAccessWrite.RemoveImportData Method",
+        "filename": "1accf388-d282-6528-792b-2af51fcb328a.md"
+    },
+    "1b01b9cf-2c68-095b-16cb-d4488d370bce": {
+        "title": "Application.EmbeddedDeviceSearchFolders Property",
+        "filename": "1b01b9cf-2c68-095b-16cb-d4488d370bce.md"
+    },
+    "1cdeebe2-2f8f-746d-8e6d-c907efce2fa9": {
+        "title": "Timeseries.Finalize Method",
+        "filename": "1cdeebe2-2f8f-746d-8e6d-c907efce2fa9.md"
+    },
+    "1abb44da-1025-e8cb-4931-ae9ac50309c7": {
+        "title": "MarelliDataAccess.RemoveLapProperty Method",
+        "filename": "1abb44da-1025-e8cb-4931-ae9ac50309c7.md"
+    },
+    "1b0fa3a0-038e-a4cb-6d38-4a7e274f0f65": {
+        "title": "IChannel.DataType Property",
+        "filename": "1b0fa3a0-038e-a4cb-6d38-4a7e274f0f65.md"
+    },
+    "1abce50e-a3bb-a28b-3f29-c2ea127847a6": {
+        "title": "MarelliDataAccess.SetDataLocation Method",
+        "filename": "1abce50e-a3bb-a28b-3f29-c2ea127847a6.md"
+    },
+    "1cc6fff9-65d3-b288-ef29-c41c7897401e": {
+        "title": "SymbolAccess.SymFullFile Property",
+        "filename": "1cc6fff9-65d3-b288-ef29-c41c7897401e.md"
+    },
+    "1cf5874d-561c-825e-fcf7-504b4af8b1b6": {
+        "title": "IChannel.TimeData Property",
+        "filename": "1cf5874d-561c-825e-fcf7-504b4af8b1b6.md"
+    },
+    "1e21af90-934c-ab5c-746a-093f5ab6336e": {
+        "title": "IMarelliDataAccessWrite.GetDataLicenses Method",
+        "filename": "1e21af90-934c-ab5c-746a-093f5ab6336e.md"
+    },
+    "1d289137-ea7b-efff-f4c5-1335c9efb34e": {
+        "title": "IDataAccessRead Methods",
+        "filename": "1d289137-ea7b-efff-f4c5-1335c9efb34e.md"
+    },
+    "1da26395-5ed7-e847-590b-921b431a866e": {
+        "title": "DataAccess.SetDataLocation Method",
+        "filename": "1da26395-5ed7-e847-590b-921b431a866e.md"
+    },
+    "1e621ee2-1c93-6e4a-f650-5c1b7434cc11": {
+        "title": "IMarelliCLXAccess.Refresh Method",
+        "filename": "1e621ee2-1c93-6e4a-f650-5c1b7434cc11.md"
+    },
+    "1fc45d75-ced1-1975-5be1-192f73c37c8e": {
+        "title": "Application.DataProperties Property",
+        "filename": "1fc45d75-ced1-1975-5be1-192f73c37c8e.md"
+    },
+    "203b0b4f-7bdb-4630-054d-859f82cb219d": {
+        "title": "MarelliCLXAccess.MaxIndexToParallelFor Field",
+        "filename": "203b0b4f-7bdb-4630-054d-859f82cb219d.md"
+    },
+    "22a271a7-da74-151a-08a8-af093318f17b": {
+        "title": "KtmDataHandler.DataStorage Namespace",
+        "filename": "22a271a7-da74-151a-08a8-af093318f17b.md"
+    },
+    "21550959-bff8-e5aa-eab6-ffd9d1c53749": {
+        "title": "MarelliDataAccess.SelectLap Method",
+        "filename": "21550959-bff8-e5aa-eab6-ffd9d1c53749.md"
+    },
+    "231941d2-4c65-7ce2-a989-329d2f7fdc2e": {
+        "title": "KtmDataHandler.Marelli.Sysma Namespace",
+        "filename": "231941d2-4c65-7ce2-a989-329d2f7fdc2e.md"
+    },
+    "2317e4e0-487d-7a26-42fc-8c706dcdc405": {
+        "title": "TyreInformationRecord Properties",
+        "filename": "2317e4e0-487d-7a26-42fc-8c706dcdc405.md"
+    },
+    "205d8052-43ea-f9a3-bcdd-ea4478a270f3": {
+        "title": "MarelliDataAccess.GetDataLocation Method",
+        "filename": "205d8052-43ea-f9a3-bcdd-ea4478a270f3.md"
+    },
+    "20bfedb9-288a-bdc8-fa9c-81eed088486d": {
+        "title": "ChannelList.Model Property",
+        "filename": "20bfedb9-288a-bdc8-fa9c-81eed088486d.md"
+    },
+    "2259c479-acab-738f-c16e-ff09b8f93f2a": {
+        "title": "DataAccess.GetChannels Method (String[], Double, Double, String[], Boolean)",
+        "filename": "2259c479-acab-738f-c16e-ff09b8f93f2a.md"
+    },
+    "226753f5-8b71-577c-9a71-0bf473da08c5": {
+        "title": "TyreInformationSnapshot Class",
+        "filename": "226753f5-8b71-577c-9a71-0bf473da08c5.md"
+    },
+    "24ec932e-76e9-14b4-8748-6b34c569e520": {
+        "title": "IUpdatableCalibrationValue.UpdateCalibrationRawValue Method (IDataDictionary)",
+        "filename": "24ec932e-76e9-14b4-8748-6b34c569e520.md"
+    },
+    "25142d1b-3fd6-cda2-4009-5fc02ce0fca2": {
+        "title": "IMarelliDataAccessCommon Interface",
+        "filename": "25142d1b-3fd6-cda2-4009-5fc02ce0fca2.md"
+    },
+    "26ab0ce3-df70-cc0f-3c03-ab98b8fd9b7d": {
+        "title": "IChannel.Time Property",
+        "filename": "26ab0ce3-df70-cc0f-3c03-ab98b8fd9b7d.md"
+    },
+    "2633ab7b-8279-a28e-48dc-0a7b595ef8e9": {
+        "title": "Application.GetChannelsNames Method (WtxAppSignalType)",
+        "filename": "2633ab7b-8279-a28e-48dc-0a7b595ef8e9.md"
+    },
+    "250483eb-dc03-45a6-9ccb-49443225bbed": {
+        "title": "IApplicationWrite Interface",
+        "filename": "250483eb-dc03-45a6-9ccb-49443225bbed.md"
+    },
+    "27ffd28c-5e94-4c42-3716-af529a024421": {
+        "title": "MarelliCLXAccess.IsNameValidationOK Method",
+        "filename": "27ffd28c-5e94-4c42-3716-af529a024421.md"
+    },
+    "23fd8026-1d5b-8dcc-09ac-48a8cf247dd7": {
+        "title": "RunType Enumeration",
+        "filename": "23fd8026-1d5b-8dcc-09ac-48a8cf247dd7.md"
+    },
+    "231dabb2-9cb0-b08a-bc3f-783b69dd3f6a": {
+        "title": "IMarelliCLXNameValidation.NameValidationEnabled Property",
+        "filename": "231dabb2-9cb0-b08a-bc3f-783b69dd3f6a.md"
+    },
+    "2447d556-c2cd-3a91-8048-bac2fef3d28a": {
+        "title": "Channel.Data Property",
+        "filename": "2447d556-c2cd-3a91-8048-bac2fef3d28a.md"
+    },
+    "2890e90d-0ecd-eb42-19b8-efb72171cdd0": {
+        "title": "IMarelliDataAccessWrite Interface",
+        "filename": "2890e90d-0ecd-eb42-19b8-efb72171cdd0.md"
+    },
+    "244f602e-c60a-7ac7-1bb6-07d9f32601e7": {
+        "title": "ChannelList.Save Method",
+        "filename": "244f602e-c60a-7ac7-1bb6-07d9f32601e7.md"
+    },
+    "288c223e-16e4-3d4c-626c-5dc2907c98c2": {
+        "title": "IMarelliDataAccess Methods",
+        "filename": "288c223e-16e4-3d4c-626c-5dc2907c98c2.md"
+    },
+    "244db264-35e0-c287-f137-98901c85bf02": {
+        "title": "IMarelliDataAccessCommon.ReleaseObjects Method",
+        "filename": "244db264-35e0-c287-f137-98901c85bf02.md"
+    },
+    "28185e99-d1b8-5763-dba5-878729e34aec": {
+        "title": "IDataAccessCommon.LoadRun Method",
+        "filename": "28185e99-d1b8-5763-dba5-878729e34aec.md"
+    },
+    "2816f680-b3d8-050f-f364-48490f5b89f0": {
+        "title": "MarelliDataAccess Class",
+        "filename": "2816f680-b3d8-050f-f364-48490f5b89f0.md"
+    },
+    "2008712f-dbcf-3f29-168b-76b4f80f9962": {
+        "title": "BoxFunction Enumeration",
+        "filename": "2008712f-dbcf-3f29-168b-76b4f80f9962.md"
+    },
+    "2a6cafc2-dc8e-6140-17fd-f889bda495e1": {
+        "title": "IApplicationGUI Properties",
+        "filename": "2a6cafc2-dc8e-6140-17fd-f889bda495e1.md"
+    },
+    "2c296baa-9142-d7ed-ab93-261b6ed25b58": {
+        "title": "IApplicationGUI.Launch Method",
+        "filename": "2c296baa-9142-d7ed-ab93-261b6ed25b58.md"
+    },
+    "2c4b6bc7-71db-4817-6ec9-000b5666e3ef": {
+        "title": "IApplicationRead.GetEventsLibrary Method",
+        "filename": "2c4b6bc7-71db-4817-6ec9-000b5666e3ef.md"
+    },
+    "2bc51077-4f96-19e3-b4e1-e5525d80a6e3": {
+        "title": "ITimeseries.Concat Method",
+        "filename": "2bc51077-4f96-19e3-b4e1-e5525d80a6e3.md"
+    },
+    "2937daa7-287e-190a-a06c-37d46b142c1b": {
+        "title": "IGettableSymbols Interface",
+        "filename": "2937daa7-287e-190a-a06c-37d46b142c1b.md"
+    },
+    "2f746782-cf59-ea2e-9f54-6001e211334a": {
+        "title": "IMarelliDataAccessProperties Methods",
+        "filename": "2f746782-cf59-ea2e-9f54-6001e211334a.md"
+    },
+    "2e086f45-38a0-eebb-f1db-6fef69d41c88": {
+        "title": "IMarelliDataAccessProperties.RemoveUserRecordsFiles Method",
+        "filename": "2e086f45-38a0-eebb-f1db-6fef69d41c88.md"
+    },
+    "2fb0cf03-fa6f-4509-6167-7d8e19bece43": {
+        "title": "IGettableCalibrations Interface",
+        "filename": "2fb0cf03-fa6f-4509-6167-7d8e19bece43.md"
+    },
+    "301c1d8f-d222-aeff-9df2-2e86c0ddc949": {
+        "title": "Dataset.NumElements Method",
+        "filename": "301c1d8f-d222-aeff-9df2-2e86c0ddc949.md"
+    },
+    "2c308df2-0530-86d2-3bec-5c5da0d450c9": {
+        "title": "MarelliDataAccess.GetDataLicenses Method",
+        "filename": "2c308df2-0530-86d2-3bec-5c5da0d450c9.md"
+    },
+    "2df92b27-21fb-51b5-1baf-5a3ea64c8b82": {
+        "title": "Elaboration Enumeration",
+        "filename": "2df92b27-21fb-51b5-1baf-5a3ea64c8b82.md"
+    },
+    "2fb1ebc2-5d31-a85b-a88d-85ec442cdf1a": {
+        "title": "MarelliCLXAccess.GetSymbols Method",
+        "filename": "2fb1ebc2-5d31-a85b-a88d-85ec442cdf1a.md"
+    },
+    "31862390-7570-4b21-e846-fc97adf42f97": {
+        "title": "IMarelliCLXAccess Properties",
+        "filename": "31862390-7570-4b21-e846-fc97adf42f97.md"
+    },
+    "2ed90743-7ae2-f73e-ba16-1af3c73aebd9": {
+        "title": "GlobalLogHelper Class",
+        "filename": "2ed90743-7ae2-f73e-ba16-1af3c73aebd9.md"
+    },
+    "30042262-fcf9-e3b5-79b9-94a4b1fa1256": {
+        "title": "x2DDataAccess.GetChannels Method (String[], UInt32[], String[], Boolean)",
+        "filename": "30042262-fcf9-e3b5-79b9-94a4b1fa1256.md"
+    },
+    "2f46b1e2-ba00-636a-c7e1-c8f26ec3118e": {
+        "title": "Dataset.Matches Method",
+        "filename": "2f46b1e2-ba00-636a-c7e1-c8f26ec3118e.md"
+    },
+    "30cb6637-554b-6eab-42bd-058a593e0251": {
+        "title": "IMarelliDataBrowse.IsEventRootLocation Method",
+        "filename": "30cb6637-554b-6eab-42bd-058a593e0251.md"
+    },
+    "300d198a-4e7d-488c-c3f0-b922502b046e": {
+        "title": "Timeseries.SignalData Property",
+        "filename": "300d198a-4e7d-488c-c3f0-b922502b046e.md"
+    },
+    "2cccdb48-cd70-d68c-b7a1-4fddc78c4df4": {
+        "title": "KtmDataHandler.Utils.IInterfaces Namespace",
+        "filename": "2cccdb48-cd70-d68c-b7a1-4fddc78c4df4.md"
+    },
+    "32c6cf97-bfde-368a-339d-926d41f9e920": {
+        "title": "TyreInformationFile.TyreSnapshots Property",
+        "filename": "32c6cf97-bfde-368a-339d-926d41f9e920.md"
+    },
+    "31d59963-5c3b-f73e-7d04-bb2af53a6824": {
+        "title": "IApplicationGUI Methods",
+        "filename": "31d59963-5c3b-f73e-7d04-bb2af53a6824.md"
+    },
+    "32fc3eb9-4c9e-26f6-b18a-c140cfda95c2": {
+        "title": "ISymbolAccess Properties",
+        "filename": "32fc3eb9-4c9e-26f6-b18a-c140cfda95c2.md"
+    },
+    "3304bb37-b3dc-51b5-20b7-8b132e48da65": {
+        "title": "IDataset Interface",
+        "filename": "3304bb37-b3dc-51b5-20b7-8b132e48da65.md"
+    },
+    "341be5de-7100-42c3-7ed9-82a9c790a788": {
+        "title": "Channel.SetTimeNsecData Method",
+        "filename": "341be5de-7100-42c3-7ed9-82a9c790a788.md"
+    },
+    "329c8f3f-fd85-7e27-4355-d1fef20b8783": {
+        "title": "DataAccess Properties",
+        "filename": "329c8f3f-fd85-7e27-4355-d1fef20b8783.md"
+    },
+    "3383e0fa-1991-ba44-18e2-66ac6e948d0c": {
+        "title": "SymbolAccess.GetCalibration Method",
+        "filename": "3383e0fa-1991-ba44-18e2-66ac6e948d0c.md"
+    },
+    "33a70641-16c5-220f-cade-1b7bace3b68f": {
+        "title": "MarelliCLXAccess.Save Method",
+        "filename": "33a70641-16c5-220f-cade-1b7bace3b68f.md"
+    },
+    "330f14e5-f0cc-242b-5964-792fcc3725c5": {
+        "title": "TyreInformationSnapshot.TyreRecords Property",
+        "filename": "330f14e5-f0cc-242b-5964-792fcc3725c5.md"
+    },
+    "3338ce25-5aa1-8a9b-0529-ed33ade36561": {
+        "title": "Channel.SetTimeData Method",
+        "filename": "3338ce25-5aa1-8a9b-0529-ed33ade36561.md"
+    },
+    "34355274-45a2-5338-d1bb-8df3573cdef9": {
+        "title": "IApplicationWrite.SetTime Method",
+        "filename": "34355274-45a2-5338-d1bb-8df3573cdef9.md"
+    },
+    "35a63656-5104-ecd1-c18f-f80d99db33ee": {
+        "title": "IApplicationRead.GetLastSampleTime Method",
+        "filename": "35a63656-5104-ecd1-c18f-f80d99db33ee.md"
+    },
+    "343066b0-c4ce-a2fc-26bf-96bf317e58e5": {
+        "title": "ITimeseries.RunFilter Method",
+        "filename": "343066b0-c4ce-a2fc-26bf-96bf317e58e5.md"
+    },
+    "35cfb50a-fb54-c476-5113-8c8fec5141e9": {
+        "title": "IMarelliDataBrowse.GetDeviceName Method",
+        "filename": "35cfb50a-fb54-c476-5113-8c8fec5141e9.md"
+    },
+    "35a42de6-1b91-41cf-3577-55b946166574": {
+        "title": "ITimeseriesFilter.GetPreDefinedFilterCoefficients Method",
+        "filename": "35a42de6-1b91-41cf-3577-55b946166574.md"
+    },
+    "37755622-aba1-d381-db55-b2222c3bf5ea": {
+        "title": "IMarelliDataAccessRead.GetMathLibrary Method",
+        "filename": "37755622-aba1-d381-db55-b2222c3bf5ea.md"
+    },
+    "37fa2a5d-44a3-a7ed-1123-5dadb9cb0a03": {
+        "title": "IApplicationWrite.SetLayout Method",
+        "filename": "37fa2a5d-44a3-a7ed-1123-5dadb9cb0a03.md"
+    },
+    "3814f4f8-a8f8-5b49-66c4-49af47d09f4d": {
+        "title": "IGettableMeasurements.GetMeasurement Method",
+        "filename": "3814f4f8-a8f8-5b49-66c4-49af47d09f4d.md"
+    },
+    "3836db07-22f5-e328-3c1d-215abf9faef4": {
+        "title": "Misc.MaxVectorSizeForDouble Property",
+        "filename": "3836db07-22f5-e328-3c1d-215abf9faef4.md"
+    },
+    "397771b8-4b0e-9b07-a62b-9ef23cc893e7": {
+        "title": "IMarelliDataAccessWrite Properties",
+        "filename": "397771b8-4b0e-9b07-a62b-9ef23cc893e7.md"
+    },
+    "38fa0aa7-3d1c-253d-1b01-40edcbba4863": {
+        "title": "IMarelliDataAccessWrite.SetChannels Method",
+        "filename": "38fa0aa7-3d1c-253d-1b01-40edcbba4863.md"
+    },
+    "399dba24-f955-2b2e-9b57-0458b71b44fe": {
+        "title": "Application.LoadDataset Method",
+        "filename": "399dba24-f955-2b2e-9b57-0458b71b44fe.md"
+    },
+    "398717a1-a796-6696-2c09-eb35d133d5b6": {
+        "title": "DataAccess.SetChannels Method",
+        "filename": "398717a1-a796-6696-2c09-eb35d133d5b6.md"
+    },
+    "3a67aabf-71e5-357b-ef7e-1c447502a8f3": {
+        "title": "MarelliDataAccess Methods",
+        "filename": "3a67aabf-71e5-357b-ef7e-1c447502a8f3.md"
+    },
+    "3614a123-c212-e9af-6db1-4671994bdc0a": {
+        "title": "Application.SubsetSearchFolders Property",
+        "filename": "3614a123-c212-e9af-6db1-4671994bdc0a.md"
+    },
+    "36981cd9-561b-f44b-1f18-8e0f58f4febf": {
+        "title": "MarelliDataBrowse.GetRunType Method",
+        "filename": "36981cd9-561b-f44b-1f18-8e0f58f4febf.md"
+    },
+    "36cb58ca-4657-b2ad-2903-f1cc50372021": {
+        "title": "MarelliCLXAccess.SubsetSearchFolders Property",
+        "filename": "36cb58ca-4657-b2ad-2903-f1cc50372021.md"
+    },
+    "3765e958-5104-8e0f-178a-7611ef0a69a0": {
+        "title": "TyreInformationSnapshot.TimestampUtc Property",
+        "filename": "3765e958-5104-8e0f-178a-7611ef0a69a0.md"
+    },
+    "35d48a17-65b5-bb3d-e87b-ca8d49d8b49c": {
+        "title": "MarelliDataAccess.GetLapMarks Method",
+        "filename": "35d48a17-65b5-bb3d-e87b-ca8d49d8b49c.md"
+    },
+    "380220ee-038c-f2bd-a3eb-5037c16a8d43": {
+        "title": "SymbolAccess.GetMeasurementNames Method",
+        "filename": "380220ee-038c-f2bd-a3eb-5037c16a8d43.md"
+    },
+    "39f368f8-42f8-6547-d9c9-db3a051a6878": {
+        "title": "Application.ExportChn Method",
+        "filename": "39f368f8-42f8-6547-d9c9-db3a051a6878.md"
+    },
+    "3b69d4d1-e5b2-67d4-bfe2-0bad6e929f4d": {
+        "title": "x2DDataAccess.DataProperties Property",
+        "filename": "3b69d4d1-e5b2-67d4-bfe2-0bad6e929f4d.md"
+    },
+    "3a9aa893-51fd-9112-e36d-7aad80543a0a": {
+        "title": "Application.GetLapMarks Method",
+        "filename": "3a9aa893-51fd-9112-e36d-7aad80543a0a.md"
+    },
+    "3b771ecb-b31d-9355-4d35-d70452049e11": {
+        "title": "MarelliCLXAccess.NameValidationRegex Property",
+        "filename": "3b771ecb-b31d-9355-4d35-d70452049e11.md"
+    },
+    "4302bd31-cddc-c31a-0760-fe9c1dfa9092": {
+        "title": "IChannelList.Matches Method",
+        "filename": "4302bd31-cddc-c31a-0760-fe9c1dfa9092.md"
+    },
+    "4001d192-e0d4-fda5-8301-dad755d84728": {
+        "title": "MultipleSourceDataAccess.Finalize Method",
+        "filename": "4001d192-e0d4-fda5-8301-dad755d84728.md"
+    },
+    "3e5e0a5b-20cb-dd13-03cb-f84f0dfbe896": {
+        "title": "KtmDataHandler.Marelli.Wintax Namespace",
+        "filename": "3e5e0a5b-20cb-dd13-03cb-f84f0dfbe896.md"
+    },
+    "3ff712e9-25ba-52e6-5207-fa06a61f5ca2": {
+        "title": "Dataset.Finalize Method",
+        "filename": "3ff712e9-25ba-52e6-5207-fa06a61f5ca2.md"
+    },
+    "3f3f0af1-5312-193c-45bd-8722fb925731": {
+        "title": "MarelliDataAccess.LoadRun Method",
+        "filename": "3f3f0af1-5312-193c-45bd-8722fb925731.md"
+    },
+    "3f3dffe4-19bc-2f31-ebcc-9879907ae6f1": {
+        "title": "Application Class",
+        "filename": "3f3dffe4-19bc-2f31-ebcc-9879907ae6f1.md"
+    },
+    "40e47008-a804-3a15-c184-6e9220073a4a": {
+        "title": "MarelliDataAccess.SetConstants Method",
+        "filename": "40e47008-a804-3a15-c184-6e9220073a4a.md"
+    },
+    "404be781-23e0-da6a-7e33-d2669458bb64": {
+        "title": "TyreInformationSnapshot Constructor",
+        "filename": "404be781-23e0-da6a-7e33-d2669458bb64.md"
+    },
+    "4032b4d4-9159-a5e4-e078-747c140ae0f1": {
+        "title": "SymbolAccess.WriteSymbols Method",
+        "filename": "4032b4d4-9159-a5e4-e078-747c140ae0f1.md"
+    },
+    "41bc72f1-b1b9-72ce-8add-ad17b95276c8": {
+        "title": "Application.SetApplicationVisibility Method",
+        "filename": "41bc72f1-b1b9-72ce-8add-ad17b95276c8.md"
+    },
+    "3ff44b89-9c57-a7f7-d3f4-77244c9cf55c": {
+        "title": "GlobalLogHelper.SetAssemblyName Method",
+        "filename": "3ff44b89-9c57-a7f7-d3f4-77244c9cf55c.md"
+    },
+    "4128ef68-6b16-ec0f-d4cf-37cda4095c67": {
+        "title": "ChannelListElementModel Properties",
+        "filename": "4128ef68-6b16-ec0f-d4cf-37cda4095c67.md"
+    },
+    "4111dff7-8d2f-bde6-d0d4-05cd490a9823": {
+        "title": "Application.GetChannelsNames Method",
+        "filename": "4111dff7-8d2f-bde6-d0d4-05cd490a9823.md"
+    },
+    "41a3da77-08f0-3f6a-b5a7-43617b02aeb8": {
+        "title": "MarelliDataAccess.GetUserRecords Method",
+        "filename": "41a3da77-08f0-3f6a-b5a7-43617b02aeb8.md"
+    },
+    "3ce197bc-872b-a232-0783-7e8d02c239eb": {
+        "title": "IMarelliDataAccess Interface",
+        "filename": "3ce197bc-872b-a232-0783-7e8d02c239eb.md"
+    },
+    "3ec84b34-93fd-0b00-570e-cf3a1fb085ec": {
+        "title": "MarelliDataAccess.LoadRun Method (String[])",
+        "filename": "3ec84b34-93fd-0b00-570e-cf3a1fb085ec.md"
+    },
+    "3ea4465a-5a7a-223c-2fe8-91590f0c1c4e": {
+        "title": "IChannelList Properties",
+        "filename": "3ea4465a-5a7a-223c-2fe8-91590f0c1c4e.md"
+    },
+    "43375e1a-d4f7-6160-87c8-7f5bbc646b8c": {
+        "title": "Application.GetConditionsLibrary Method",
+        "filename": "43375e1a-d4f7-6160-87c8-7f5bbc646b8c.md"
+    },
+    "437ff875-b22e-d127-cd40-69ba96f90c2d": {
+        "title": "Application.ClxSearchFolders Property",
+        "filename": "437ff875-b22e-d127-cd40-69ba96f90c2d.md"
+    },
+    "43651f70-102a-670a-0f70-c282e825621e": {
+        "title": "x2DDataAccess Class",
+        "filename": "43651f70-102a-670a-0f70-c282e825621e.md"
+    },
+    "44621437-9fe0-61d3-73d1-c730542111e8": {
+        "title": "IMarelliDataAccessCommon Methods",
+        "filename": "44621437-9fe0-61d3-73d1-c730542111e8.md"
+    },
+    "443e8a32-70c2-e3d5-034b-12896b87568a": {
+        "title": "ChannelListModel Constructor",
+        "filename": "443e8a32-70c2-e3d5-034b-12896b87568a.md"
+    },
+    "44f801d8-0969-bd93-bdb0-746009884479": {
+        "title": "Dataset.Add Method (ITimeseries, Boolean)",
+        "filename": "44f801d8-0969-bd93-bdb0-746009884479.md"
+    },
+    "43b5999a-5255-f786-dbea-d37e871f835d": {
+        "title": "IMarelliDataAccessWrite Methods",
+        "filename": "43b5999a-5255-f786-dbea-d37e871f835d.md"
+    },
+    "47e5f6cc-6569-8a0a-9b3d-ea913acb926c": {
+        "title": "IApplicationGUI.CompareRuns Method",
+        "filename": "47e5f6cc-6569-8a0a-9b3d-ea913acb926c.md"
+    },
+    "47feae23-d74d-8fd0-152e-d7297cc616d1": {
+        "title": "IUpdatableCalibrationValue.UpdateCalibrationRawValue Method",
+        "filename": "47feae23-d74d-8fd0-152e-d7297cc616d1.md"
+    },
+    "45e55926-7520-1a25-1c27-0abf64db7fc5": {
+        "title": "Application.RemoveChannel Method",
+        "filename": "45e55926-7520-1a25-1c27-0abf64db7fc5.md"
+    },
+    "440f6929-b9b0-e47f-bf01-86147f00b4a0": {
+        "title": "IApplicationRead.SetEventsLibrary Method",
+        "filename": "440f6929-b9b0-e47f-bf01-86147f00b4a0.md"
+    },
+    "485fbc3e-fb9b-f569-644d-6cf4028aae0b": {
+        "title": "Timeseries Methods",
+        "filename": "485fbc3e-fb9b-f569-644d-6cf4028aae0b.md"
+    },
+    "471f1792-0af5-cb31-ec35-27879fd6b0b9": {
+        "title": "IApplicationGUI.ExportChn Method",
+        "filename": "471f1792-0af5-cb31-ec35-27879fd6b0b9.md"
+    },
+    "4881f1c2-f516-492c-3c97-08ab83e94110": {
+        "title": "Timeseries.Clone Method",
+        "filename": "4881f1c2-f516-492c-3c97-08ab83e94110.md"
+    },
+    "45dd9e73-f2d0-501f-1c34-3081c33b981a": {
+        "title": "TyreInformationSnapshot.MachineName Property",
+        "filename": "45dd9e73-f2d0-501f-1c34-3081c33b981a.md"
+    },
+    "46e44574-93c8-71fb-6fe3-1d19eccfdd1b": {
+        "title": "IMarelliDataAccessProperties.AppendConstants Method",
+        "filename": "46e44574-93c8-71fb-6fe3-1d19eccfdd1b.md"
+    },
+    "4a8b3be4-f689-bf02-13f0-2d44cb93f554": {
+        "title": "MarelliDataAccess.AppendUserRecords Method",
+        "filename": "4a8b3be4-f689-bf02-13f0-2d44cb93f554.md"
+    },
+    "4ab35fdb-bb49-66d2-d038-52d616a77806": {
+        "title": "MarelliCLXAccess.NameValidationEnabled Property",
+        "filename": "4ab35fdb-bb49-66d2-d038-52d616a77806.md"
+    },
+    "4b314bd0-9f4d-37e8-92bf-5c0c85f4f41e": {
+        "title": "IMarelliDataAccessWrite.RemoveLapConstant Method",
+        "filename": "4b314bd0-9f4d-37e8-92bf-5c0c85f4f41e.md"
+    },
+    "4ba28f97-3ae8-8ff5-34c6-0783d304be4e": {
+        "title": "IDataset.Clear Method",
+        "filename": "4ba28f97-3ae8-8ff5-34c6-0783d304be4e.md"
+    },
+    "4bfe2171-28b8-4621-b806-6637354e74bc": {
+        "title": "CanSignalFormat Enumeration",
+        "filename": "4bfe2171-28b8-4621-b806-6637354e74bc.md"
+    },
+    "4c177e17-9122-ecca-c55a-fa14b5213752": {
+        "title": "ChannelListElementModel.Finalize Method",
+        "filename": "4c177e17-9122-ecca-c55a-fa14b5213752.md"
+    },
+    "4c1fac66-377d-fbe9-ef99-e8abe0b37c74": {
+        "title": "SymbolPropertiesToGet Enumeration",
+        "filename": "4c1fac66-377d-fbe9-ef99-e8abe0b37c74.md"
+    },
+    "4c1a641f-8405-cc92-0e80-31e2920f16ec": {
+        "title": "x2DDataAccess.GetLastSampleTime Method",
+        "filename": "4c1a641f-8405-cc92-0e80-31e2920f16ec.md"
+    },
+    "4c23511e-3580-3ac8-6b70-c6c8d9324a12": {
+        "title": "MarelliDataAccess.GetFrequencyList Method",
+        "filename": "4c23511e-3580-3ac8-6b70-c6c8d9324a12.md"
+    },
+    "49f7b00d-89f0-d942-d9cb-9ca174846e00": {
+        "title": "IMarelliCLXAccess.ConfigSearchFolders Property",
+        "filename": "49f7b00d-89f0-d942-d9cb-9ca174846e00.md"
+    },
+    "49e6b6c0-7a2a-47a6-4e26-ee75aee39b43": {
+        "title": "MultipleSourceDataAccess Constructor",
+        "filename": "49e6b6c0-7a2a-47a6-4e26-ee75aee39b43.md"
+    },
+    "4a61bcd4-cbec-c0b8-f981-60fad0b0f526": {
+        "title": "Channel Methods",
+        "filename": "4a61bcd4-cbec-c0b8-f981-60fad0b0f526.md"
+    },
+    "4a02afd0-550e-ec2f-3ac1-85fb69f73713": {
+        "title": "IDataset.Matches Method",
+        "filename": "4a02afd0-550e-ec2f-3ac1-85fb69f73713.md"
+    },
+    "4a03d7a8-a1d6-e175-a4c8-62df76385f3c": {
+        "title": "SymbolAccess Properties",
+        "filename": "4a03d7a8-a1d6-e175-a4c8-62df76385f3c.md"
+    },
+    "4c61252e-8d1b-c125-58ae-f498689ca0de": {
+        "title": "SymbolTypes Enumeration",
+        "filename": "4c61252e-8d1b-c125-58ae-f498689ca0de.md"
+    },
+    "4c9c301c-eb02-2770-e394-e4af0c0e1b8d": {
+        "title": "TyreInformationSnapshot.LastUpdateUtc Property",
+        "filename": "4c9c301c-eb02-2770-e394-e4af0c0e1b8d.md"
+    },
+    "4daa3af0-7393-01b6-ccbd-00e6314f2b42": {
+        "title": "ISymbolAccess.SymFullFile Property",
+        "filename": "4daa3af0-7393-01b6-ccbd-00e6314f2b42.md"
+    },
+    "4c516361-d904-106a-24e9-ce1cad810024": {
+        "title": "IMarelliDataBrowse.GetRunType Method",
+        "filename": "4c516361-d904-106a-24e9-ce1cad810024.md"
+    },
+    "4ee92d29-e7a2-8359-6d58-1f43b9603103": {
+        "title": "ChannelListElementModel.Name Property",
+        "filename": "4ee92d29-e7a2-8359-6d58-1f43b9603103.md"
+    },
+    "52d9d592-8967-eb47-af20-b72e99b46dfe": {
+        "title": "SymbolAccess.Save Method",
+        "filename": "52d9d592-8967-eb47-af20-b72e99b46dfe.md"
+    },
+    "4e06f8f7-8bd0-ca22-d7db-f316900bcdb1": {
+        "title": "IMarelliDataAccessRead.SelectRun Method",
+        "filename": "4e06f8f7-8bd0-ca22-d7db-f316900bcdb1.md"
+    },
+    "52fd4122-0996-b7b8-ffae-d93b2767173b": {
+        "title": "KtmDataHandler.x2D.WinARace Namespace",
+        "filename": "52fd4122-0996-b7b8-ffae-d93b2767173b.md"
+    },
+    "4f27b045-4900-d7b7-11f6-d101d5b36c67": {
+        "title": "IChannel.TimeNsecData Property",
+        "filename": "4f27b045-4900-d7b7-11f6-d101d5b36c67.md"
+    },
+    "52075623-1d78-137a-8544-a38ba2adeae0": {
+        "title": "MarelliCLXAccess.UpdateCalibrationRawValue Method (IDataDictionary)",
+        "filename": "52075623-1d78-137a-8544-a38ba2adeae0.md"
+    },
+    "5374e125-8c5d-1dd9-9b96-199fd6e3d5f7": {
+        "title": "IMarelliDataAccessRead.SelectLap Method",
+        "filename": "5374e125-8c5d-1dd9-9b96-199fd6e3d5f7.md"
+    },
+    "533b7081-a7d6-529e-3f2d-c254b6951858": {
+        "title": "I2DDataAccess Properties",
+        "filename": "533b7081-a7d6-529e-3f2d-c254b6951858.md"
+    },
+    "51e8bfba-5600-51e4-d485-7270a8277c71": {
+        "title": "Application.GetChannels Method",
+        "filename": "51e8bfba-5600-51e4-d485-7270a8277c71.md"
+    },
+    "52252513-a6c7-37a9-c44f-eece51ae0b51": {
+        "title": "DataAccess.GetChannels Method (String[], UInt32[], String[], Boolean)",
+        "filename": "52252513-a6c7-37a9-c44f-eece51ae0b51.md"
+    },
+    "4f60fab1-1ee2-e387-58e5-baa6034e13fc": {
+        "title": "MarelliCLXAccess.ClxFullFile Property",
+        "filename": "4f60fab1-1ee2-e387-58e5-baa6034e13fc.md"
+    },
+    "52ae25a5-f451-7b5e-0d5e-cd5126f5346e": {
+        "title": "Application.SetDataLocation Method",
+        "filename": "52ae25a5-f451-7b5e-0d5e-cd5126f5346e.md"
+    },
+    "5355d208-f485-232d-4a94-d9c9d93a2a4c": {
+        "title": "x2DDataAccess.SetDataLocation Method",
+        "filename": "5355d208-f485-232d-4a94-d9c9d93a2a4c.md"
+    },
+    "515bb037-faf7-8157-30e5-6d6c904b9c82": {
+        "title": "IChannel.Unit Property",
+        "filename": "515bb037-faf7-8157-30e5-6d6c904b9c82.md"
+    },
+    "542872ca-e5df-c81a-19a5-04909d19aafc": {
+        "title": "IMarelliDataAccessRead.GetLastSampleTime Method",
+        "filename": "542872ca-e5df-c81a-19a5-04909d19aafc.md"
+    },
+    "4e7a955e-3b3c-1c0e-3482-73e948796f0e": {
+        "title": "IDataAccessCommon Methods",
+        "filename": "4e7a955e-3b3c-1c0e-3482-73e948796f0e.md"
+    },
+    "5179430e-ff5f-9ed3-26ef-2d241aa90b51": {
+        "title": "ListOfIGettableChannels Properties",
+        "filename": "5179430e-ff5f-9ed3-26ef-2d241aa90b51.md"
+    },
+    "5496cad2-a0fb-3d50-fa68-2b8331fccdd8": {
+        "title": "ITimeseries Methods",
+        "filename": "5496cad2-a0fb-3d50-fa68-2b8331fccdd8.md"
+    },
+    "54ab30b7-899d-f0a2-4f8b-bca47ca5b4ea": {
+        "title": "IDataset.Add Method (ITimeseries[], Boolean)",
+        "filename": "54ab30b7-899d-f0a2-4f8b-bca47ca5b4ea.md"
+    },
+    "56351907-269d-4bab-8b44-f3f1ec92e35f": {
+        "title": "TyreInformationDataAccess Class",
+        "filename": "56351907-269d-4bab-8b44-f3f1ec92e35f.md"
+    },
+    "55cdd76e-cd3f-870f-a6bf-f3212343c67b": {
+        "title": "ITimeseries.Resample Method",
+        "filename": "55cdd76e-cd3f-870f-a6bf-f3212343c67b.md"
+    },
+    "54e9e2e1-99f6-99de-e45b-b2394fa48b93": {
+        "title": "Application.GetChannelsNames Method",
+        "filename": "54e9e2e1-99f6-99de-e45b-b2394fa48b93.md"
+    },
+    "55cb796e-86be-1530-4676-92056d4739aa": {
+        "title": "Dataset.GetElementNames Method",
+        "filename": "55cb796e-86be-1530-4676-92056d4739aa.md"
+    },
+    "56c98f06-5847-7d4e-6967-191682d732b4": {
+        "title": "Application.LoadRun Method",
+        "filename": "56c98f06-5847-7d4e-6967-191682d732b4.md"
+    },
+    "565a94f5-8ab5-f4e8-becb-72b96f3edf27": {
+        "title": "Application.CloseApplication Method",
+        "filename": "565a94f5-8ab5-f4e8-becb-72b96f3edf27.md"
+    },
+    "568cfdc7-f257-dbe2-9f29-fec75c31a993": {
+        "title": "TyreInformationRecord Class",
+        "filename": "568cfdc7-f257-dbe2-9f29-fec75c31a993.md"
+    },
+    "569dc743-9bf1-63bb-a98d-12b29bd0b5e4": {
+        "title": "TyreInformationRecord.WeatherType Property",
+        "filename": "569dc743-9bf1-63bb-a98d-12b29bd0b5e4.md"
+    },
+    "59c44f4d-5b06-a349-06ea-c250553bfd10": {
+        "title": "MarelliDataAccess Properties",
+        "filename": "59c44f4d-5b06-a349-06ea-c250553bfd10.md"
+    },
+    "5c5125f0-11e0-05c2-9aca-bf4586516ebe": {
+        "title": "MarelliCLXAccess.UpdateGlobalExtendedCustomFields Method",
+        "filename": "5c5125f0-11e0-05c2-9aca-bf4586516ebe.md"
+    },
+    "599d34db-7073-9e0e-379f-c13f395929c2": {
+        "title": "IMarelliDataAccessWrite.RemoveRunProperty Method",
+        "filename": "599d34db-7073-9e0e-379f-c13f395929c2.md"
+    },
+    "5cff8141-13fd-6982-bd2f-bdf2ca9e933b": {
+        "title": "Dataset.Clone Method",
+        "filename": "5cff8141-13fd-6982-bd2f-bdf2ca9e933b.md"
+    },
+    "5eac37bf-aac2-9fc0-b161-460c98869333": {
+        "title": "TyreInformationSnapshot.LastUpdateLocal Property",
+        "filename": "5eac37bf-aac2-9fc0-b161-460c98869333.md"
+    },
+    "5f44b72d-86b1-0d50-6df5-9ff511f0fcc3": {
+        "title": "Dataset.Add Method",
+        "filename": "5f44b72d-86b1-0d50-6df5-9ff511f0fcc3.md"
+    },
+    "5ec61cbf-807c-b865-e00f-7524fc15a7a1": {
+        "title": "IListOfIGettableChannels Interface",
+        "filename": "5ec61cbf-807c-b865-e00f-7524fc15a7a1.md"
+    },
+    "60628fa1-8dbe-205b-a37c-756a044db3bb": {
+        "title": "IMarelliGetRunAssociatedFiles Interface",
+        "filename": "60628fa1-8dbe-205b-a37c-756a044db3bb.md"
+    },
+    "5f27b77a-aba5-db37-633a-ceef979f6ebf": {
+        "title": "TyreInformationDataAccess.Read Method",
+        "filename": "5f27b77a-aba5-db37-633a-ceef979f6ebf.md"
+    },
+    "6006ddac-c878-af06-8bdf-9b24ce76f9f5": {
+        "title": "IGettableMeasurements.GetMeasurementNames Method",
+        "filename": "6006ddac-c878-af06-8bdf-9b24ce76f9f5.md"
+    },
+    "607fe072-a3d5-c9e0-c0d7-001e197fd5b8": {
+        "title": "ChannelListElementModel Class",
+        "filename": "607fe072-a3d5-c9e0-c0d7-001e197fd5b8.md"
+    },
+    "5a7d2907-af0d-b6a6-cb38-40d0a7329022": {
+        "title": "DataAccess.GetChannelsNames Method",
+        "filename": "5a7d2907-af0d-b6a6-cb38-40d0a7329022.md"
+    },
+    "5c3336ff-156b-d721-7f0c-f462164d1051": {
+        "title": "Application.OpenDataViewer Method",
+        "filename": "5c3336ff-156b-d721-7f0c-f462164d1051.md"
+    },
+    "5b684b2d-7445-969c-2aa5-cdad5dbb8ad9": {
+        "title": "ITimeseries.IsNullOrEmpty Method",
+        "filename": "5b684b2d-7445-969c-2aa5-cdad5dbb8ad9.md"
+    },
+    "57b9b672-b176-df15-68b0-20ffb7f42604": {
+        "title": "Channel.Unit Property",
+        "filename": "57b9b672-b176-df15-68b0-20ffb7f42604.md"
+    },
+    "582acabf-7a11-6550-fbb6-3801ff21ed37": {
+        "title": "MultipleSourceDataAccess Class",
+        "filename": "582acabf-7a11-6550-fbb6-3801ff21ed37.md"
+    },
+    "58b9626c-7f03-c767-fa0e-69b915f42f17": {
+        "title": "OutputFormat Enumeration",
+        "filename": "58b9626c-7f03-c767-fa0e-69b915f42f17.md"
+    },
+    "5b22b0ae-ec30-87fc-8b89-abffc6830498": {
+        "title": "IMarelliDataAccessWrite.RemoveUserRecord Method",
+        "filename": "5b22b0ae-ec30-87fc-8b89-abffc6830498.md"
+    },
+    "5c3cb262-c91b-ede6-ae7b-a81eabca49a0": {
+        "title": "Dataset.GetElement Method",
+        "filename": "5c3cb262-c91b-ede6-ae7b-a81eabca49a0.md"
+    },
+    "61889db0-725f-8d91-2b63-4edb19aa255d": {
+        "title": "Dataset.Clear Method",
+        "filename": "61889db0-725f-8d91-2b63-4edb19aa255d.md"
+    },
+    "62f10c4f-ba73-1bbc-0659-08f8971e9a06": {
+        "title": "ChannelListElementListModel.Finalize Method",
+        "filename": "62f10c4f-ba73-1bbc-0659-08f8971e9a06.md"
+    },
+    "618c95fe-08da-df28-e494-422faa3d9673": {
+        "title": "SymbolAccess.GetMeasurement Method",
+        "filename": "618c95fe-08da-df28-e494-422faa3d9673.md"
+    },
+    "6433b7f1-0575-9711-b013-c5e22431e937": {
+        "title": "ITimeseriesFilter Methods",
+        "filename": "6433b7f1-0575-9711-b013-c5e22431e937.md"
+    },
+    "66cc2b8d-915e-5d37-5720-6bdb3a860e90": {
+        "title": "IApplicationGUI.CompareData Method",
+        "filename": "66cc2b8d-915e-5d37-5720-6bdb3a860e90.md"
+    },
+    "664b6272-86b5-6e98-6b23-3d87db17f825": {
+        "title": "ITimeseries.SignalData Property",
+        "filename": "664b6272-86b5-6e98-6b23-3d87db17f825.md"
+    },
+    "6e0b1c8e-8d52-0e97-cffa-6f4eae3d7c24": {
+        "title": "ChannelListElementModel.Properties Property",
+        "filename": "6e0b1c8e-8d52-0e97-cffa-6f4eae3d7c24.md"
+    },
+    "6f2bd9dc-5432-af63-eff3-468e0989e4da": {
+        "title": "IDataset.Remove Method",
+        "filename": "6f2bd9dc-5432-af63-eff3-468e0989e4da.md"
+    },
+    "6a8283e7-2df6-7c56-a61e-f2388a4e3796": {
+        "title": "SymbolAccess.Load Method",
+        "filename": "6a8283e7-2df6-7c56-a61e-f2388a4e3796.md"
+    },
+    "6578bf2d-2798-ffe3-ede8-23875ca9343f": {
+        "title": "IMarelliCLXAccess.SubsetSearchFolders Property",
+        "filename": "6578bf2d-2798-ffe3-ede8-23875ca9343f.md"
+    },
+    "6c609964-1aa7-c96a-25cb-21179507485e": {
+        "title": "DataAccess.GetChannels Method",
+        "filename": "6c609964-1aa7-c96a-25cb-21179507485e.md"
+    },
+    "6bb84384-6b95-33ed-2a41-cb1e8c441679": {
+        "title": "Channel.Date Property",
+        "filename": "6bb84384-6b95-33ed-2a41-cb1e8c441679.md"
+    },
+    "6e8b1223-3935-ffc7-64a3-6e0ab259b49a": {
+        "title": "MarelliDataAccess.RemoveMathLibrary Method",
+        "filename": "6e8b1223-3935-ffc7-64a3-6e0ab259b49a.md"
+    },
+    "68af6fc4-9990-07f0-d68e-2d9eb0bcab58": {
+        "title": "IChannelList.Model Property",
+        "filename": "68af6fc4-9990-07f0-d68e-2d9eb0bcab58.md"
+    },
+    "6fb50fd4-b757-3d41-fc3b-6123dabc0bd3": {
+        "title": "IMarelliCLXNameValidation Properties",
+        "filename": "6fb50fd4-b757-3d41-fc3b-6123dabc0bd3.md"
+    },
+    "6f112dbc-8666-161d-33f6-9aef50516487": {
+        "title": "MultipleSourceDataAccess.SourceList Property",
+        "filename": "6f112dbc-8666-161d-33f6-9aef50516487.md"
+    },
+    "69ca4939-f30f-5513-36f7-ae8eac7df42a": {
+        "title": "Channel.Name Property",
+        "filename": "69ca4939-f30f-5513-36f7-ae8eac7df42a.md"
+    },
+    "6fbbea12-1d48-4dbe-5dd9-99b45474f161": {
+        "title": "Application.ConfigSearchFolders Property",
+        "filename": "6fbbea12-1d48-4dbe-5dd9-99b45474f161.md"
+    },
+    "66c3a480-3b97-8dec-d8fc-a48c781b1541": {
+        "title": "IMarelliDataAccessProperties.SetUserRecords Method",
+        "filename": "66c3a480-3b97-8dec-d8fc-a48c781b1541.md"
+    },
+    "6ddacd57-db55-af5b-5073-aeb1f30c5d99": {
+        "title": "IDataset.Exist Method",
+        "filename": "6ddacd57-db55-af5b-5073-aeb1f30c5d99.md"
+    },
+    "6e135d1e-34a4-900f-267c-19d11c1d4551": {
+        "title": "Channel.TimeData Property",
+        "filename": "6e135d1e-34a4-900f-267c-19d11c1d4551.md"
+    },
+    "70ea1faa-4cd0-f421-544d-5ac12ca627b9": {
+        "title": "AcquisitionLine Enumeration",
+        "filename": "70ea1faa-4cd0-f421-544d-5ac12ca627b9.md"
+    },
+    "726f06c9-d911-9dc6-3df9-e179310c83e5": {
+        "title": "MarelliDataAccess.RemoveImportData Method",
+        "filename": "726f06c9-d911-9dc6-3df9-e179310c83e5.md"
+    },
+    "736c2011-fd96-e087-e7f9-23a94967b9f0": {
+        "title": "MarelliDataBrowse.GetEventRootFolder Method",
+        "filename": "736c2011-fd96-e087-e7f9-23a94967b9f0.md"
+    },
+    "71de544c-85d0-c216-a0c3-6e92055d29ca": {
+        "title": "IApplicationRead Interface",
+        "filename": "71de544c-85d0-c216-a0c3-6e92055d29ca.md"
+    },
+    "740db5ce-007c-6be0-d398-9c9255f3b619": {
+        "title": "SymbolAccess.GetSymbols Method",
+        "filename": "740db5ce-007c-6be0-d398-9c9255f3b619.md"
+    },
+    "75ef8cf6-05c2-764b-ca66-199381a6cfd9": {
+        "title": "IGettableLapMarks.GetLapMarks Method",
+        "filename": "75ef8cf6-05c2-764b-ca66-199381a6cfd9.md"
+    },
+    "75c9b495-28fd-7b4c-b31c-f28432e27b39": {
+        "title": "IDataset.Add Method (ITimeseries, Boolean)",
+        "filename": "75c9b495-28fd-7b4c-b31c-f28432e27b39.md"
+    },
+    "7443b4a7-0ade-e4dc-7e0d-4b0b8fc2e860": {
+        "title": "TyreInformationRecord.Equals Method",
+        "filename": "7443b4a7-0ade-e4dc-7e0d-4b0b8fc2e860.md"
+    },
+    "769a1bc4-de6a-214d-2597-871907973eb3": {
+        "title": "MarelliDataBrowse.FindRuns Method",
+        "filename": "769a1bc4-de6a-214d-2597-871907973eb3.md"
+    },
+    "7449fc5a-b84e-5547-9663-907782c069e2": {
+        "title": "x2DDataAccess Methods",
+        "filename": "7449fc5a-b84e-5547-9663-907782c069e2.md"
+    },
+    "7703d297-1e01-501e-d894-235be059be83": {
+        "title": "MarelliDataAccess.AddImportDataToRun Method",
+        "filename": "7703d297-1e01-501e-d894-235be059be83.md"
+    },
+    "7656c168-b1dd-2d99-4e5a-e09b77c64093": {
+        "title": "IMarelliDataAccessWrite.SetChannelsSplitByLap Method",
+        "filename": "7656c168-b1dd-2d99-4e5a-e09b77c64093.md"
+    },
+    "7a3f3ec1-e878-ad31-dfeb-3fd98cf4a2b9": {
+        "title": "ListOfIGettableChannels Constructor",
+        "filename": "7a3f3ec1-e878-ad31-dfeb-3fd98cf4a2b9.md"
+    },
+    "7c5a7576-85e6-7ed8-f123-76347f08f39d": {
+        "title": "IChannel Properties",
+        "filename": "7c5a7576-85e6-7ed8-f123-76347f08f39d.md"
+    },
+    "7ae4d3e9-0506-d673-1750-153ade1feda9": {
+        "title": "IMarelliDataBrowse Interface",
+        "filename": "7ae4d3e9-0506-d673-1750-153ade1feda9.md"
+    },
+    "7b4e5d76-dad9-7921-c924-d9a92116cbfb": {
+        "title": "Channel.DataType Property",
+        "filename": "7b4e5d76-dad9-7921-c924-d9a92116cbfb.md"
+    },
+    "7becd32c-555f-6eef-99ae-cfe11153f944": {
+        "title": "Channel.DataInfo Property",
+        "filename": "7becd32c-555f-6eef-99ae-cfe11153f944.md"
+    },
+    "7c6956ad-fa9e-9efc-58fa-b5035e9ed70d": {
+        "title": "x2DDataAccess.LoadRun Method",
+        "filename": "7c6956ad-fa9e-9efc-58fa-b5035e9ed70d.md"
+    },
+    "7b224548-12bd-b40f-184f-69db929abde9": {
+        "title": "IGettableChannels Methods",
+        "filename": "7b224548-12bd-b40f-184f-69db929abde9.md"
+    },
+    "7bb83577-6ca5-6833-22a1-1563da610004": {
+        "title": "MarelliDataBrowse Methods",
+        "filename": "7bb83577-6ca5-6833-22a1-1563da610004.md"
+    },
+    "709a3601-6ccb-e98b-d6c2-138d164520ca": {
+        "title": "DataAccess.ExistChannel Method",
+        "filename": "709a3601-6ccb-e98b-d6c2-138d164520ca.md"
+    },
+    "741c6d41-5fd5-3bc6-674b-10d84a79ac5b": {
+        "title": "IMarelliDataAccessRead.GetNoObject Method",
+        "filename": "741c6d41-5fd5-3bc6-674b-10d84a79ac5b.md"
+    },
+    "7c95423d-1dc6-348e-87fa-47e244f8c969": {
+        "title": "IGettableLapMarks Interface",
+        "filename": "7c95423d-1dc6-348e-87fa-47e244f8c969.md"
+    },
+    "7765d78f-211a-d3a5-4ae3-e21aae8cdc12": {
+        "title": "TyreInformationFile Methods",
+        "filename": "7765d78f-211a-d3a5-4ae3-e21aae8cdc12.md"
+    },
+    "780b5706-1500-5e03-30ff-b8c8e4d8c86c": {
+        "title": "IMarelliCLXAccess Methods",
+        "filename": "780b5706-1500-5e03-30ff-b8c8e4d8c86c.md"
+    },
+    "791a7e2e-7e7a-50a4-d493-3184fafad31a": {
+        "title": "IApplicationGUI.SetPluginsLibrary Method",
+        "filename": "791a7e2e-7e7a-50a4-d493-3184fafad31a.md"
+    },
+    "77b360c4-8066-3d44-1378-6d638c9f0dc3": {
+        "title": "x2DDataAccess.GetChannels Method (String[], Double, Double, String[], Boolean)",
+        "filename": "77b360c4-8066-3d44-1378-6d638c9f0dc3.md"
+    },
+    "77e4e73f-364a-c070-a4d5-71e1fc1dc215": {
+        "title": "IMarelliDataBrowse.GetRunName Method",
+        "filename": "77e4e73f-364a-c070-a4d5-71e1fc1dc215.md"
+    },
+    "799b9290-a668-4aff-969f-d63ffdd9dad0": {
+        "title": "ChannelList.Load Method",
+        "filename": "799b9290-a668-4aff-969f-d63ffdd9dad0.md"
+    },
+    "7cf78219-b8e2-e6ad-1aad-2120e3a5412d": {
+        "title": "MarelliCLXAccess.UpdateCalibrationRawValue Method",
+        "filename": "7cf78219-b8e2-e6ad-1aad-2120e3a5412d.md"
+    },
+    "7e314f8b-ca04-195c-fe42-d59c2590f9ba": {
+        "title": "x2DDataAccess Properties",
+        "filename": "7e314f8b-ca04-195c-fe42-d59c2590f9ba.md"
+    },
+    "7f97dfd8-1437-0a30-b399-e94f97c01778": {
+        "title": "TyreInformationFile Properties",
+        "filename": "7f97dfd8-1437-0a30-b399-e94f97c01778.md"
+    },
+    "7db87156-8424-8953-ef76-1b9823f16322": {
+        "title": "WtxAppSignalType Enumeration",
+        "filename": "7db87156-8424-8953-ef76-1b9823f16322.md"
+    },
+    "7fe51bd5-8389-2bf0-0416-07bb51a21d9c": {
+        "title": "Application.GetLastSampleTime Method",
+        "filename": "7fe51bd5-8389-2bf0-0416-07bb51a21d9c.md"
+    },
+    "7ed142db-60d8-acd3-e02a-5ba137e9cee0": {
+        "title": "DataAccess.GetLapMarks Method",
+        "filename": "7ed142db-60d8-acd3-e02a-5ba137e9cee0.md"
+    },
+    "84e39871-f31f-2ab1-20ea-e6974d4c8bbd": {
+        "title": "IMarelliDataAccessProperties.RemoveConstantsFiles Method",
+        "filename": "84e39871-f31f-2ab1-20ea-e6974d4c8bbd.md"
+    },
+    "7fb437a3-31f3-7ef2-68c8-73a53c414f6f": {
+        "title": "IMarelliCLXAccess.ClxFullFile Property",
+        "filename": "7fb437a3-31f3-7ef2-68c8-73a53c414f6f.md"
+    },
+    "82030ef7-2853-39df-0334-bb85640b23d3": {
+        "title": "IGettableCalibrations.GetCalibrationNames Method",
+        "filename": "82030ef7-2853-39df-0334-bb85640b23d3.md"
+    },
+    "84811afe-3c78-ea8f-7116-7ed57d27c76e": {
+        "title": "IMarelliCLXAccess.Load Method",
+        "filename": "84811afe-3c78-ea8f-7116-7ed57d27c76e.md"
+    },
+    "8105e4d8-d337-06b0-5070-69066ba9b2f9": {
+        "title": "TyreInformationRecord Constructor",
+        "filename": "8105e4d8-d337-06b0-5070-69066ba9b2f9.md"
+    },
+    "836b2835-0eda-5f6c-2c66-9f91651f9867": {
+        "title": "Channel.Finalize Method",
+        "filename": "836b2835-0eda-5f6c-2c66-9f91651f9867.md"
+    },
+    "81635728-48dc-14a6-9860-c4fbba39f4f8": {
+        "title": "TyreInformationRecord.WheelSide Property",
+        "filename": "81635728-48dc-14a6-9860-c4fbba39f4f8.md"
+    },
+    "818dc895-69e8-45a5-7b0c-7e3a993f288c": {
+        "title": "IMarelliCLXNameValidation Methods",
+        "filename": "818dc895-69e8-45a5-7b0c-7e3a993f288c.md"
+    },
+    "80deb342-cb3d-a625-191d-7f58e14c1cfb": {
+        "title": "InterpMethod Enumeration",
+        "filename": "80deb342-cb3d-a625-191d-7f58e14c1cfb.md"
+    },
+    "83aae466-fb32-271f-a577-39d6ca362714": {
+        "title": "MarelliDataAccess.ConfigSearchFolders Property",
+        "filename": "83aae466-fb32-271f-a577-39d6ca362714.md"
+    },
+    "82a56899-ed91-f69c-efda-f1e428ebed50": {
+        "title": "IChannelList Interface",
+        "filename": "82a56899-ed91-f69c-efda-f1e428ebed50.md"
+    },
+    "8163cec5-ea82-c582-dc46-58ed912d851b": {
+        "title": "x2DDataAccess.Finalize Method",
+        "filename": "8163cec5-ea82-c582-dc46-58ed912d851b.md"
+    },
+    "83681de0-e7f6-8436-3ea4-8c8fc62ebc45": {
+        "title": "ChannelList Constructor",
+        "filename": "83681de0-e7f6-8436-3ea4-8c8fc62ebc45.md"
+    },
+    "813f48a2-dabd-f83e-eb04-65ac7da14c53": {
+        "title": "Channel.TimeNsec Property",
+        "filename": "813f48a2-dabd-f83e-eb04-65ac7da14c53.md"
+    },
+    "853c89f6-1acf-62d6-6831-1b1cde276afd": {
+        "title": "MultipleSourceDataAccess.GetChannels Method",
+        "filename": "853c89f6-1acf-62d6-6831-1b1cde276afd.md"
+    },
+    "84e84a8b-298b-d0d6-3b8d-e23eb49e4751": {
+        "title": "IApplicationGUI.SetApplicationVisibility Method",
+        "filename": "84e84a8b-298b-d0d6-3b8d-e23eb49e4751.md"
+    },
+    "854869a7-af9d-e67a-0b78-2708569dcdf3": {
+        "title": "IChannel Interface",
+        "filename": "854869a7-af9d-e67a-0b78-2708569dcdf3.md"
+    },
+    "8606caab-2d74-59ae-910d-43055905a656": {
+        "title": "MarelliDataAccess.SetUserRecords Method",
+        "filename": "8606caab-2d74-59ae-910d-43055905a656.md"
+    },
+    "8660e9be-410a-0935-29c2-5cbbe70e59c5": {
+        "title": "MarelliDataBrowse.Finalize Method",
+        "filename": "8660e9be-410a-0935-29c2-5cbbe70e59c5.md"
+    },
+    "863bec9b-98a4-f19b-b917-9a4774652913": {
+        "title": "ISymbolAccess Methods",
+        "filename": "863bec9b-98a4-f19b-b917-9a4774652913.md"
+    },
+    "86a01f24-39c6-0c87-5ed2-d9d5e85a8339": {
+        "title": "MarelliCLXAccess.GetMeasurementNames Method",
+        "filename": "86a01f24-39c6-0c87-5ed2-d9d5e85a8339.md"
+    },
+    "88e1be32-c117-550d-d92d-64bb360b8d96": {
+        "title": "IDataset.RemoveNULL Method",
+        "filename": "88e1be32-c117-550d-d92d-64bb360b8d96.md"
+    },
+    "884c7846-a5b4-2165-5136-85567b8d697f": {
+        "title": "I2DDataAccess Methods",
+        "filename": "884c7846-a5b4-2165-5136-85567b8d697f.md"
+    },
+    "85b99456-2ec2-13b3-9ec9-00ebe566451b": {
+        "title": "IUpdatableCalibrationValue Methods",
+        "filename": "85b99456-2ec2-13b3-9ec9-00ebe566451b.md"
+    },
+    "8602f7ea-2d44-76f0-6ee7-d568aa201ab1": {
+        "title": "ISymbolAccess Interface",
+        "filename": "8602f7ea-2d44-76f0-6ee7-d568aa201ab1.md"
+    },
+    "8829ffe6-7440-0451-50b0-018cda708f1f": {
+        "title": "ListOfIGettableChannels Methods",
+        "filename": "8829ffe6-7440-0451-50b0-018cda708f1f.md"
+    },
+    "86df3595-4bad-6a2b-c0cc-42c3caee489e": {
+        "title": "IApplication Properties",
+        "filename": "86df3595-4bad-6a2b-c0cc-42c3caee489e.md"
+    },
+    "87989c35-541e-6c20-f5d3-f9687d7d8665": {
+        "title": "IApplicationWrite Properties",
+        "filename": "87989c35-541e-6c20-f5d3-f9687d7d8665.md"
+    },
+    "89544c01-40bb-a413-1e06-a52613287c6f": {
+        "title": "ChannelList Properties",
+        "filename": "89544c01-40bb-a413-1e06-a52613287c6f.md"
+    },
+    "895fb772-6291-479f-6c4e-90d8cc897ae0": {
+        "title": "ChannelList.Finalize Method",
+        "filename": "895fb772-6291-479f-6c4e-90d8cc897ae0.md"
+    },
+    "8acbcf4d-5b6b-eeef-edae-bd26a46905d0": {
+        "title": "Application.RefreshDataViewer Method",
+        "filename": "8acbcf4d-5b6b-eeef-edae-bd26a46905d0.md"
+    },
+    "8aa2862c-5351-0178-f399-9e24066d223a": {
+        "title": "IDataAccessCommon Interface",
+        "filename": "8aa2862c-5351-0178-f399-9e24066d223a.md"
+    },
+    "8c0f1724-cebb-c5d9-191c-1da9aac2a115": {
+        "title": "IMarelliDataAccessRead.SetMathLibrary Method",
+        "filename": "8c0f1724-cebb-c5d9-191c-1da9aac2a115.md"
+    },
+    "8bf515fd-510a-f7eb-bf87-ee11ee47ed3e": {
+        "title": "MarelliDataAccess.AddLapConstant Method",
+        "filename": "8bf515fd-510a-f7eb-bf87-ee11ee47ed3e.md"
+    },
+    "8c8ee0f9-3fb2-2cc3-92bd-df5b9f7b9bc9": {
+        "title": "ChannelListModel.Name Property",
+        "filename": "8c8ee0f9-3fb2-2cc3-92bd-df5b9f7b9bc9.md"
+    },
+    "8dc98712-8057-29ec-2d33-6e4a9fa27c35": {
+        "title": "IMarelliGetRunAssociatedFiles.ConfigSearchFolders Property",
+        "filename": "8dc98712-8057-29ec-2d33-6e4a9fa27c35.md"
+    },
+    "8c9b49d1-6799-e637-1a69-f100a63ac990": {
+        "title": "IDataAccessWrite Properties",
+        "filename": "8c9b49d1-6799-e637-1a69-f100a63ac990.md"
+    },
+    "89936ff9-955d-af40-417d-074e5e8fe4e7": {
+        "title": "MarelliDataAccess.SetChannels Method",
+        "filename": "89936ff9-955d-af40-417d-074e5e8fe4e7.md"
+    },
+    "89f6891c-0695-8d1c-0b5f-9b59d06a4822": {
+        "title": "MarelliCLXAccess Class",
+        "filename": "89f6891c-0695-8d1c-0b5f-9b59d06a4822.md"
+    },
+    "8a2d4b00-9d1f-0c04-00ee-bfa3fb95d3a2": {
+        "title": "MarelliDataBrowse.GetSessionName Method",
+        "filename": "8a2d4b00-9d1f-0c04-00ee-bfa3fb95d3a2.md"
+    },
+    "8a52493d-15a5-1c0a-aa0b-ecd912328be4": {
+        "title": "VersionCheck.GetDirectoryPath Method",
+        "filename": "8a52493d-15a5-1c0a-aa0b-ecd912328be4.md"
+    },
+    "8c20dbed-e014-c632-a06b-448e9efc59a5": {
+        "title": "MarelliDataBrowse.GetRunName Method",
+        "filename": "8c20dbed-e014-c632-a06b-448e9efc59a5.md"
+    },
+    "8c08dd84-ddcc-977e-91ed-638b5df820ce": {
+        "title": "IChannel.Date Property",
+        "filename": "8c08dd84-ddcc-977e-91ed-638b5df820ce.md"
+    },
+    "8a42f182-5550-99ae-8e92-b42a4c57362b": {
+        "title": "ChannelListElementModel Methods",
+        "filename": "8a42f182-5550-99ae-8e92-b42a4c57362b.md"
+    },
+    "9536e380-aa43-74d5-96bc-80ae3f239af6": {
+        "title": "DataAccess.DataProperties Property",
+        "filename": "9536e380-aa43-74d5-96bc-80ae3f239af6.md"
+    },
+    "91303c9f-77ee-ecfa-a197-beb1f6bfcefb": {
+        "title": "ITimeseriesFilter.b Property",
+        "filename": "91303c9f-77ee-ecfa-a197-beb1f6bfcefb.md"
+    },
+    "8e6fcda8-8382-1b1b-22c6-dc78824866e9": {
+        "title": "IDataset Properties",
+        "filename": "8e6fcda8-8382-1b1b-22c6-dc78824866e9.md"
+    },
+    "8e4508ff-f225-919b-bf9c-957534fb33c9": {
+        "title": "DataAccess.GetDataLocation Method",
+        "filename": "8e4508ff-f225-919b-bf9c-957534fb33c9.md"
+    },
+    "8f2253be-32fc-6e26-233c-e5a8961992e4": {
+        "title": "MarelliDataAccess.SetChannelsSplitByLap Method",
+        "filename": "8f2253be-32fc-6e26-233c-e5a8961992e4.md"
+    },
+    "9641188a-69de-0b7e-7711-1b91908fb235": {
+        "title": "Application.Refresh Method",
+        "filename": "9641188a-69de-0b7e-7711-1b91908fb235.md"
+    },
+    "8e146f0a-1be6-b709-e037-f048402eff4d": {
+        "title": "IMarelliDataAccessRead.LoadRun Method",
+        "filename": "8e146f0a-1be6-b709-e037-f048402eff4d.md"
+    },
+    "9405d4ce-25e7-4f34-0cbe-f11f543104d5": {
+        "title": "Timeseries.IsStateSignal Method",
+        "filename": "9405d4ce-25e7-4f34-0cbe-f11f543104d5.md"
+    },
+    "92c873df-6e96-37cb-cc93-3cddd045c6f5": {
+        "title": "MarelliDataBrowse.IsRunLocation Method",
+        "filename": "92c873df-6e96-37cb-cc93-3cddd045c6f5.md"
+    },
+    "90379c0c-4515-7929-f778-4dc8524af5f0": {
+        "title": "Timeseries Properties",
+        "filename": "90379c0c-4515-7929-f778-4dc8524af5f0.md"
+    },
+    "9345e191-a26c-2b2b-5e35-fdda14ed37d0": {
+        "title": "MarelliDataAccess.RemoveLapConstant Method",
+        "filename": "9345e191-a26c-2b2b-5e35-fdda14ed37d0.md"
+    },
+    "93736d2b-2b4e-e18e-8007-3552e4c9f93b": {
+        "title": "MarelliDataAccess.Finalize Method",
+        "filename": "93736d2b-2b4e-e18e-8007-3552e4c9f93b.md"
+    },
+    "92d9323e-6e8d-fcda-9580-500baa64e4be": {
+        "title": "IWriteableSymbols Interface",
+        "filename": "92d9323e-6e8d-fcda-9580-500baa64e4be.md"
+    },
+    "903d7654-39f1-efbc-f2bd-8334f8e627d2": {
+        "title": "Timeseries Constructor",
+        "filename": "903d7654-39f1-efbc-f2bd-8334f8e627d2.md"
+    },
+    "90ed40dd-7519-29b5-5b7f-3d9398dadea8": {
+        "title": "IGettableMeasurements Interface",
+        "filename": "90ed40dd-7519-29b5-5b7f-3d9398dadea8.md"
+    },
+    "9200d27a-7ad9-b501-8f3a-8dbcc99c3412": {
+        "title": "MarelliDataAccess.SetMathLibrary Method",
+        "filename": "9200d27a-7ad9-b501-8f3a-8dbcc99c3412.md"
+    },
+    "91dd193f-e211-6297-ee8b-4974dc875177": {
+        "title": "IDataAccess Properties",
+        "filename": "91dd193f-e211-6297-ee8b-4974dc875177.md"
+    },
+    "964b40f1-93b0-7b38-3bdf-055d2b3af9cb": {
+        "title": "DataAccess Class",
+        "filename": "964b40f1-93b0-7b38-3bdf-055d2b3af9cb.md"
+    },
+    "8e917edb-d8c8-f7c5-5dfb-14d1823f1510": {
+        "title": "IDataset.GetElementNames Method",
+        "filename": "8e917edb-d8c8-f7c5-5dfb-14d1823f1510.md"
+    },
+    "8e80fac1-9b76-0f46-55c6-cb9be6b4a67e": {
+        "title": "IApplicationCommon.LoadRun Method (String[])",
+        "filename": "8e80fac1-9b76-0f46-55c6-cb9be6b4a67e.md"
+    },
+    "969f9816-026b-e003-c6d1-f41cb70a5ac5": {
+        "title": "IMultipleSourceDataAccess Properties",
+        "filename": "969f9816-026b-e003-c6d1-f41cb70a5ac5.md"
+    },
+    "988ccd22-d5fb-6bbe-4b22-38df60294315": {
+        "title": "I2DDataAccess Interface",
+        "filename": "988ccd22-d5fb-6bbe-4b22-38df60294315.md"
+    },
+    "9748a82e-8037-5984-e012-551d92f5adf7": {
+        "title": "IGettableSymbols.GetSymbols Method",
+        "filename": "9748a82e-8037-5984-e012-551d92f5adf7.md"
+    },
+    "97dbdf8f-4c47-2c4e-f631-ec9866af9411": {
+        "title": "IApplicationRead.GetChannelsNames Method (WtxAppSignalType)",
+        "filename": "97dbdf8f-4c47-2c4e-f631-ec9866af9411.md"
+    },
+    "97b8ab9c-fc0e-b353-d4db-f2a561498a7a": {
+        "title": "Application.GetPluginsLibrary Method",
+        "filename": "97b8ab9c-fc0e-b353-d4db-f2a561498a7a.md"
+    },
+    "98958dfd-17b7-8b31-e4d4-e4d8bf41eae2": {
+        "title": "MarelliDataAccess.GetMathLibrary Method",
+        "filename": "98958dfd-17b7-8b31-e4d4-e4d8bf41eae2.md"
+    },
+    "98181efb-8f8f-1186-72b6-011be03f6c27": {
+        "title": "IMarelliDataAccessWrite.AddRunUserRecord Method",
+        "filename": "98181efb-8f8f-1186-72b6-011be03f6c27.md"
+    },
+    "96d04b38-aaa8-00e6-5ef7-40af5eb3d300": {
+        "title": "IDataAccess.SetChannels Method",
+        "filename": "96d04b38-aaa8-00e6-5ef7-40af5eb3d300.md"
+    },
+    "98d7c565-ba33-1e18-3407-6dafec9881db": {
+        "title": "TyreInformationSnapshot Methods",
+        "filename": "98d7c565-ba33-1e18-3407-6dafec9881db.md"
+    },
+    "98a3c30d-d7cb-5f00-2e77-d982c7c971d0": {
+        "title": "Channel Constructor",
+        "filename": "98a3c30d-d7cb-5f00-2e77-d982c7c971d0.md"
+    },
+    "9a256859-e998-352e-b87e-65539e642f80": {
+        "title": "IMarelliDataBrowse.IsRunLocation Method",
+        "filename": "9a256859-e998-352e-b87e-65539e642f80.md"
+    },
+    "98f16ffb-cb95-efcd-dad3-f6c46fb7dfd6": {
+        "title": "IWriteableSymbols Methods",
+        "filename": "98f16ffb-cb95-efcd-dad3-f6c46fb7dfd6.md"
+    },
+    "994aa29d-ebf9-8230-9ee7-a3c4747c1504": {
+        "title": "MarelliCLXAccess.ClxSearchFolders Property",
+        "filename": "994aa29d-ebf9-8230-9ee7-a3c4747c1504.md"
+    },
+    "9e2cf488-589e-530d-1656-41e1f1369807": {
+        "title": "Application.GetDataLocation Method",
+        "filename": "9e2cf488-589e-530d-1656-41e1f1369807.md"
+    },
+    "9d8c0625-f4a8-0a59-62e7-0539d6fb653c": {
+        "title": "Dataset Properties",
+        "filename": "9d8c0625-f4a8-0a59-62e7-0539d6fb653c.md"
+    },
+    "9efa8675-bb12-1214-eabc-654b9d0f0ed2": {
+        "title": "MarelliDataAccess.ClxSearchFolders Property",
+        "filename": "9efa8675-bb12-1214-eabc-654b9d0f0ed2.md"
+    },
+    "9fc78041-5273-bb78-f58a-1bd935bff3ed": {
+        "title": "IGettableSymbols Methods",
+        "filename": "9fc78041-5273-bb78-f58a-1bd935bff3ed.md"
+    },
+    "a02c36d9-e02d-5a82-2290-2daa2c7de9f2": {
+        "title": "Application.GetEventsLibrary Method",
+        "filename": "a02c36d9-e02d-5a82-2290-2daa2c7de9f2.md"
+    },
+    "a0215d48-873c-988e-d91b-eeb7ef5ad23d": {
+        "title": "Timeseries.Resample Method",
+        "filename": "a0215d48-873c-988e-d91b-eeb7ef5ad23d.md"
+    },
+    "9d95d19f-4073-2cf7-26fe-837858237d54": {
+        "title": "TyreInformationSnapshot.TimestampLocal Property",
+        "filename": "9d95d19f-4073-2cf7-26fe-837858237d54.md"
+    },
+    "a23d3299-d4e6-e3cc-7dbe-3d1f5413f97a": {
+        "title": "IMarelliDataBrowse Methods",
+        "filename": "a23d3299-d4e6-e3cc-7dbe-3d1f5413f97a.md"
+    },
+    "a22f214b-a321-626c-7139-c8667a49e787": {
+        "title": "MarelliDataAccess Constructor",
+        "filename": "a22f214b-a321-626c-7139-c8667a49e787.md"
+    },
+    "9a59dc7a-7006-f2be-7dc1-fb3e1f18fc9a": {
+        "title": "x2DDataAccess.GetChannelsNames Method",
+        "filename": "9a59dc7a-7006-f2be-7dc1-fb3e1f18fc9a.md"
+    },
+    "9a83b0f3-0f33-67dd-0de5-093980858ad8": {
+        "title": "TyreInformationSnapshot.AreEqual Method",
+        "filename": "9a83b0f3-0f33-67dd-0de5-093980858ad8.md"
+    },
+    "a0fcee97-f878-ab54-2d5d-3b2c7a322e41": {
+        "title": "MarelliDataAccess.GetChannels Method (String[], Double, Double, String[], Boolean)",
+        "filename": "a0fcee97-f878-ab54-2d5d-3b2c7a322e41.md"
+    },
+    "9b93895b-d4fe-91f5-3a3a-3d896b791fc3": {
+        "title": "Application Properties",
+        "filename": "9b93895b-d4fe-91f5-3a3a-3d896b791fc3.md"
+    },
+    "9ce6f6ac-dfbb-7756-872c-402ef878e34a": {
+        "title": "MarelliDataAccess.RemoveMeteoFiles Method",
+        "filename": "9ce6f6ac-dfbb-7756-872c-402ef878e34a.md"
+    },
+    "9aed6f7e-71c4-decd-0d81-c5baf8ec9971": {
+        "title": "IGettableLapMarks Methods",
+        "filename": "9aed6f7e-71c4-decd-0d81-c5baf8ec9971.md"
+    },
+    "9d6d0528-0065-5947-3e0e-0de57e2b4806": {
+        "title": "SymbolAccess.UpdateCalibrationRawValue Method (ICalibration)",
+        "filename": "9d6d0528-0065-5947-3e0e-0de57e2b4806.md"
+    },
+    "9c04857d-cc78-5b1d-f1ff-c125225269f2": {
+        "title": "Dataset.Add Method (IDataset, Boolean)",
+        "filename": "9c04857d-cc78-5b1d-f1ff-c125225269f2.md"
+    },
+    "a31accc4-2d34-3566-be00-c9fd3f1cbbd8": {
+        "title": "Timeseries.IsNullOrEmpty Method",
+        "filename": "a31accc4-2d34-3566-be00-c9fd3f1cbbd8.md"
+    },
+    "a2d9d54d-ac92-a936-cd44-650ae3a9ade9": {
+        "title": "MultipleSourceDataAccess.GetChannels Method (String[], Double, Double, String[], Boolean)",
+        "filename": "a2d9d54d-ac92-a936-cd44-650ae3a9ade9.md"
+    },
+    "a337cb4d-2d0e-740b-f7a1-5bbfd4bcc78f": {
+        "title": "IMarelliDataAccessWrite.AddLapConstant Method",
+        "filename": "a337cb4d-2d0e-740b-f7a1-5bbfd4bcc78f.md"
+    },
+    "a79a01f6-fa17-8a76-c180-6814450b6a85": {
+        "title": "MarelliDataAccess.LoadRun Method (MarelliOpenFilters, String[])",
+        "filename": "a79a01f6-fa17-8a76-c180-6814450b6a85.md"
+    },
+    "a4195075-557c-706b-3c70-9c2b4f53d0f9": {
+        "title": "IApplicationRead Properties",
+        "filename": "a4195075-557c-706b-3c70-9c2b4f53d0f9.md"
+    },
+    "a842c74e-ce0c-d293-613e-2af7312354c0": {
+        "title": "ITimeseries Properties",
+        "filename": "a842c74e-ce0c-d293-613e-2af7312354c0.md"
+    },
+    "a83694ce-ec94-51f9-66a2-5434a6e4c172": {
+        "title": "MarelliDataAccess.AddRunProperty Method",
+        "filename": "a83694ce-ec94-51f9-66a2-5434a6e4c172.md"
+    },
+    "a421dcc3-ad63-2730-dddc-7a2b625791db": {
+        "title": "ISymbolAccess.SaveAs Method",
+        "filename": "a421dcc3-ad63-2730-dddc-7a2b625791db.md"
+    },
+    "a82321a7-27da-c328-ff13-44d8692c5a6c": {
+        "title": "IApplicationGUI.CloseApplication Method",
+        "filename": "a82321a7-27da-c328-ff13-44d8692c5a6c.md"
+    },
+    "a40dc14d-c5c3-f89d-3126-2bcce7127062": {
+        "title": "Application.GetMathLibrary Method",
+        "filename": "a40dc14d-c5c3-f89d-3126-2bcce7127062.md"
+    },
+    "a83a07cc-9900-da07-08d2-611ca245be20": {
+        "title": "MarelliDataAccess.GetConstants Method",
+        "filename": "a83a07cc-9900-da07-08d2-611ca245be20.md"
+    },
+    "a57b363b-e520-fa3b-31cf-40856b87e635": {
+        "title": "I2DDataAccess.GetLastSampleTime Method",
+        "filename": "a57b363b-e520-fa3b-31cf-40856b87e635.md"
+    },
+    "a6ce61b2-6542-019a-a6b5-24999acf2f57": {
+        "title": "Application.CompareRuns Method",
+        "filename": "a6ce61b2-6542-019a-a6b5-24999acf2f57.md"
+    },
+    "a681566b-330a-3212-e9c9-91a4a19efdf2": {
+        "title": "MarelliDataAccess.RemoveRunConstant Method",
+        "filename": "a681566b-330a-3212-e9c9-91a4a19efdf2.md"
+    },
+    "a65dda4a-0d67-bc8c-4f8c-6d1d97cc9345": {
+        "title": "TyreInformationRecord.SecondarySensorId Property",
+        "filename": "a65dda4a-0d67-bc8c-4f8c-6d1d97cc9345.md"
+    },
+    "a84f36bb-2b8a-22fd-3dbc-77707cdafc78": {
+        "title": "MarelliDataAccess.AddLapProperty Method",
+        "filename": "a84f36bb-2b8a-22fd-3dbc-77707cdafc78.md"
+    },
+    "a817b3ab-7eb5-6656-1a81-e4ce4fb1154a": {
+        "title": "IMarelliCLXNameValidation.IsNameValidationOK Method",
+        "filename": "a817b3ab-7eb5-6656-1a81-e4ce4fb1154a.md"
+    },
+    "a7b296eb-7c0d-9b2f-f830-a1e2ec7efcbe": {
+        "title": "MarelliCLXAccess.GetCalibrationNames Method",
+        "filename": "a7b296eb-7c0d-9b2f-f830-a1e2ec7efcbe.md"
+    },
+    "a85f031f-3e8b-ca71-ac81-cf128a6f1f2c": {
+        "title": "IGettableChannels.GetChannels Method",
+        "filename": "a85f031f-3e8b-ca71-ac81-cf128a6f1f2c.md"
+    },
+    "a7f9f992-007a-879b-a90b-35599f741e3e": {
+        "title": "MarelliCLXAccess.GetAssociatedFiles Method",
+        "filename": "a7f9f992-007a-879b-a90b-35599f741e3e.md"
+    },
+    "a8a5e32d-d43f-a99a-f7d5-6af4475463f1": {
+        "title": "IMarelliGetRunAssociatedFiles Methods",
+        "filename": "a8a5e32d-d43f-a99a-f7d5-6af4475463f1.md"
+    },
+    "a4f3cc81-5e06-11ba-2090-65e9d92f0892": {
+        "title": "MarelliDataBrowse Constructor",
+        "filename": "a4f3cc81-5e06-11ba-2090-65e9d92f0892.md"
+    },
+    "a8ec2d5b-7767-0617-01ad-57cbc0792420": {
+        "title": "IMarelliDataAccessWrite.AddImportDataToRun Method",
+        "filename": "a8ec2d5b-7767-0617-01ad-57cbc0792420.md"
+    },
+    "a907e386-ce53-f35c-9f16-053f4e05f13c": {
+        "title": "SymbolAccess.UpdateCalibrationRawValue Method (IDataDictionary)",
+        "filename": "a907e386-ce53-f35c-9f16-053f4e05f13c.md"
+    },
+    "ab0e10de-688e-5259-a078-ea47fa1c1c7b": {
+        "title": "IDataAccessCommon.SetDataLocation Method",
+        "filename": "ab0e10de-688e-5259-a078-ea47fa1c1c7b.md"
+    },
+    "a9a9770f-eeaa-fcfd-7528-29c0efc3baf1": {
+        "title": "Timeseries.RunFilter Method",
+        "filename": "a9a9770f-eeaa-fcfd-7528-29c0efc3baf1.md"
+    },
+    "a912eaa2-7db0-4393-62f5-cb969a62cdbc": {
+        "title": "IApplicationGUI.SetParameterLibrary Method",
+        "filename": "a912eaa2-7db0-4393-62f5-cb969a62cdbc.md"
+    },
+    "aa8fd83f-76ce-2202-b6ff-c377aadea964": {
+        "title": "MarelliCLXAccess Methods",
+        "filename": "aa8fd83f-76ce-2202-b6ff-c377aadea964.md"
+    },
+    "a9d1201a-e6b3-4609-3f02-1f2661f28335": {
+        "title": "IMarelliDataAccessWrite.LicenseToUse Property",
+        "filename": "a9d1201a-e6b3-4609-3f02-1f2661f28335.md"
+    },
+    "ab1f72a6-4b6c-8041-4554-37c42a64fa9d": {
+        "title": "TyreInformationRecord.CustomTyreId Property",
+        "filename": "ab1f72a6-4b6c-8041-4554-37c42a64fa9d.md"
+    },
+    "aa3f5c02-759f-9972-3b78-d1e22ae18d58": {
+        "title": "ChannelListElementModel Constructor",
+        "filename": "aa3f5c02-759f-9972-3b78-d1e22ae18d58.md"
+    },
+    "a9204bac-9eac-2582-fbee-e8d7b6619fb2": {
+        "title": "ITimeseries.IsStateSignal Method",
+        "filename": "a9204bac-9eac-2582-fbee-e8d7b6619fb2.md"
+    },
+    "aae80aae-8528-6705-aa27-73282353cab8": {
+        "title": "IMarelliDataAccessWrite.AddLapProperty Method",
+        "filename": "aae80aae-8528-6705-aa27-73282353cab8.md"
+    },
+    "ae85017a-1c3f-5388-50f5-1ad1e8e11376": {
+        "title": "Application.SetEventsLibrary Method",
+        "filename": "ae85017a-1c3f-5388-50f5-1ad1e8e11376.md"
+    },
+    "ac2fb856-e53e-5f68-afb7-4b08f1171b51": {
+        "title": "IDataset.Add Method (IDataset, Boolean)",
+        "filename": "ac2fb856-e53e-5f68-afb7-4b08f1171b51.md"
+    },
+    "aea7899c-9ae7-7abe-5d43-263494bac666": {
+        "title": "MarelliCLXAccess.ConfigSearchFolders Property",
+        "filename": "aea7899c-9ae7-7abe-5d43-263494bac666.md"
+    },
+    "aedfec5a-f6b4-f1dc-fe39-5bd2a0a4ceea": {
+        "title": "ChannelList Class",
+        "filename": "aedfec5a-f6b4-f1dc-fe39-5bd2a0a4ceea.md"
+    },
+    "afd1f39a-4d32-69ef-3dc7-1feb20327d66": {
+        "title": "MarelliCLXAccess.Load Method",
+        "filename": "afd1f39a-4d32-69ef-3dc7-1feb20327d66.md"
+    },
+    "b0fd92ac-f5f8-8ef9-364b-f79c74c89403": {
+        "title": "Application Constructor",
+        "filename": "b0fd92ac-f5f8-8ef9-364b-f79c74c89403.md"
+    },
+    "b0063025-fc09-d86e-8463-c0e31330dece": {
+        "title": "MarelliCLXAccess.SaveAs Method",
+        "filename": "b0063025-fc09-d86e-8463-c0e31330dece.md"
+    },
+    "b154f74d-804c-9167-68b7-888e5aecf495": {
+        "title": "ChannelListElementListModel.GetID Method",
+        "filename": "b154f74d-804c-9167-68b7-888e5aecf495.md"
+    },
+    "b04fae04-56a3-c863-d131-842f960eebcb": {
+        "title": "ITimeseries.GetDataAtTime Method",
+        "filename": "b04fae04-56a3-c863-d131-842f960eebcb.md"
+    },
+    "b0d2c706-6e9f-d3c1-0c50-5bea176965bf": {
+        "title": "KtmDataHandler.Models.KTM.Tyres Namespace",
+        "filename": "b0d2c706-6e9f-d3c1-0c50-5bea176965bf.md"
+    },
+    "b072068e-76c0-39c2-1138-14131f5c0814": {
+        "title": "Channel Properties",
+        "filename": "b072068e-76c0-39c2-1138-14131f5c0814.md"
+    },
+    "ac3253a7-a0c4-acd7-da87-b38d65259be7": {
+        "title": "MarelliDataAccess.GetChannelsNames Method",
+        "filename": "ac3253a7-a0c4-acd7-da87-b38d65259be7.md"
+    },
+    "abe8d6c0-357a-752d-e57e-e0e73c7a40b0": {
+        "title": "Application.SetConditionsLibrary Method",
+        "filename": "abe8d6c0-357a-752d-e57e-e0e73c7a40b0.md"
+    },
+    "aece4cae-0327-45b8-4196-d580b522a85c": {
+        "title": "IDataAccess Interface",
+        "filename": "aece4cae-0327-45b8-4196-d580b522a85c.md"
+    },
+    "add0b2ca-595d-a713-c750-fde1f12aa1e4": {
+        "title": "x2DDataAccess.GetChannels Method",
+        "filename": "add0b2ca-595d-a713-c750-fde1f12aa1e4.md"
+    },
+    "ae232d6d-42bf-3ef2-2f65-1f516c8a728d": {
+        "title": "ISettableGenericDataProperties.DataProperties Property",
+        "filename": "ae232d6d-42bf-3ef2-2f65-1f516c8a728d.md"
+    },
+    "ae6801b1-7c22-5cbe-7f72-d8ee3662dff0": {
+        "title": "Application.GetApplicationVisibility Method",
+        "filename": "ae6801b1-7c22-5cbe-7f72-d8ee3662dff0.md"
+    },
+    "b1bc069e-1f08-d717-62d5-dc3c48b9cb1f": {
+        "title": "IMarelliDataAccessWrite.RemoveLapProperty Method",
+        "filename": "b1bc069e-1f08-d717-62d5-dc3c48b9cb1f.md"
+    },
+    "b3602ed7-73d4-5e1a-1bc2-5055291ade86": {
+        "title": "MarelliDataBrowse.GetDeviceName Method",
+        "filename": "b3602ed7-73d4-5e1a-1bc2-5055291ade86.md"
+    },
+    "b41aeca4-25f2-1132-a8f2-6718aa381eb3": {
+        "title": "Application.GetApplicationProperties Method",
+        "filename": "b41aeca4-25f2-1132-a8f2-6718aa381eb3.md"
+    },
+    "ba403baa-67db-92c8-057b-07e015b569e4": {
+        "title": "Application.SetChannels Method",
+        "filename": "ba403baa-67db-92c8-057b-07e015b569e4.md"
+    },
+    "b4143402-4684-8b48-d51b-a8b7742e564a": {
+        "title": "MarelliDataAccess.LicenseToUse Property",
+        "filename": "b4143402-4684-8b48-d51b-a8b7742e564a.md"
+    },
+    "b5ffa518-8891-ab94-5a57-5bdf5d746d5a": {
+        "title": "TyreInformationRecord.TyreId Property",
+        "filename": "b5ffa518-8891-ab94-5a57-5bdf5d746d5a.md"
+    },
+    "b2cd2ec8-4514-8c4a-cd09-28011a1e698c": {
+        "title": "Channel.TimeNsecData Property",
+        "filename": "b2cd2ec8-4514-8c4a-cd09-28011a1e698c.md"
+    },
+    "b71b49b3-aea5-159e-7f2a-d76bd18d8b37": {
+        "title": "MarelliDataAccess.SubsetSearchFolders Property",
+        "filename": "b71b49b3-aea5-159e-7f2a-d76bd18d8b37.md"
+    },
+    "b9fd123e-ba88-6c11-f1a7-372cc997d262": {
+        "title": "Dataset Class",
+        "filename": "b9fd123e-ba88-6c11-f1a7-372cc997d262.md"
+    },
+    "b587220e-bc03-33e8-5cfb-3b2deb95c25a": {
+        "title": "IMarelliDataAccessRead.LoadRun Method (MarelliOpenFilters, String[])",
+        "filename": "b587220e-bc03-33e8-5cfb-3b2deb95c25a.md"
+    },
+    "b785f9e9-f5b4-b77c-0423-bdd865c03dec": {
+        "title": "IApplicationGUI.RefreshDataViewer Method",
+        "filename": "b785f9e9-f5b4-b77c-0423-bdd865c03dec.md"
+    },
+    "b8f0f2bb-1453-650b-f106-1fd36cab6e5b": {
+        "title": "IMarelliDataAccessProperties Interface",
+        "filename": "b8f0f2bb-1453-650b-f106-1fd36cab6e5b.md"
+    },
+    "b7f2d382-9d3b-ca1e-81b7-42c0a9739205": {
+        "title": "WtxAppRefresh Enumeration",
+        "filename": "b7f2d382-9d3b-ca1e-81b7-42c0a9739205.md"
+    },
+    "b691f2e6-9c1f-b55e-461f-3da27d304d22": {
+        "title": "IUpdatableCalibrationValue.UpdateCalibrationRawValue Method (ICalibration)",
+        "filename": "b691f2e6-9c1f-b55e-461f-3da27d304d22.md"
+    },
+    "b72c0562-7d65-8869-d70d-8d3b1dbd278d": {
+        "title": "MarelliCLXAccess Properties",
+        "filename": "b72c0562-7d65-8869-d70d-8d3b1dbd278d.md"
+    },
+    "b2b82394-00f6-7500-6d85-3363bb40ce5a": {
+        "title": "Application.ForceApplicationVisibility Method",
+        "filename": "b2b82394-00f6-7500-6d85-3363bb40ce5a.md"
+    },
+    "b82cb013-5349-18f0-d4c3-89e21a712a2e": {
+        "title": "IGettableMeasurements Methods",
+        "filename": "b82cb013-5349-18f0-d4c3-89e21a712a2e.md"
+    },
+    "b90d563f-693d-99dc-3be7-210097b1e0c7": {
+        "title": "IApplicationGUI.GetApplicationVisibility Method",
+        "filename": "b90d563f-693d-99dc-3be7-210097b1e0c7.md"
+    },
+    "b6c21548-b214-bd9a-7faf-65abea780191": {
+        "title": "MarelliDataAccess.RemoveConstantsFiles Method",
+        "filename": "b6c21548-b214-bd9a-7faf-65abea780191.md"
+    },
+    "b9b126ba-6d85-3009-e400-8c6629da71b5": {
+        "title": "Timeseries Constructor",
+        "filename": "b9b126ba-6d85-3009-e400-8c6629da71b5.md"
+    },
+    "bc7f135a-f6d1-ad6e-efb0-02373813bd03": {
+        "title": "DataAccess.GetChannelsNumber Method",
+        "filename": "bc7f135a-f6d1-ad6e-efb0-02373813bd03.md"
+    },
+    "bcceac56-b427-5cf9-6a62-6be61cd42493": {
+        "title": "IMarelliDataAccessRead Interface",
+        "filename": "bcceac56-b427-5cf9-6a62-6be61cd42493.md"
+    },
+    "bd618e1e-308f-1392-6f76-5ca0b84f17c1": {
+        "title": "IMarelliDataAccessWrite.AppendImportDataToRun Method",
+        "filename": "bd618e1e-308f-1392-6f76-5ca0b84f17c1.md"
+    },
+    "be27f909-78c9-a52d-decb-0bd94162f8aa": {
+        "title": "Application Methods",
+        "filename": "be27f909-78c9-a52d-decb-0bd94162f8aa.md"
+    },
+    "bd7cdb1a-2c95-ff1b-1b07-48913bb6f8b1": {
+        "title": "DataAccess.Drop Method",
+        "filename": "bd7cdb1a-2c95-ff1b-1b07-48913bb6f8b1.md"
+    },
+    "be78a4ea-1ee2-2c4c-ce3c-57bfbd06f2fa": {
+        "title": "MarelliDataAccess.AddRunUserRecord Method",
+        "filename": "be78a4ea-1ee2-2c4c-ce3c-57bfbd06f2fa.md"
+    },
+    "be56cf7e-f4c8-5a03-1c6c-6583e1f92f83": {
+        "title": "TyreInformationSnapshot Properties",
+        "filename": "be56cf7e-f4c8-5a03-1c6c-6583e1f92f83.md"
+    },
+    "be5521f7-69bc-0b31-a549-93174e6311c7": {
+        "title": "DataAccess Methods",
+        "filename": "be5521f7-69bc-0b31-a549-93174e6311c7.md"
+    },
+    "beb60b41-926a-7d03-7a27-384127a0f32a": {
+        "title": "MarelliCLXAccess.GetMeasurement Method",
+        "filename": "beb60b41-926a-7d03-7a27-384127a0f32a.md"
+    },
+    "beb74db1-db5b-9407-762f-f38b30daab3d": {
+        "title": "IMarelliDataAccessProperties.GetConstants Method",
+        "filename": "beb74db1-db5b-9407-762f-f38b30daab3d.md"
+    },
+    "be8fcea6-4406-ea9e-2e4d-576de3adbf2b": {
+        "title": "MarelliDataAccess.GetNoObject Method",
+        "filename": "be8fcea6-4406-ea9e-2e4d-576de3adbf2b.md"
+    },
+    "bef46c55-5f1d-089f-2eae-2e15a7279ba2": {
+        "title": "Application.RemoveMathLibrary Method",
+        "filename": "bef46c55-5f1d-089f-2eae-2e15a7279ba2.md"
+    },
+    "c35520c8-f532-a328-cd1a-8296a6f7f4ea": {
+        "title": "IDataset Methods",
+        "filename": "c35520c8-f532-a328-cd1a-8296a6f7f4ea.md"
+    },
+    "c2eacf15-00a8-71a7-4970-b76afebef2de": {
+        "title": "IMultipleSourceDataAccess Methods",
+        "filename": "c2eacf15-00a8-71a7-4970-b76afebef2de.md"
+    },
+    "c3eab5c0-253e-5ce7-36c7-93f4594c68e4": {
+        "title": "ITimeseriesFilter Interface",
+        "filename": "c3eab5c0-253e-5ce7-36c7-93f4594c68e4.md"
+    },
+    "c3798e72-52f3-af3f-9a9a-aa73308f2a1b": {
+        "title": "VersionCheck.DisableVersionChecks Method",
+        "filename": "c3798e72-52f3-af3f-9a9a-aa73308f2a1b.md"
+    },
+    "c4a843b8-e6e8-15f5-6ae9-3c919f9983a0": {
+        "title": "TyreInformationFile.Version Property",
+        "filename": "c4a843b8-e6e8-15f5-6ae9-3c919f9983a0.md"
+    },
+    "c4e76fcf-e8ed-de30-cd32-0b31378b37a7": {
+        "title": "WtxAppExportType Enumeration",
+        "filename": "c4e76fcf-e8ed-de30-cd32-0b31378b37a7.md"
+    },
+    "c50f5c88-77d2-9ae1-4b9c-436993647371": {
+        "title": "ITimeseries Interface",
+        "filename": "c50f5c88-77d2-9ae1-4b9c-436993647371.md"
+    },
+    "bfec247a-d564-3de0-06ab-31ae2c8b1518": {
+        "title": "IUpdatableCalibrationValue Interface",
+        "filename": "bfec247a-d564-3de0-06ab-31ae2c8b1518.md"
+    },
+    "c614b769-620b-af94-798b-3927b4b75fa2": {
+        "title": "DataAccess.Finalize Method",
+        "filename": "c614b769-620b-af94-798b-3927b4b75fa2.md"
+    },
+    "c01f2bc1-8d54-6147-42fa-67c76bad931e": {
+        "title": "IUpdatableCalibrationValue.UpdateCalibrationRawValue Method (String, Object, Boolean)",
+        "filename": "c01f2bc1-8d54-6147-42fa-67c76bad931e.md"
+    },
+    "c1b0c0a8-8094-b809-a67f-e970d5534ac7": {
+        "title": "ChannelListModel.ChannelList Property",
+        "filename": "c1b0c0a8-8094-b809-a67f-e970d5534ac7.md"
+    },
+    "c1986db9-3103-05ba-b870-24ae27dfd8fb": {
+        "title": "IGettableCalibrations.GetCalibration Method",
+        "filename": "c1986db9-3103-05ba-b870-24ae27dfd8fb.md"
+    },
+    "c26073e6-890c-f28d-bdb4-f14aace198ef": {
+        "title": "MarelliDataAccess.LoadData Method",
+        "filename": "c26073e6-890c-f28d-bdb4-f14aace198ef.md"
+    },
+    "c27104f3-d2ac-1823-858f-a586979a366a": {
+        "title": "IGettableGenericDataProperties.DataProperties Property",
+        "filename": "c27104f3-d2ac-1823-858f-a586979a366a.md"
+    },
+    "c6f6695b-be61-2065-bbb9-a6befa2f0de5": {
+        "title": "ITimeseriesFilter.SetFilterCoefficients Method",
+        "filename": "c6f6695b-be61-2065-bbb9-a6befa2f0de5.md"
+    },
+    "c1cf82ca-5036-bbc9-2769-ca3da701c620": {
+        "title": "MarelliDataAccess.RemoveUserRecord Method",
+        "filename": "c1cf82ca-5036-bbc9-2769-ca3da701c620.md"
+    },
+    "c25dbe3a-b435-4f73-060f-c7ecd42bc7aa": {
+        "title": "IMarelliCLXNameValidation Interface",
+        "filename": "c25dbe3a-b435-4f73-060f-c7ecd42bc7aa.md"
+    },
+    "c1d49d01-4d88-7ef6-bc5c-b2c39bda9016": {
+        "title": "Application.SetTime Method",
+        "filename": "c1d49d01-4d88-7ef6-bc5c-b2c39bda9016.md"
+    },
+    "c784f72a-adac-76fc-95af-8a205b4dd11c": {
+        "title": "ChannelListElementListModel Fields",
+        "filename": "c784f72a-adac-76fc-95af-8a205b4dd11c.md"
+    },
+    "c8d9d39d-025d-83c9-6500-44d134e14d7b": {
+        "title": "SymbolAccess.GetCalibrationNames Method",
+        "filename": "c8d9d39d-025d-83c9-6500-44d134e14d7b.md"
+    },
+    "c869b998-f2b7-0407-1bd6-9dfa6367bdbd": {
+        "title": "IDataset.NumElements Method",
+        "filename": "c869b998-f2b7-0407-1bd6-9dfa6367bdbd.md"
+    },
+    "c91a80fa-fc9c-49f0-7e30-112244be8bab": {
+        "title": "IMarelliDataBrowse.GetEventRootFolder Method",
+        "filename": "c91a80fa-fc9c-49f0-7e30-112244be8bab.md"
+    },
+    "cf1391bb-cbf2-554d-6108-cb7784da6ecb": {
+        "title": "IMarelliDataAccessWrite.AddLapUserRecord Method",
+        "filename": "cf1391bb-cbf2-554d-6108-cb7784da6ecb.md"
+    },
+    "cb685b63-e1ca-0814-f1c6-7e6d985bb919": {
+        "title": "MarelliDataBrowse.GetEventName Method",
+        "filename": "cb685b63-e1ca-0814-f1c6-7e6d985bb919.md"
+    },
+    "cb85446b-d530-047a-ef97-e4935ce13491": {
+        "title": "IDataAccess.GetChannelsNumber Method",
+        "filename": "cb85446b-d530-047a-ef97-e4935ce13491.md"
+    },
+    "c8e11f01-25dd-fd4c-e4d0-428d50e50cf2": {
+        "title": "IGettableGenericDataProperties Interface",
+        "filename": "c8e11f01-25dd-fd4c-e4d0-428d50e50cf2.md"
+    },
+    "cc463466-b9f5-62f2-a0f8-4cfb5e705969": {
+        "title": "IMarelliGetRunAssociatedFiles.TdxSearchFolders Property",
+        "filename": "cc463466-b9f5-62f2-a0f8-4cfb5e705969.md"
+    },
+    "cc5e499f-930e-8a9b-8699-5faae514aa9a": {
+        "title": "IMarelliDataAccessRead Properties",
+        "filename": "cc5e499f-930e-8a9b-8699-5faae514aa9a.md"
+    },
+    "cceea45d-3c67-0d8c-3f31-bbd106a4ee27": {
+        "title": "IApplicationWrite.SetChannels Method",
+        "filename": "cceea45d-3c67-0d8c-3f31-bbd106a4ee27.md"
+    },
+    "c9de0e57-1949-a2c5-b576-0ed74f5a71b6": {
+        "title": "SymbolAccess Methods",
+        "filename": "c9de0e57-1949-a2c5-b576-0ed74f5a71b6.md"
+    },
+    "cc30fd69-1184-9df4-7eb2-9c1d55e074f5": {
+        "title": "IMarelliGetRunAssociatedFiles.GetAssociatedFiles Method",
+        "filename": "cc30fd69-1184-9df4-7eb2-9c1d55e074f5.md"
+    },
+    "cc10df8d-d778-1741-0bf3-c9d72b7aa8f3": {
+        "title": "TyreInformationFile.DataHandlerVersion Property",
+        "filename": "cc10df8d-d778-1741-0bf3-c9d72b7aa8f3.md"
+    },
+    "cb9a8e79-9eb6-74cf-88fc-a8e47ebe7d45": {
+        "title": "TyreInformationDataAccess Constructor",
+        "filename": "cb9a8e79-9eb6-74cf-88fc-a8e47ebe7d45.md"
+    },
+    "c9029a4d-63dc-3847-2379-8ed372cfac85": {
+        "title": "MarelliDataBrowse.IsEventRootLocation Method",
+        "filename": "c9029a4d-63dc-3847-2379-8ed372cfac85.md"
+    },
+    "ccb195c5-b6ba-b0fb-3e01-f532abca7815": {
+        "title": "Dataset.RemoveNULL Method",
+        "filename": "ccb195c5-b6ba-b0fb-3e01-f532abca7815.md"
+    },
+    "ca1a0f06-5a90-aedd-8f76-40edae340038": {
+        "title": "IGettableChannels Interface",
+        "filename": "ca1a0f06-5a90-aedd-8f76-40edae340038.md"
+    },
+    "cf233a4d-0d35-6a29-2e2c-6d0af98275b1": {
+        "title": "IGettableCalibrations Methods",
+        "filename": "cf233a4d-0d35-6a29-2e2c-6d0af98275b1.md"
+    },
+    "c94f6340-5fcf-e655-88ef-e5bf47ca94e1": {
+        "title": "MarelliDataAccess.GetAssociatedFiles Method",
+        "filename": "c94f6340-5fcf-e655-88ef-e5bf47ca94e1.md"
+    },
+    "cbb71297-787f-d537-1f19-e250e831d9c7": {
+        "title": "MarelliCLXAccess Fields",
+        "filename": "cbb71297-787f-d537-1f19-e250e831d9c7.md"
+    },
+    "cf9d6af1-d250-4754-245a-ae05ab6a383b": {
+        "title": "IApplicationRead.GetChannelsNames Method",
+        "filename": "cf9d6af1-d250-4754-245a-ae05ab6a383b.md"
+    },
+    "d001270d-041c-de0f-050c-33a9d0d68c14": {
+        "title": "DataType Enumeration",
+        "filename": "d001270d-041c-de0f-050c-33a9d0d68c14.md"
+    },
+    "d1434d6c-2397-e421-b93f-47164dfb8fc8": {
+        "title": "Application.SetMathLibrary Method",
+        "filename": "d1434d6c-2397-e421-b93f-47164dfb8fc8.md"
+    },
+    "d1827bd9-53b4-8e06-f10a-ab7828761120": {
+        "title": "SymbolAccess Class",
+        "filename": "d1827bd9-53b4-8e06-f10a-ab7828761120.md"
+    },
+    "d009c56b-00c0-973c-a7b8-16e74777b56a": {
+        "title": "Timeseries.Matches Method",
+        "filename": "d009c56b-00c0-973c-a7b8-16e74777b56a.md"
+    },
+    "d2cb3d2c-87f5-bf35-1aac-804c48b26459": {
+        "title": "MarelliDataAccess.GetChannels Method (String[], UInt32[], String[], Boolean)",
+        "filename": "d2cb3d2c-87f5-bf35-1aac-804c48b26459.md"
+    },
+    "d217d5a2-50b4-9cbe-3553-5c7d2c400a2c": {
+        "title": "MarelliDataBrowse Class",
+        "filename": "d217d5a2-50b4-9cbe-3553-5c7d2c400a2c.md"
+    },
+    "d56fe458-00d5-cab4-cc34-a5cae9afe2af": {
+        "title": "IWriteableSymbols.WriteSymbols Method",
+        "filename": "d56fe458-00d5-cab4-cc34-a5cae9afe2af.md"
+    },
+    "d503b8bf-f7e3-da27-ecf1-bb31b227eccf": {
+        "title": "IApplicationGUI.GetPluginsLibrary Method",
+        "filename": "d503b8bf-f7e3-da27-ecf1-bb31b227eccf.md"
+    },
+    "d4ab009d-5570-826e-2f8f-5d26b1a075c4": {
+        "title": "IMarelliDataAccessWrite.GetFrequencyList Method",
+        "filename": "d4ab009d-5570-826e-2f8f-5d26b1a075c4.md"
+    },
+    "d4a0babd-3f9f-0d70-bbfa-74199f9619d7": {
+        "title": "TyreInformationFile Constructor",
+        "filename": "d4a0babd-3f9f-0d70-bbfa-74199f9619d7.md"
+    },
+    "d6081b7a-5f78-b44e-d72b-23d507a5062d": {
+        "title": "TyreInformationDataAccess Methods",
+        "filename": "d6081b7a-5f78-b44e-d72b-23d507a5062d.md"
+    },
+    "d5a80e2f-46e8-bad3-a1f9-b35077aa7d30": {
+        "title": "IGettableChannels.GetChannels Method (String[], Double, Double, String[], Boolean)",
+        "filename": "d5a80e2f-46e8-bad3-a1f9-b35077aa7d30.md"
+    },
+    "d6e1d6bc-39db-4600-b1c2-efb5200e466b": {
+        "title": "ChannelListElementListModel Constructor",
+        "filename": "d6e1d6bc-39db-4600-b1c2-efb5200e466b.md"
+    },
+    "d59c9480-53fd-ae9e-9962-89365466fa5f": {
+        "title": "x2DDataAccess Constructor",
+        "filename": "d59c9480-53fd-ae9e-9962-89365466fa5f.md"
+    },
+    "d6a83fa9-4b8c-b752-7914-34c584a5cd4a": {
+        "title": "IApplicationGUI.OpenDataViewer Method",
+        "filename": "d6a83fa9-4b8c-b752-7914-34c584a5cd4a.md"
+    },
+    "d704b1a2-d5d9-b353-e5f4-7e85deb8f931": {
+        "title": "IGettableGenericDataProperties Properties",
+        "filename": "d704b1a2-d5d9-b353-e5f4-7e85deb8f931.md"
+    },
+    "cfc4fe06-886e-c13b-a609-ad9a87e9c075": {
+        "title": "TyreInformationRecord.PrimarySensorId Property",
+        "filename": "cfc4fe06-886e-c13b-a609-ad9a87e9c075.md"
+    },
+    "d82a8c11-30b5-5c1d-6b2f-e5c0ac7e141c": {
+        "title": "IGettableChannels.GetChannelsNames Method",
+        "filename": "d82a8c11-30b5-5c1d-6b2f-e5c0ac7e141c.md"
+    },
+    "d7af1418-9feb-f7f5-43c1-b7514984951b": {
+        "title": "ITimeseriesFilter.Run(T) Method",
+        "filename": "d7af1418-9feb-f7f5-43c1-b7514984951b.md"
+    },
+    "d8feed2b-5d21-ba9d-5f7c-12d6acc59e05": {
+        "title": "MarelliCLXAccess Constructor",
+        "filename": "d8feed2b-5d21-ba9d-5f7c-12d6acc59e05.md"
+    },
+    "d35116fb-50c0-0eaf-b0e0-caeb274a413d": {
+        "title": "TyreInformationRecord Methods",
+        "filename": "d35116fb-50c0-0eaf-b0e0-caeb274a413d.md"
+    },
+    "d328c45c-6ec1-a5db-5df4-555b653a2f6c": {
+        "title": "Channel Class",
+        "filename": "d328c45c-6ec1-a5db-5df4-555b653a2f6c.md"
+    },
+    "d8585995-3387-0d01-dd2b-a174e37008a4": {
+        "title": "VersionCheck.GetAssemblyVersion Method",
+        "filename": "d8585995-3387-0d01-dd2b-a174e37008a4.md"
+    },
+    "d64322d8-9356-8b2f-671d-b20a4877dcdf": {
+        "title": "IDataAccess.Drop Method",
+        "filename": "d64322d8-9356-8b2f-671d-b20a4877dcdf.md"
+    },
+    "d659337d-0ea1-e72c-3a66-e152ed353a77": {
+        "title": "IApplicationRead.RemoveMathLibrary Method",
+        "filename": "d659337d-0ea1-e72c-3a66-e152ed353a77.md"
+    },
+    "d668b3e3-cf0c-26ed-4fa8-f8dddc7af750": {
+        "title": "GlobalLogHelper.EnableDeepLoglevel Method",
+        "filename": "d668b3e3-cf0c-26ed-4fa8-f8dddc7af750.md"
+    },
+    "d3f9952a-248e-2add-06e8-45c53e6c657c": {
+        "title": "IMarelliDataAccessProperties.AppendUserRecords Method",
+        "filename": "d3f9952a-248e-2add-06e8-45c53e6c657c.md"
+    },
+    "d43805b9-2d21-4838-5d52-f3772b916cfa": {
+        "title": "IApplicationGUI.GetApplicationProperties Method",
+        "filename": "d43805b9-2d21-4838-5d52-f3772b916cfa.md"
+    },
+    "da9bf650-b269-4294-43ba-c2ba3f44af61": {
+        "title": "IApplicationRead Methods",
+        "filename": "da9bf650-b269-4294-43ba-c2ba3f44af61.md"
+    },
+    "d9c24273-25b1-12d5-5b53-b1ce1f143f0c": {
+        "title": "Application.GetAssociatedFiles Method",
+        "filename": "d9c24273-25b1-12d5-5b53-b1ce1f143f0c.md"
+    },
+    "d932685a-683a-8b66-1180-e98ab091bf33": {
+        "title": "IChannelList.Save Method",
+        "filename": "d932685a-683a-8b66-1180-e98ab091bf33.md"
+    },
+    "dec6445c-5e9c-c8c2-3eeb-124ef1dba88c": {
+        "title": "MarelliDataAccess.AppendImportDataToRun Method",
+        "filename": "dec6445c-5e9c-c8c2-3eeb-124ef1dba88c.md"
+    },
+    "e16b6f8d-15e5-aea2-7830-69fc7f83c264": {
+        "title": "MarelliDataAccess.RemoveUserRecordsFiles Method",
+        "filename": "e16b6f8d-15e5-aea2-7830-69fc7f83c264.md"
+    },
+    "dcf5f576-2cf7-b215-3973-5c6491726054": {
+        "title": "Protection Enumeration",
+        "filename": "dcf5f576-2cf7-b215-3973-5c6491726054.md"
+    },
+    "dcca8ba0-6c7b-d212-9f7f-e425c59eb613": {
+        "title": "ListOfIGettableChannels Class",
+        "filename": "dcca8ba0-6c7b-d212-9f7f-e425c59eb613.md"
+    },
+    "db53cb6c-2074-45af-0c8a-cd35a091b935": {
+        "title": "MarelliDataAccess.AppendConstants Method",
+        "filename": "db53cb6c-2074-45af-0c8a-cd35a091b935.md"
+    },
+    "dc900273-80be-7126-4471-4cefb3584056": {
+        "title": "SymbolAccess.UpdateCalibrationRawValue Method (String, Object, Boolean)",
+        "filename": "dc900273-80be-7126-4471-4cefb3584056.md"
+    },
+    "e0a07080-ab69-e939-b8a9-4a3eb6db6a53": {
+        "title": "DataAccess.LoadRun Method",
+        "filename": "e0a07080-ab69-e939-b8a9-4a3eb6db6a53.md"
+    },
+    "dc453db9-6eb5-d239-df51-d8aa36553d1a": {
+        "title": "ITimeseries.Matches Method",
+        "filename": "dc453db9-6eb5-d239-df51-d8aa36553d1a.md"
+    },
+    "da01a32a-d0c8-ea86-703e-8c239ed3042c": {
+        "title": "IApplicationCommon.LoadDataset Method",
+        "filename": "da01a32a-d0c8-ea86-703e-8c239ed3042c.md"
+    },
+    "e16c1bfa-e763-ee5b-ea16-7a63afaa43b9": {
+        "title": "MarelliCLXAccess.Refresh Method",
+        "filename": "e16c1bfa-e763-ee5b-ea16-7a63afaa43b9.md"
+    },
+    "df469305-97b6-53d6-4a49-192e43d85e42": {
+        "title": "ISymbolAccess.Save Method",
+        "filename": "df469305-97b6-53d6-4a49-192e43d85e42.md"
+    },
+    "dc98a146-0d48-28a4-031e-8d14eda34b4e": {
+        "title": "IChannel.Name Property",
+        "filename": "dc98a146-0d48-28a4-031e-8d14eda34b4e.md"
+    },
+    "e0f03a39-b3ad-2852-6fb9-542a3147fc6e": {
+        "title": "VersionCheck Class",
+        "filename": "e0f03a39-b3ad-2852-6fb9-542a3147fc6e.md"
+    },
+    "dbff70e3-7257-fb8a-5447-447064438f6f": {
+        "title": "IGettableChannels.GetChannels Method (String[], UInt32[], String[], Boolean)",
+        "filename": "dbff70e3-7257-fb8a-5447-447064438f6f.md"
+    },
+    "e0050023-9555-6e22-3483-023f8871d9f9": {
+        "title": "KtmDataHandler.Generic.Data Namespace",
+        "filename": "e0050023-9555-6e22-3483-023f8871d9f9.md"
+    },
+    "dead366c-2c59-fa1b-58d2-b756771cd215": {
+        "title": "IMarelliCLXAccess.GetAssociatedFiles Method",
+        "filename": "dead366c-2c59-fa1b-58d2-b756771cd215.md"
+    },
+    "de815003-0f00-4cd6-c203-f613c4864ea6": {
+        "title": "IApplicationCommon.NOpenDataset Property",
+        "filename": "de815003-0f00-4cd6-c203-f613c4864ea6.md"
+    },
+    "e23b132f-70b5-8935-e891-6dcb1aeea1e4": {
+        "title": "IMarelliCLXAccess.SaveAs Method",
+        "filename": "e23b132f-70b5-8935-e891-6dcb1aeea1e4.md"
+    },
+    "e28a680f-1e64-51df-1b4f-47e08c9f48a7": {
+        "title": "IChannelList.Load Method",
+        "filename": "e28a680f-1e64-51df-1b4f-47e08c9f48a7.md"
+    },
+    "e29984e8-3c33-d551-e4fa-9288b71d37b7": {
+        "title": "MarelliDataAccess.SelectRun Method",
+        "filename": "e29984e8-3c33-d551-e4fa-9288b71d37b7.md"
+    },
+    "e2d22e24-7918-1064-5dc7-a23a3aa48365": {
+        "title": "Application.Finalize Method",
+        "filename": "e2d22e24-7918-1064-5dc7-a23a3aa48365.md"
+    },
+    "e34378eb-5ba8-e9e4-3336-298e21887128": {
+        "title": "ChannelList Methods",
+        "filename": "e34378eb-5ba8-e9e4-3336-298e21887128.md"
+    },
+    "e54ec83d-cea1-cc28-dce6-2393f031dfc0": {
+        "title": "ChannelListModel.Properties Property",
+        "filename": "e54ec83d-cea1-cc28-dce6-2393f031dfc0.md"
+    },
+    "e552739f-3734-c7b7-3d21-ff8ef1922738": {
+        "title": "IApplication Interface",
+        "filename": "e552739f-3734-c7b7-3d21-ff8ef1922738.md"
+    },
+    "e2e4f768-b228-9081-328c-768ccd8bdcc2": {
+        "title": "IMarelliDataBrowse.FindRuns Method",
+        "filename": "e2e4f768-b228-9081-328c-768ccd8bdcc2.md"
+    },
+    "e45b5d2e-76aa-2384-0a56-ca396fa1e697": {
+        "title": "Dataset.Add Method (ITimeseries[], Boolean)",
+        "filename": "e45b5d2e-76aa-2384-0a56-ca396fa1e697.md"
+    },
+    "e2fac1b8-8674-3d8d-6ade-734c7babdf0b": {
+        "title": "IDataAccessRead Interface",
+        "filename": "e2fac1b8-8674-3d8d-6ade-734c7babdf0b.md"
+    },
+    "e5749e98-a16c-0171-fed3-917c714664f3": {
+        "title": "ChannelListElementListModel Methods",
+        "filename": "e5749e98-a16c-0171-fed3-917c714664f3.md"
+    },
+    "e5875820-abd6-64a2-5992-aa40ec86cd28": {
+        "title": "ITimeseries.ApplyTimeOffset Method",
+        "filename": "e5875820-abd6-64a2-5992-aa40ec86cd28.md"
+    },
+    "e6a36cfe-d953-c50e-f7f3-d741b54f8eea": {
+        "title": "Dataset Methods",
+        "filename": "e6a36cfe-d953-c50e-f7f3-d741b54f8eea.md"
+    },
+    "e5d12f7a-34bc-776d-bdcd-8e38f9291de1": {
+        "title": "MarelliDataAccess.RemoveRunProperty Method",
+        "filename": "e5d12f7a-34bc-776d-bdcd-8e38f9291de1.md"
+    },
+    "e8b13983-2b43-4393-db8a-c165576b50a6": {
+        "title": "IMarelliDataAccessRead.RemoveMathLibrary Method",
+        "filename": "e8b13983-2b43-4393-db8a-c165576b50a6.md"
+    },
+    "e9289a2a-3249-7afa-6ac5-fffa2b106718": {
+        "title": "MarelliDataAccess.GetChannels Method",
+        "filename": "e9289a2a-3249-7afa-6ac5-fffa2b106718.md"
+    },
+    "eb9dd529-bc1d-45af-fb36-a7b55d1abdb7": {
+        "title": "IMarelliGetRunAssociatedFiles.EmbeddedDeviceSearchFolders Property",
+        "filename": "eb9dd529-bc1d-45af-fb36-a7b55d1abdb7.md"
+    },
+    "ea4300c4-1f34-e241-ad96-1078011c1344": {
+        "title": "MarelliDataAccess.AddLapUserRecord Method",
+        "filename": "ea4300c4-1f34-e241-ad96-1078011c1344.md"
+    },
+    "e948e3a8-12e4-697a-4f7f-0bfdfb6cdbc8": {
+        "title": "IListOfIGettableChannels Properties",
+        "filename": "e948e3a8-12e4-697a-4f7f-0bfdfb6cdbc8.md"
+    },
+    "ea592dde-7123-4358-dfdd-024d0a997261": {
+        "title": "Timeseries.Concat Method",
+        "filename": "ea592dde-7123-4358-dfdd-024d0a997261.md"
+    },
+    "eaa7f32a-5ed4-4c4a-5454-0c17177850da": {
+        "title": "IMarelliDataAccessRead.LoadRun Method (String[])",
+        "filename": "eaa7f32a-5ed4-4c4a-5454-0c17177850da.md"
+    },
+    "e92c0835-2efd-609e-3b0c-deea81a9a8a0": {
+        "title": "IChannel.Data Property",
+        "filename": "e92c0835-2efd-609e-3b0c-deea81a9a8a0.md"
+    },
+    "e7018139-fd5c-d791-8ddd-8d18bf96c2e1": {
+        "title": "IMarelliCLXAccess.MarelliCLXProperties Property",
+        "filename": "e7018139-fd5c-d791-8ddd-8d18bf96c2e1.md"
+    },
+    "e6cfc6d8-a55a-8c30-16c3-223f357bdfb3": {
+        "title": "ChannelListModel Properties",
+        "filename": "e6cfc6d8-a55a-8c30-16c3-223f357bdfb3.md"
+    },
+    "e7419193-7f6c-27d5-e3a1-1490f3751a33": {
+        "title": "IApplicationRead.GetMathLibrary Method",
+        "filename": "e7419193-7f6c-27d5-e3a1-1490f3751a33.md"
+    },
+    "eb15d98d-eefa-7140-d8f9-336ec3f360bd": {
+        "title": "SymbolAccess.SaveAs Method",
+        "filename": "eb15d98d-eefa-7140-d8f9-336ec3f360bd.md"
+    },
+    "e72f651b-e23c-8547-2ed2-16ed37a381d5": {
+        "title": "MarelliDataAccess.EmbeddedDeviceSearchFolders Property",
+        "filename": "e72f651b-e23c-8547-2ed2-16ed37a381d5.md"
+    },
+    "e786d202-c55d-151b-ba25-eb5783bbb278": {
+        "title": "IApplicationGUI.ReleaseObjects Method",
+        "filename": "e786d202-c55d-151b-ba25-eb5783bbb278.md"
+    },
+    "e8b09f5d-b533-179e-8a71-be3d9e6d602b": {
+        "title": "Application.LoadRun Method",
+        "filename": "e8b09f5d-b533-179e-8a71-be3d9e6d602b.md"
+    },
+    "e86e63cc-47c1-9aed-b8c3-83becb568242": {
+        "title": "TyreInformationSnapshot.User Property",
+        "filename": "e86e63cc-47c1-9aed-b8c3-83becb568242.md"
+    },
+    "ec4bc8d9-d718-2eb3-daf6-a6dce4b4f4c9": {
+        "title": "IMultipleSourceDataAccess Interface",
+        "filename": "ec4bc8d9-d718-2eb3-daf6-a6dce4b4f4c9.md"
+    },
+    "ec3b6bc1-36e8-6ba7-dc97-7d9dde5c26ae": {
+        "title": "CanSignalType Enumeration",
+        "filename": "ec3b6bc1-36e8-6ba7-dc97-7d9dde5c26ae.md"
+    },
+    "f0456813-944e-6327-37e8-5249d394ed21": {
+        "title": "Application.ReleaseObjects Method",
+        "filename": "f0456813-944e-6327-37e8-5249d394ed21.md"
+    },
+    "ee197d9f-a435-2f2e-dffe-ef3e11c8237b": {
+        "title": "IApplicationRead.SetConditionsLibrary Method",
+        "filename": "ee197d9f-a435-2f2e-dffe-ef3e11c8237b.md"
+    },
+    "eccb9525-b567-8122-ad68-f5688e1c65ec": {
+        "title": "DataOutputFormat Enumeration",
+        "filename": "eccb9525-b567-8122-ad68-f5688e1c65ec.md"
+    },
+    "f0f80757-c51f-ab69-d886-44f5862d00f7": {
+        "title": "IChannel.DataInfo Property",
+        "filename": "f0f80757-c51f-ab69-d886-44f5862d00f7.md"
+    },
+    "ee0c8b8d-161b-5f40-73d3-a0c0af4abc39": {
+        "title": "MultipleSourceDataAccess.GetChannelsNames Method",
+        "filename": "ee0c8b8d-161b-5f40-73d3-a0c0af4abc39.md"
+    },
+    "ec728f60-bcf1-434b-a77c-20a7fc806852": {
+        "title": "SymbolAccess.UpdateCalibrationRawValue Method",
+        "filename": "ec728f60-bcf1-434b-a77c-20a7fc806852.md"
+    },
+    "ee68ce10-1b65-e59a-3564-8eed84d124c4": {
+        "title": "Dataset.GetEnumerator Method",
+        "filename": "ee68ce10-1b65-e59a-3564-8eed84d124c4.md"
+    },
+    "ef95ff2f-f53c-8315-c762-a1bc335fbd49": {
+        "title": "MultipleSourceDataAccess.GetChannels Method (String[], UInt32[], String[], Boolean)",
+        "filename": "ef95ff2f-f53c-8315-c762-a1bc335fbd49.md"
+    },
+    "f11f810d-838e-a3e8-cd27-6bfb406870f9": {
+        "title": "Timeseries.ApplyTimeOffset Method",
+        "filename": "f11f810d-838e-a3e8-cd27-6bfb406870f9.md"
+    },
+    "eed6bf71-bb44-8f5c-8c7a-b401a7f43f44": {
+        "title": "Application.SetLayout Method",
+        "filename": "eed6bf71-bb44-8f5c-8c7a-b401a7f43f44.md"
+    },
+    "ed1a649d-570d-1779-0ace-5be37729e8c7": {
+        "title": "Dataset.Properties Property",
+        "filename": "ed1a649d-570d-1779-0ace-5be37729e8c7.md"
+    },
+    "ee283df8-4754-4d3f-0127-064ea4efc923": {
+        "title": "TyreInformationRecord.Rider Property",
+        "filename": "ee283df8-4754-4d3f-0127-064ea4efc923.md"
+    },
+    "ee324980-8ab8-f68a-6e0c-5c6418b878fa": {
+        "title": "IApplicationCommon Interface",
+        "filename": "ee324980-8ab8-f68a-6e0c-5c6418b878fa.md"
+    },
+    "edd04e34-bd47-dd7a-3774-07ed2df196c7": {
+        "title": "IMarelliDataAccessRead.LoadData Method",
+        "filename": "edd04e34-bd47-dd7a-3774-07ed2df196c7.md"
+    },
+    "f14eae4a-9b30-4bde-752a-a8e56eb0c675": {
+        "title": "IMarelliDataAccessProperties.GetUserRecords Method",
+        "filename": "f14eae4a-9b30-4bde-752a-a8e56eb0c675.md"
+    },
+    "eec0019a-5009-df0c-5694-481272815169": {
+        "title": "ISettableGenericDataProperties Properties",
+        "filename": "eec0019a-5009-df0c-5694-481272815169.md"
+    },
+    "ee22c077-ef82-fac4-6da4-5d3e108db151": {
+        "title": "Channel.Time Property",
+        "filename": "ee22c077-ef82-fac4-6da4-5d3e108db151.md"
+    },
+    "f19498d3-1776-1387-9416-1f93fcb4e3bb": {
+        "title": "ITimeseriesFilter.a Property",
+        "filename": "f19498d3-1776-1387-9416-1f93fcb4e3bb.md"
+    },
+    "f1acb5b9-bc87-6e24-481b-b3a451ac4152": {
+        "title": "Application.SetParameterLibrary Method",
+        "filename": "f1acb5b9-bc87-6e24-481b-b3a451ac4152.md"
+    },
+    "f290a1ab-12cb-28f4-1e50-b4cc6d255199": {
+        "title": "MarelliDataLicenses Enumeration",
+        "filename": "f290a1ab-12cb-28f4-1e50-b4cc6d255199.md"
+    },
+    "f3717abe-c24c-166c-d407-f54dbaaece0f": {
+        "title": "GlobalLogHelper Methods",
+        "filename": "f3717abe-c24c-166c-d407-f54dbaaece0f.md"
+    },
+    "f2dc06b7-d3bb-af26-a0cd-e5e8b3fa0fb8": {
+        "title": "Timeseries.GetDataAtTime Method",
+        "filename": "f2dc06b7-d3bb-af26-a0cd-e5e8b3fa0fb8.md"
+    },
+    "f429745f-9310-972f-217b-4d30220b901d": {
+        "title": "ITimeseriesFilter Properties",
+        "filename": "f429745f-9310-972f-217b-4d30220b901d.md"
+    },
+    "f3023450-773f-f7e0-2994-6013c309fec8": {
+        "title": "MarelliDataAccess.ReleaseObjects Method",
+        "filename": "f3023450-773f-f7e0-2994-6013c309fec8.md"
+    },
+    "f482ef68-7c72-4eee-0e6d-3c019f9c6f00": {
+        "title": "IApplicationGUI.Refresh Method",
+        "filename": "f482ef68-7c72-4eee-0e6d-3c019f9c6f00.md"
+    },
+    "f35f2a75-2047-02a4-5674-c1acb03fc9fe": {
+        "title": "Application.TdxSearchFolders Property",
+        "filename": "f35f2a75-2047-02a4-5674-c1acb03fc9fe.md"
+    },
+    "f62a31c9-cf8b-5b19-d349-63e67887fc25": {
+        "title": "Application.NOpenDataset Property",
+        "filename": "f62a31c9-cf8b-5b19-d349-63e67887fc25.md"
+    },
+    "f5b0e32c-bd8e-5209-bb8f-122f4df13464": {
+        "title": "IMarelliDataBrowse.GetEventName Method",
+        "filename": "f5b0e32c-bd8e-5209-bb8f-122f4df13464.md"
+    },
+    "f561015b-80f6-8e3f-8ab0-5823aa424f68": {
+        "title": "IMarelliGetRunAssociatedFiles Properties",
+        "filename": "f561015b-80f6-8e3f-8ab0-5823aa424f68.md"
+    },
+    "f5e9bb01-73e7-3671-528c-2e33c68f4b6e": {
+        "title": "IApplicationCommon Methods",
+        "filename": "f5e9bb01-73e7-3671-528c-2e33c68f4b6e.md"
+    },
+    "f69a6ce7-1bb3-1c24-1014-929002d4a0ca": {
+        "title": "MarelliDataAccess.DataProperties Property",
+        "filename": "f69a6ce7-1bb3-1c24-1014-929002d4a0ca.md"
+    },
+    "f6327067-37d9-f42e-6c42-db1a5e7c3c47": {
+        "title": "MarelliCLXAccess.UpdateCalibrationRawValue Method (ICalibration)",
+        "filename": "f6327067-37d9-f42e-6c42-db1a5e7c3c47.md"
+    },
+    "f6ab1b80-ed89-e6cb-0899-c58a4b05d7a0": {
+        "title": "IMarelliDataAccessWrite.RemoveLapUserRecord Method",
+        "filename": "f6ab1b80-ed89-e6cb-0899-c58a4b05d7a0.md"
+    },
+    "f7a363c0-ed09-e278-792f-0538924ccf1d": {
+        "title": "IMarelliGetRunAssociatedFiles.SubsetSearchFolders Property",
+        "filename": "f7a363c0-ed09-e278-792f-0538924ccf1d.md"
+    },
+    "f8033f74-3ece-b667-3f52-c8dcd922759c": {
+        "title": "IMarelliDataAccessWrite.RemoveRunConstant Method",
+        "filename": "f8033f74-3ece-b667-3f52-c8dcd922759c.md"
+    },
+    "f84f4b5e-ba34-ab0b-17bc-5d8d58d2dfc2": {
+        "title": "Misc Class",
+        "filename": "f84f4b5e-ba34-ab0b-17bc-5d8d58d2dfc2.md"
+    },
+    "f8cd4ac9-496d-2731-b771-e67cb7ff14aa": {
+        "title": "ISettableGenericDataProperties Interface",
+        "filename": "f8cd4ac9-496d-2731-b771-e67cb7ff14aa.md"
+    },
+    "f640ae67-5e54-fcc5-7cbb-f9eeea47a896": {
+        "title": "IMarelliCLXAccess Interface",
+        "filename": "f640ae67-5e54-fcc5-7cbb-f9eeea47a896.md"
+    },
+    "f823be66-0467-df4e-2e63-6199cfca7a92": {
+        "title": "MarelliDataAccess.TdxSearchFolders Property",
+        "filename": "f823be66-0467-df4e-2e63-6199cfca7a92.md"
+    },
+    "f95dfd08-abd5-68e3-07bc-9fcb16a3e4a1": {
+        "title": "IApplicationCommon Properties",
+        "filename": "f95dfd08-abd5-68e3-07bc-9fcb16a3e4a1.md"
+    },
+    "f2c19cd3-458e-124d-0490-de38da46f926": {
+        "title": "IListOfIGettableChannels Methods",
+        "filename": "f2c19cd3-458e-124d-0490-de38da46f926.md"
+    },
+    "f8227694-dfcc-6e5f-5353-8079f9488fa0": {
+        "title": "IDataAccess Methods",
+        "filename": "f8227694-dfcc-6e5f-5353-8079f9488fa0.md"
+    },
+    "fa0975d4-820b-13bc-5d6e-7d13950fa517": {
+        "title": "GlobalLogHelper.EnableTraceView Method",
+        "filename": "fa0975d4-820b-13bc-5d6e-7d13950fa517.md"
+    },
+    "f67d227b-a77d-f4f3-9ed8-78d0ca2df1f7": {
+        "title": "Application.CompareData Method",
+        "filename": "f67d227b-a77d-f4f3-9ed8-78d0ca2df1f7.md"
+    },
+    "f77e7b5c-d678-0b4b-24d0-7bcc04857c6c": {
+        "title": "IApplication Methods",
+        "filename": "f77e7b5c-d678-0b4b-24d0-7bcc04857c6c.md"
+    },
+    "f6e4a6da-1ea1-65ac-cf99-9562612a3ed4": {
+        "title": "KtmDataHandler.Models.Channels Namespace",
+        "filename": "f6e4a6da-1ea1-65ac-cf99-9562612a3ed4.md"
+    },
+    "f74bb754-ee17-a28f-20fd-a9d5e0f0f117": {
+        "title": "IMarelliCLXAccess.Save Method",
+        "filename": "f74bb754-ee17-a28f-20fd-a9d5e0f0f117.md"
+    },
+    "f6e63b29-d90d-ceab-30a1-ba97e8fa2a2a": {
+        "title": "TyreInformationRecord.Id Property",
+        "filename": "f6e63b29-d90d-ceab-30a1-ba97e8fa2a2a.md"
+    },
+    "fa83e9ac-93fc-6639-1327-7df8807ac4b7": {
+        "title": "IDataAccess.ExistChannel Method",
+        "filename": "fa83e9ac-93fc-6639-1327-7df8807ac4b7.md"
+    },
+    "fb298413-e35e-0caf-ee1c-ce4cee672332": {
+        "title": "IMarelliDataBrowse.GetSessionName Method",
+        "filename": "fb298413-e35e-0caf-ee1c-ce4cee672332.md"
+    },
+    "fb3ca8cb-851a-674b-1974-6a1bb1898a95": {
+        "title": "ChannelListElementListModel Class",
+        "filename": "fb3ca8cb-851a-674b-1974-6a1bb1898a95.md"
+    },
+    "fc3f03d1-de7a-2168-1544-0a0cf6437a0f": {
+        "title": "MarelliCLXAccess.Finalize Method",
+        "filename": "fc3f03d1-de7a-2168-1544-0a0cf6437a0f.md"
+    },
+    "fd438356-c080-df0d-112f-3a9b7a63d684": {
+        "title": "ChannelListModel Class",
+        "filename": "fd438356-c080-df0d-112f-3a9b7a63d684.md"
+    },
+    "fd730c77-2393-dacb-b7cc-c04aab1935d3": {
+        "title": "IApplicationWrite Methods",
+        "filename": "fd730c77-2393-dacb-b7cc-c04aab1935d3.md"
+    },
+    "fde471c5-e45f-8cca-873e-fa331820a558": {
+        "title": "MultipleSourceDataAccess Methods",
+        "filename": "fde471c5-e45f-8cca-873e-fa331820a558.md"
+    },
+    "fed46d12-5822-0d53-3487-7235dc138c28": {
+        "title": "Application.LoadData Method",
+        "filename": "fed46d12-5822-0d53-3487-7235dc138c28.md"
+    },
+    "fbefcb9f-ed96-9161-1b8f-b3ac2751ee4b": {
+        "title": "x2DDataAccess.GetLapMarks Method",
+        "filename": "fbefcb9f-ed96-9161-1b8f-b3ac2751ee4b.md"
+    },
+    "fd48facc-28c9-4a77-780f-e61d1ab613a9": {
+        "title": "MarelliCLXAccess.UpdateCalibrationRawValue Method (String, Object, Boolean)",
+        "filename": "fd48facc-28c9-4a77-780f-e61d1ab613a9.md"
+    },
+    "fe99fe2c-0bb9-cd51-2c3e-57b8966d1314": {
+        "title": "ChannelList.Matches Method",
+        "filename": "fe99fe2c-0bb9-cd51-2c3e-57b8966d1314.md"
+    },
+    "fbf29e5d-72ca-5b18-085f-8bf2da91065f": {
+        "title": "TyreInformationDataAccess.UpdateValidityTimestamp Method",
+        "filename": "fbf29e5d-72ca-5b18-085f-8bf2da91065f.md"
+    },
+    "fbc57edc-f6be-43e0-273b-562d6d61e7e8": {
+        "title": "MultipleSourceDataAccess Properties",
+        "filename": "fbc57edc-f6be-43e0-273b-562d6d61e7e8.md"
+    },
+    "fe32db01-bef2-4c13-a605-5279d0491340": {
+        "title": "Timeseries Constructor (IChannel, ITimeseriesInterpolation, IObjectProcessor)",
+        "filename": "fe32db01-bef2-4c13-a605-5279d0491340.md"
+    }
+}

@@ -1,0 +1,530 @@
+{
+    "Automation": {
+        "title": "WinTAX4 Automation: Examples",
+        "filename": "Automation.md"
+    },
+    "application_open": {
+        "title": "WinTAX4 Automation: Sample: Open data in WinTAX",
+        "filename": "application_open.md"
+    },
+    "functions": {
+        "title": "WinTAX4 Automation: Compound Member Index",
+        "filename": "functions.md"
+    },
+    "application_run_commands": {
+        "title": "WinTAX4 Automation: Run method: commands available",
+        "filename": "application_run_commands.md"
+    },
+    "annotated": {
+        "title": "WinTAX4 Automation: Annotated Index",
+        "filename": "annotated.md"
+    },
+    "hierarchy": {
+        "title": "WinTAX4 Automation: Hierarchical Index",
+        "filename": "hierarchy.md"
+    },
+    "functions_func": {
+        "title": "WinTAX4 Automation: Compound Member Index",
+        "filename": "functions_func.md"
+    },
+    "interfaceICollectWindows-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceICollectWindows-members.md"
+    },
+    "interfaceITelArchive-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelArchive-members.md"
+    },
+    "index": {
+        "title": "WinTAX4 Automation: WinTAX4 ® Automation Documentation",
+        "filename": "index.md"
+    },
+    "interfaceIApplication-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIApplication-members.md"
+    },
+    "interfaceITelArchive": {
+        "title": "WinTAX4 Automation: ITelArchive interface Reference",
+        "filename": "interfaceITelArchive.md"
+    },
+    "interfaceITelAuthorize-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelAuthorize-members.md"
+    },
+    "interfaceITelChannels": {
+        "title": "WinTAX4 Automation: ITelChannels interface Reference",
+        "filename": "interfaceITelChannels.md"
+    },
+    "interfaceITelChannel-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelChannel-members.md"
+    },
+    "interfaceITelChannels-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelChannels-members.md"
+    },
+    "interfaceITelChannel": {
+        "title": "WinTAX4 Automation: ITelChannel interface Reference",
+        "filename": "interfaceITelChannel.md"
+    },
+    "interfaceICollectWindows": {
+        "title": "WinTAX4 Automation: ICollectWindows interface Reference",
+        "filename": "interfaceICollectWindows.md"
+    },
+    "interfaceITelAuthorize": {
+        "title": "WinTAX4 Automation: ITelAuthorize interface Reference",
+        "filename": "interfaceITelAuthorize.md"
+    },
+    "interfaceIApplication": {
+        "title": "WinTAX4 Automation: IApplication interface Reference",
+        "filename": "interfaceIApplication.md"
+    },
+    "interfaceITelConfiguration": {
+        "title": "WinTAX4 Automation: ITelConfiguration interface Reference",
+        "filename": "interfaceITelConfiguration.md"
+    },
+    "interfaceITelConfiguration-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelConfiguration-members.md"
+    },
+    "interfaceITelConfigurations-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelConfigurations-members.md"
+    },
+    "interfaceITelConfigurations": {
+        "title": "WinTAX4 Automation: ITelConfigurations interface Reference",
+        "filename": "interfaceITelConfigurations.md"
+    },
+    "interfaceITelLap-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelLap-members.md"
+    },
+    "interfaceITelDataLoads": {
+        "title": "WinTAX4 Automation: ITelDataLoads interface Reference",
+        "filename": "interfaceITelDataLoads.md"
+    },
+    "interfaceITelDataLoad-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelDataLoad-members.md"
+    },
+    "interfaceITelDataLoads-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelDataLoads-members.md"
+    },
+    "interfaceITelDataLoad": {
+        "title": "WinTAX4 Automation: ITelDataLoad interface Reference",
+        "filename": "interfaceITelDataLoad.md"
+    },
+    "interfaceITelLap": {
+        "title": "WinTAX4 Automation: ITelLap interface Reference",
+        "filename": "interfaceITelLap.md"
+    },
+    "interfaceITelLaps": {
+        "title": "WinTAX4 Automation: ITelLaps interface Reference",
+        "filename": "interfaceITelLaps.md"
+    },
+    "interfaceITelProperties-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelProperties-members.md"
+    },
+    "interfaceITelProperties": {
+        "title": "WinTAX4 Automation: ITelProperties interface Reference",
+        "filename": "interfaceITelProperties.md"
+    },
+    "interfaceITelSession": {
+        "title": "WinTAX4 Automation: ITelSession interface Reference",
+        "filename": "interfaceITelSession.md"
+    },
+    "interfaceITelSession-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelSession-members.md"
+    },
+    "interfaceITelProperty": {
+        "title": "WinTAX4 Automation: ITelProperty interface Reference",
+        "filename": "interfaceITelProperty.md"
+    },
+    "interfaceITelLaps-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelLaps-members.md"
+    },
+    "interfaceITelProperty-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelProperty-members.md"
+    },
+    "interfaceITelXMLObject-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelXMLObject-members.md"
+    },
+    "interfaceITelXMLObject": {
+        "title": "WinTAX4 Automation: ITelXMLObject interface Reference",
+        "filename": "interfaceITelXMLObject.md"
+    },
+    "interfaceIWindow": {
+        "title": "WinTAX4 Automation: IWindow interface Reference",
+        "filename": "interfaceIWindow.md"
+    },
+    "interfaceIWindow-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWindow-members.md"
+    },
+    "interfaceIWtx4DataBrowser-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWtx4DataBrowser-members.md"
+    },
+    "interfaceIWTXArchive-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXArchive-members.md"
+    },
+    "interfaceIWtx4DataBrowser": {
+        "title": "WinTAX4 Automation: IWtx4DataBrowser interface Reference",
+        "filename": "interfaceIWtx4DataBrowser.md"
+    },
+    "interfaceIWTXAuthorize-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXAuthorize-members.md"
+    },
+    "interfaceIWTXAuthorize": {
+        "title": "WinTAX4 Automation: IWTXAuthorize interface Reference",
+        "filename": "interfaceIWTXAuthorize.md"
+    },
+    "interfaceITelSessions-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceITelSessions-members.md"
+    },
+    "interfaceIWTXArchive": {
+        "title": "WinTAX4 Automation: IWTXArchive interface Reference",
+        "filename": "interfaceIWTXArchive.md"
+    },
+    "interfaceITelSessions": {
+        "title": "WinTAX4 Automation: ITelSessions interface Reference",
+        "filename": "interfaceITelSessions.md"
+    },
+    "interfaceIWTXChannel-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXChannel-members.md"
+    },
+    "interfaceIWTXChannels-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXChannels-members.md"
+    },
+    "interfaceIWTXChannel": {
+        "title": "WinTAX4 Automation: IWTXChannel interface Reference",
+        "filename": "interfaceIWTXChannel.md"
+    },
+    "interfaceIWTXDisplays-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXDisplays-members.md"
+    },
+    "interfaceIWTXDataLoad-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXDataLoad-members.md"
+    },
+    "interfaceIWTXEvent-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXEvent-members.md"
+    },
+    "interfaceIWTXConfiguration-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXConfiguration-members.md"
+    },
+    "interfaceIWTXDisplays": {
+        "title": "WinTAX4 Automation: IWTXDisplays interface Reference",
+        "filename": "interfaceIWTXDisplays.md"
+    },
+    "interfaceIWTXConfigurations-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXConfigurations-members.md"
+    },
+    "interfaceIWTXConfigurations": {
+        "title": "WinTAX4 Automation: IWTXConfigurations interface Reference",
+        "filename": "interfaceIWTXConfigurations.md"
+    },
+    "interfaceIWTXEvent": {
+        "title": "WinTAX4 Automation: IWTXEvent interface Reference",
+        "filename": "interfaceIWTXEvent.md"
+    },
+    "interfaceIWTXEventInstance": {
+        "title": "WinTAX4 Automation: IWTXEventInstance interface Reference",
+        "filename": "interfaceIWTXEventInstance.md"
+    },
+    "interfaceIWTXDataLoads-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXDataLoads-members.md"
+    },
+    "interfaceIWTXEventInstance-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXEventInstance-members.md"
+    },
+    "interfaceIWTXConfiguration": {
+        "title": "WinTAX4 Automation: IWTXConfiguration interface Reference",
+        "filename": "interfaceIWTXConfiguration.md"
+    },
+    "interfaceIWTXDataLoad": {
+        "title": "WinTAX4 Automation: IWTXDataLoad interface Reference",
+        "filename": "interfaceIWTXDataLoad.md"
+    },
+    "interfaceIWTXChannels": {
+        "title": "WinTAX4 Automation: IWTXChannels interface Reference",
+        "filename": "interfaceIWTXChannels.md"
+    },
+    "interfaceIWTXDataLoads": {
+        "title": "WinTAX4 Automation: IWTXDataLoads interface Reference",
+        "filename": "interfaceIWTXDataLoads.md"
+    },
+    "interfaceIWTXDisplay-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXDisplay-members.md"
+    },
+    "interfaceIWTXEventInstances-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXEventInstances-members.md"
+    },
+    "interfaceIWTXEvents-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXEvents-members.md"
+    },
+    "interfaceIWTXEventInstances": {
+        "title": "WinTAX4 Automation: IWTXEventInstances interface Reference",
+        "filename": "interfaceIWTXEventInstances.md"
+    },
+    "interfaceIWTXDisplay": {
+        "title": "WinTAX4 Automation: IWTXDisplay interface Reference",
+        "filename": "interfaceIWTXDisplay.md"
+    },
+    "interfaceIWTXLap-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXLap-members.md"
+    },
+    "interfaceIWTXExports": {
+        "title": "WinTAX4 Automation: IWTXExports interface Reference",
+        "filename": "interfaceIWTXExports.md"
+    },
+    "interfaceIWTXEvents": {
+        "title": "WinTAX4 Automation: IWTXEvents interface Reference",
+        "filename": "interfaceIWTXEvents.md"
+    },
+    "interfaceIWTXExports-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXExports-members.md"
+    },
+    "interfaceIWTXLap": {
+        "title": "WinTAX4 Automation: IWTXLap interface Reference",
+        "filename": "interfaceIWTXLap.md"
+    },
+    "interfaceIWTXLaps-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXLaps-members.md"
+    },
+    "interfaceIWTXLayouts-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXLayouts-members.md"
+    },
+    "interfaceIWTXLayout-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXLayout-members.md"
+    },
+    "interfaceIWTXLaps": {
+        "title": "WinTAX4 Automation: IWTXLaps interface Reference",
+        "filename": "interfaceIWTXLaps.md"
+    },
+    "interfaceIWTXLayouts": {
+        "title": "WinTAX4 Automation: IWTXLayouts interface Reference",
+        "filename": "interfaceIWTXLayouts.md"
+    },
+    "interfaceIWTXLayout": {
+        "title": "WinTAX4 Automation: IWTXLayout interface Reference",
+        "filename": "interfaceIWTXLayout.md"
+    },
+    "interfaceIWTXSession-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXSession-members.md"
+    },
+    "interfaceIWTXSpecSheet-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXSpecSheet-members.md"
+    },
+    "interfaceIWTXSpecWorkingCopy-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXSpecWorkingCopy-members.md"
+    },
+    "interfaceIWTXTelXMLObject-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXTelXMLObject-members.md"
+    },
+    "interfaceIWTXSpecSheet": {
+        "title": "WinTAX4 Automation: IWTXSpecSheet interface Reference",
+        "filename": "interfaceIWTXSpecSheet.md"
+    },
+    "interfaceIWTXSpecWorkingCopy": {
+        "title": "WinTAX4 Automation: IWTXSpecWorkingCopy interface Reference",
+        "filename": "interfaceIWTXSpecWorkingCopy.md"
+    },
+    "interfaceIWTXSession": {
+        "title": "WinTAX4 Automation: IWTXSession interface Reference",
+        "filename": "interfaceIWTXSession.md"
+    },
+    "interfaceIWTXUser-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXUser-members.md"
+    },
+    "interfaceIWTXSessions-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXSessions-members.md"
+    },
+    "interfaceIWTXTelXMLObjects": {
+        "title": "WinTAX4 Automation: IWTXTelXMLObjects interface Reference",
+        "filename": "interfaceIWTXTelXMLObjects.md"
+    },
+    "interfaceIWTXSpecGroup": {
+        "title": "WinTAX4 Automation: IWTXSpecGroup interface Reference",
+        "filename": "interfaceIWTXSpecGroup.md"
+    },
+    "interfaceIWTXSpecGroup-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXSpecGroup-members.md"
+    },
+    "interfaceIWTXSpecItem": {
+        "title": "WinTAX4 Automation: IWTXSpecItem interface Reference",
+        "filename": "interfaceIWTXSpecItem.md"
+    },
+    "interfaceIWTXTelXMLObject": {
+        "title": "WinTAX4 Automation: IWTXTelXMLObject interface Reference",
+        "filename": "interfaceIWTXTelXMLObject.md"
+    },
+    "interfaceIWTXSessions": {
+        "title": "WinTAX4 Automation: IWTXSessions interface Reference",
+        "filename": "interfaceIWTXSessions.md"
+    },
+    "interfaceIWTXSpecItem-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXSpecItem-members.md"
+    },
+    "interfaceIWTXUsers": {
+        "title": "WinTAX4 Automation: IWTXUsers interface Reference",
+        "filename": "interfaceIWTXUsers.md"
+    },
+    "interfaceIWTXVersionInfo": {
+        "title": "WinTAX4 Automation: IWTXVersionInfo interface Reference",
+        "filename": "interfaceIWTXVersionInfo.md"
+    },
+    "interfaceIWTXUsers-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXUsers-members.md"
+    },
+    "interfaceIWTXUser": {
+        "title": "WinTAX4 Automation: IWTXUser interface Reference",
+        "filename": "interfaceIWTXUser.md"
+    },
+    "interfaceWintax4Lib_1_1IWTXLayoutViewer-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceWintax4Lib_1_1IWTXLayoutViewer-members.md"
+    },
+    "interfaceWintax4Lib_1_1ITextItems-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceWintax4Lib_1_1ITextItems-members.md"
+    },
+    "interfaceWintax4Lib_1_1__IWTXExportsEvents": {
+        "title": "WinTAX4 Automation: _IWTXExportsEvents interface Reference",
+        "filename": "interfaceWintax4Lib_1_1__IWTXExportsEvents.md"
+    },
+    "interfaceWintax4Lib_1_1__IWindowEvents": {
+        "title": "WinTAX4 Automation: _IWindowEvents interface Reference",
+        "filename": "interfaceWintax4Lib_1_1__IWindowEvents.md"
+    },
+    "interfaceWintax4Lib_1_1ITextItems": {
+        "title": "WinTAX4 Automation: ITextItems interface Reference",
+        "filename": "interfaceWintax4Lib_1_1ITextItems.md"
+    },
+    "interfaceWintax4Lib_1_1__IWTXSpecWorkingCopyEvents": {
+        "title": "WinTAX4 Automation: _IWTXSpecWorkingCopyEvents interface Reference",
+        "filename": "interfaceWintax4Lib_1_1__IWTXSpecWorkingCopyEvents.md"
+    },
+    "interfaceWintax4Lib_1_1__IApplicationEvents": {
+        "title": "WinTAX4 Automation: _IApplicationEvents interface Reference",
+        "filename": "interfaceWintax4Lib_1_1__IApplicationEvents.md"
+    },
+    "interfaceWintax4Lib_1_1__IApplicationEvents-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceWintax4Lib_1_1__IApplicationEvents-members.md"
+    },
+    "interfaceWintax4Lib_1_1IWTXLayoutViewers": {
+        "title": "WinTAX4 Automation: IWTXLayoutViewers interface Reference",
+        "filename": "interfaceWintax4Lib_1_1IWTXLayoutViewers.md"
+    },
+    "interfaceWintax4Lib_1_1__IWTXSpecItemEvents": {
+        "title": "WinTAX4 Automation: _IWTXSpecItemEvents interface Reference",
+        "filename": "interfaceWintax4Lib_1_1__IWTXSpecItemEvents.md"
+    },
+    "interfaceWintax4Lib_1_1IWTXLayoutViewer": {
+        "title": "WinTAX4 Automation: IWTXLayoutViewer interface Reference",
+        "filename": "interfaceWintax4Lib_1_1IWTXLayoutViewer.md"
+    },
+    "interfaceWintax4Lib_1_1__IWTXSpecGroupEvents": {
+        "title": "WinTAX4 Automation: _IWTXSpecGroupEvents interface Reference",
+        "filename": "interfaceWintax4Lib_1_1__IWTXSpecGroupEvents.md"
+    },
+    "interfaceWintax4Lib_1_1IWTXLayoutViewers-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceWintax4Lib_1_1IWTXLayoutViewers-members.md"
+    },
+    "interfaceWintax4Lib_1_1__IWindowEvents-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceWintax4Lib_1_1__IWindowEvents-members.md"
+    },
+    "interfaceIWTXVersionInfo-members": {
+        "title": "WinTAX4 Automation: Member List",
+        "filename": "interfaceIWTXVersionInfo-members.md"
+    },
+    "matlab_integration": {
+        "title": "WinTAX4 Automation: Matlab integration",
+        "filename": "matlab_integration.md"
+    },
+    "interfaceWintax4Lib_1_1__IWTXSpecSheetEvents": {
+        "title": "WinTAX4 Automation: _IWTXSpecSheetEvents interface Reference",
+        "filename": "interfaceWintax4Lib_1_1__IWTXSpecSheetEvents.md"
+    },
+    "ole_channels": {
+        "title": "WinTAX4 Automation: OLE Channels",
+        "filename": "ole_channels.md"
+    },
+    "sample_access_configuration": {
+        "title": "WinTAX4 Automation: Sample: Access to Configuration objects",
+        "filename": "sample_access_configuration.md"
+    },
+    "predefined_currentdata_properties": {
+        "title": "WinTAX4 Automation: Predefined DataLoad Properties",
+        "filename": "predefined_currentdata_properties.md"
+    },
+    "pages": {
+        "title": "WinTAX4 Automation: Page Index",
+        "filename": "pages.md"
+    },
+    "xml_doc_virtualchannels": {
+        "title": "WinTAX4 Automation: XML - Virtual Channels",
+        "filename": "xml_doc_virtualchannels.md"
+    },
+    "sample_directories": {
+        "title": "WinTAX4 Automation: Sample: Directories",
+        "filename": "sample_directories.md"
+    },
+    "sample_access_cst_urc": {
+        "title": "WinTAX4 Automation: Constants and UserRecords handling",
+        "filename": "sample_access_cst_urc.md"
+    },
+    "sample_currentdataproperties": {
+        "title": "WinTAX4 Automation: Sample: Current Data Properties",
+        "filename": "sample_currentdataproperties.md"
+    },
+    "xml_doc_parameters": {
+        "title": "WinTAX4 Automation: XML - Parameters",
+        "filename": "xml_doc_parameters.md"
+    },
+    "Script_ForEach_Event": {
+        "title": "WinTAX4 Automation: Sample: Events",
+        "filename": "Script_ForEach_Event.md"
+    },
+    "Script_Change_Layout": {
+        "title": "WinTAX4 Automation: Sample: Layouts",
+        "filename": "Script_Change_Layout.md"
+    }
+}

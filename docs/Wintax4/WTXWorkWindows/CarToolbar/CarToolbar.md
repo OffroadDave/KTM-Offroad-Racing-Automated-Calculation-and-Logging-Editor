@@ -1,0 +1,3 @@
+## Cars Toolbar
+
+This window is visible only with some licenses. The Car Toolbar is shown or hidden through the [View/Car Toolbar](../../Menu/View.md#MenuView_WDSCarToolbar1) command of the main menu. The window is dockable and can be blocked in any of the four sides of the main window. The Car Toolbar is a folder that displays all vehicles. Besides displaying a list of channels available, its function is to select the main vehicle. The main vehicle will be combined with the WDS Channels to obtain the logged channels for the selected vehicle.

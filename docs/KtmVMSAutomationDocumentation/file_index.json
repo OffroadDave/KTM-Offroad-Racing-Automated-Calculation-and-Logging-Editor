@@ -1,0 +1,714 @@
+{
+    "048e3f53-15fd-6689-8a51-d7a4c1ce9b20": {
+        "title": "ExternalFeeding Class",
+        "filename": "048e3f53-15fd-6689-8a51-d7a4c1ce9b20.md"
+    },
+    "002b8789-d892-a89f-62d6-ce0913c34769": {
+        "title": "Preferences.GetNewInstance Method",
+        "filename": "002b8789-d892-a89f-62d6-ce0913c34769.md"
+    },
+    "0b520f49-b9d2-8a5f-7707-d6f96ebadb12": {
+        "title": "ClxToDatDecode Methods",
+        "filename": "0b520f49-b9d2-8a5f-7707-d6f96ebadb12.md"
+    },
+    "08c7467a-13a6-abca-9281-55f81845bd84": {
+        "title": "IProject.Import Method",
+        "filename": "08c7467a-13a6-abca-9281-55f81845bd84.md"
+    },
+    "0bc795dd-4dd1-b527-a26f-587825008a59": {
+        "title": "Application.StartSimulation Method",
+        "filename": "0bc795dd-4dd1-b527-a26f-587825008a59.md"
+    },
+    "0dba640c-351d-841e-4978-1527ff413209": {
+        "title": "Application.Kill Method",
+        "filename": "0dba640c-351d-841e-4978-1527ff413209.md"
+    },
+    "05c7b608-55ac-4b28-fc63-24e15e19107a": {
+        "title": "ClxToDatDecode.FilePath Property",
+        "filename": "05c7b608-55ac-4b28-fc63-24e15e19107a.md"
+    },
+    "021aed68-ff49-8286-6833-b13eafd15ad5": {
+        "title": "ExternalFeeding.EnableExternalFeedingInteractive Method (ISignalConversion, String, Double)",
+        "filename": "021aed68-ff49-8286-6833-b13eafd15ad5.md"
+    },
+    "0f15d968-c561-f329-af18-a9288e60878c": {
+        "title": "ClxToDatDecode.ClxToDatDecodeModel Property",
+        "filename": "0f15d968-c561-f329-af18-a9288e60878c.md"
+    },
+    "01aa6f89-b008-5a1a-0006-775d685239a2": {
+        "title": "IExternalFeeding.EnableExternalFeedingInteractive Method",
+        "filename": "01aa6f89-b008-5a1a-0006-775d685239a2.md"
+    },
+    "0ab779e9-04e0-1edc-e2de-1ed31541aed7": {
+        "title": "ISignalConversion.ImportFromCLX Method (String[], Boolean)",
+        "filename": "0ab779e9-04e0-1edc-e2de-1ed31541aed7.md"
+    },
+    "09932c28-952b-e044-4f83-81b66aef3d60": {
+        "title": "Project.GetVMSPreferences Method",
+        "filename": "09932c28-952b-e044-4f83-81b66aef3d60.md"
+    },
+    "0dfa4eaa-a47a-51b3-33f2-d216838c4fa2": {
+        "title": "SignalConversion.ImportFromCLX Method",
+        "filename": "0dfa4eaa-a47a-51b3-33f2-d216838c4fa2.md"
+    },
+    "16a91c3e-cd41-f287-d4c3-d820857861f7": {
+        "title": "SignalConversion.ImportFromCLX Method (String, Boolean)",
+        "filename": "16a91c3e-cd41-f287-d4c3-d820857861f7.md"
+    },
+    "02f2052f-bf3d-46ef-e120-889de2905016": {
+        "title": "Application.oObjProcessor Property",
+        "filename": "02f2052f-bf3d-46ef-e120-889de2905016.md"
+    },
+    "0f919c64-9450-826e-20fe-df3a577b8a73": {
+        "title": "ConversionFormula Constructor",
+        "filename": "0f919c64-9450-826e-20fe-df3a577b8a73.md"
+    },
+    "15e1de81-4ae4-ea83-e956-df28e357a1f2": {
+        "title": "IProject Properties",
+        "filename": "15e1de81-4ae4-ea83-e956-df28e357a1f2.md"
+    },
+    "0e268264-6cf8-ad30-81a9-bedd427aa451": {
+        "title": "GlobalLogHelper Class",
+        "filename": "0e268264-6cf8-ad30-81a9-bedd427aa451.md"
+    },
+    "0f3f761b-61c9-2b91-3c8e-2812f5c1040a": {
+        "title": "Preferences.Load Method",
+        "filename": "0f3f761b-61c9-2b91-3c8e-2812f5c1040a.md"
+    },
+    "153f440b-2bd8-2fc2-967d-75c0a93c0da7": {
+        "title": "ExternalFeeding Properties",
+        "filename": "153f440b-2bd8-2fc2-967d-75c0a93c0da7.md"
+    },
+    "19efa730-207c-ab47-26f1-233e7375c3a5": {
+        "title": "IApplication.LoadParameterFile Method (IProject, IPreferences, IClxToDatDecode)",
+        "filename": "19efa730-207c-ab47-26f1-233e7375c3a5.md"
+    },
+    "1ce26d01-9ec0-ea18-6fbc-634bf3a46e31": {
+        "title": "KtmVMSAutomation.Globals Namespace",
+        "filename": "1ce26d01-9ec0-ea18-6fbc-634bf3a46e31.md"
+    },
+    "203a5b27-c1d9-c4d7-8299-34647bfe8f6f": {
+        "title": "VersionCheck.SetGainffsetForPause Method",
+        "filename": "203a5b27-c1d9-c4d7-8299-34647bfe8f6f.md"
+    },
+    "1dbfdcb4-3d52-6ff2-f0cd-d91937a5f32c": {
+        "title": "Application.UnloadParameterFile Method",
+        "filename": "1dbfdcb4-3d52-6ff2-f0cd-d91937a5f32c.md"
+    },
+    "20c8e2f5-0158-2426-fdf6-f4ee1dfc9635": {
+        "title": "IApplication.LoadParameterFile Method",
+        "filename": "20c8e2f5-0158-2426-fdf6-f4ee1dfc9635.md"
+    },
+    "21964d70-40bc-4453-838d-221b381f8705": {
+        "title": "ConversionFormula Constructor (String, Double, Double, Double, Double, Double)",
+        "filename": "21964d70-40bc-4453-838d-221b381f8705.md"
+    },
+    "29b0dd5f-0ac4-5ead-a32a-b0eed536d265": {
+        "title": "Application.LoadParameterFile Method (IProject, IPreferences, IClxToDatDecode)",
+        "filename": "29b0dd5f-0ac4-5ead-a32a-b0eed536d265.md"
+    },
+    "27b69cf2-d1cc-48ab-817b-602860f4edca": {
+        "title": "IProject.Matches Method",
+        "filename": "27b69cf2-d1cc-48ab-817b-602860f4edca.md"
+    },
+    "26b4d726-0f42-df45-6a1e-c8fa8d1dea52": {
+        "title": "Application.Finalize Method",
+        "filename": "26b4d726-0f42-df45-6a1e-c8fa8d1dea52.md"
+    },
+    "2935cb99-4107-0168-3066-113a324017bc": {
+        "title": "IProject.Load Method",
+        "filename": "2935cb99-4107-0168-3066-113a324017bc.md"
+    },
+    "29c79ff8-0977-e8c9-0ee7-e92e32447599": {
+        "title": "IApplication.StartSimulation Method",
+        "filename": "29c79ff8-0977-e8c9-0ee7-e92e32447599.md"
+    },
+    "3968b72d-4f39-e73f-2a7e-2a814266f370": {
+        "title": "ISignalConversion.ImportFromCLX Method (String, Boolean)",
+        "filename": "3968b72d-4f39-e73f-2a7e-2a814266f370.md"
+    },
+    "38bbfc5f-7f60-b080-aa20-16e2ca53bb34": {
+        "title": "IPreferences Interface",
+        "filename": "38bbfc5f-7f60-b080-aa20-16e2ca53bb34.md"
+    },
+    "3ccba02e-b254-8df2-1f68-1a3fa47ec876": {
+        "title": "Application.LoadParameterFile Method",
+        "filename": "3ccba02e-b254-8df2-1f68-1a3fa47ec876.md"
+    },
+    "37bc4ee3-358f-82f1-9e2b-73866dae556f": {
+        "title": "Project Constructor",
+        "filename": "37bc4ee3-358f-82f1-9e2b-73866dae556f.md"
+    },
+    "3fed4a62-cc42-97bb-5f0d-3d1b165c0a35": {
+        "title": "Application.LoadClx Method",
+        "filename": "3fed4a62-cc42-97bb-5f0d-3d1b165c0a35.md"
+    },
+    "39a4a93b-9e1b-edad-4a2a-89eda65e7af0": {
+        "title": "IClxToDatDecode Interface",
+        "filename": "39a4a93b-9e1b-edad-4a2a-89eda65e7af0.md"
+    },
+    "40058cbb-9d0c-82f2-71f5-086257980b26": {
+        "title": "Project.Load Method",
+        "filename": "40058cbb-9d0c-82f2-71f5-086257980b26.md"
+    },
+    "421fa87e-1730-ff56-34c5-90c989db4887": {
+        "title": "SignalConversion.ImportFromCLX Method (String[], Boolean)",
+        "filename": "421fa87e-1730-ff56-34c5-90c989db4887.md"
+    },
+    "3ee21eb9-10f5-bdfd-e6d5-eb0ef021a776": {
+        "title": "IProject.GetVMSPreferences Method",
+        "filename": "3ee21eb9-10f5-bdfd-e6d5-eb0ef021a776.md"
+    },
+    "4366339d-9728-1421-6ddb-e37044905a1d": {
+        "title": "Application Methods",
+        "filename": "4366339d-9728-1421-6ddb-e37044905a1d.md"
+    },
+    "2a1ca594-c88d-00f4-e1be-b34919d4b54f": {
+        "title": "Application.Launch Method",
+        "filename": "2a1ca594-c88d-00f4-e1be-b34919d4b54f.md"
+    },
+    "2cbf2aea-1c93-02f4-be03-fe509f815fe2": {
+        "title": "Application Constructor",
+        "filename": "2cbf2aea-1c93-02f4-be03-fe509f815fe2.md"
+    },
+    "320f7fe0-328d-2870-a928-b42622c0cfc6": {
+        "title": "IExternalFeeding.EnableExternalFeedingInteractive Method (ISignalConversion, String, Double)",
+        "filename": "320f7fe0-328d-2870-a928-b42622c0cfc6.md"
+    },
+    "2b61f808-9f01-db86-fb9e-92d39b3f939a": {
+        "title": "IProject Methods",
+        "filename": "2b61f808-9f01-db86-fb9e-92d39b3f939a.md"
+    },
+    "37721362-bf1e-3b49-90ab-fc96bfed0bff": {
+        "title": "IApplication.Launch Method",
+        "filename": "37721362-bf1e-3b49-90ab-fc96bfed0bff.md"
+    },
+    "375ff2ef-4ef0-8c4a-3e3b-f8e0300e6053": {
+        "title": "ExternalFeeding Methods",
+        "filename": "375ff2ef-4ef0-8c4a-3e3b-f8e0300e6053.md"
+    },
+    "363367d5-c921-79e7-3e72-7bceb6880908": {
+        "title": "IExternalFeeding Methods",
+        "filename": "363367d5-c921-79e7-3e72-7bceb6880908.md"
+    },
+    "358a78d1-d58f-a6e8-b00a-7079afd92c6d": {
+        "title": "IConversionFormula Interface",
+        "filename": "358a78d1-d58f-a6e8-b00a-7079afd92c6d.md"
+    },
+    "36da192f-9041-cc06-c86a-bb8919fa52d6": {
+        "title": "SignalConversion.Finalize Method",
+        "filename": "36da192f-9041-cc06-c86a-bb8919fa52d6.md"
+    },
+    "45eb8c9a-68ad-40af-841f-28e810b42831": {
+        "title": "IApplication.Kill Method",
+        "filename": "45eb8c9a-68ad-40af-841f-28e810b42831.md"
+    },
+    "49274723-c5bb-3353-4423-00ce8c2b703e": {
+        "title": "IProject.SysmaPrjPath Property",
+        "filename": "49274723-c5bb-3353-4423-00ce8c2b703e.md"
+    },
+    "4acd924a-107f-bf68-0279-424de9807984": {
+        "title": "Project Methods",
+        "filename": "4acd924a-107f-bf68-0279-424de9807984.md"
+    },
+    "4e7448c5-b31f-fea4-00fd-3beb60889faf": {
+        "title": "ISignalConversion.ImportFromCLX Method",
+        "filename": "4e7448c5-b31f-fea4-00fd-3beb60889faf.md"
+    },
+    "51cf3974-f521-efd9-9a88-13835e8ee5c2": {
+        "title": "IProject.GetClxToDatDecode Method",
+        "filename": "51cf3974-f521-efd9-9a88-13835e8ee5c2.md"
+    },
+    "52108b16-4f60-2445-08fb-824584ec0d60": {
+        "title": "Project Constructor (ILocalLogHelper, IProject, IVMSProjectFileProcessor, IObjectProcessor, IPreferences, ISignalConversion, IVMSProjectArchiveProcessor, IClxToDatDecode)",
+        "filename": "52108b16-4f60-2445-08fb-824584ec0d60.md"
+    },
+    "52053602-2002-f443-006e-9b900a799f70": {
+        "title": "IConversionFormula.ApplyInverseFormula Method",
+        "filename": "52053602-2002-f443-006e-9b900a799f70.md"
+    },
+    "526532cb-1c55-a777-b3f7-66aa3a7b951f": {
+        "title": "IClxToDatDecode.FilePath Property",
+        "filename": "526532cb-1c55-a777-b3f7-66aa3a7b951f.md"
+    },
+    "5961fd12-7e99-6086-7005-9cba4b6c6761": {
+        "title": "Project.SignalConversionFilePath Property",
+        "filename": "5961fd12-7e99-6086-7005-9cba4b6c6761.md"
+    },
+    "4e0c7490-5db4-24a2-69d9-21c8a41071a2": {
+        "title": "ExternalFeeding Constructor",
+        "filename": "4e0c7490-5db4-24a2-69d9-21c8a41071a2.md"
+    },
+    "5bf2ba7d-2ee3-06f5-4847-13eb1d88925d": {
+        "title": "SignalConversion Methods",
+        "filename": "5bf2ba7d-2ee3-06f5-4847-13eb1d88925d.md"
+    },
+    "526310ea-ad9d-b14e-dfa6-b2407b5d7bd9": {
+        "title": "Application.VMSEndOfSimulation Enumeration",
+        "filename": "526310ea-ad9d-b14e-dfa6-b2407b5d7bd9.md"
+    },
+    "4df4f96e-0f63-2e13-585d-1e0911356f76": {
+        "title": "Project.GetSignalConversion Method",
+        "filename": "4df4f96e-0f63-2e13-585d-1e0911356f76.md"
+    },
+    "5eb8bc8d-4679-05a5-3db2-bf86d1d8880b": {
+        "title": "IProject Interface",
+        "filename": "5eb8bc8d-4679-05a5-3db2-bf86d1d8880b.md"
+    },
+    "56b833c5-88ca-27d8-73f3-5a14bc6581e4": {
+        "title": "Project.ClxToDatDecodeFilePath Property",
+        "filename": "56b833c5-88ca-27d8-73f3-5a14bc6581e4.md"
+    },
+    "5e1087b7-a5a3-6ba4-a151-1ffac1322555": {
+        "title": "Application.VMSLapFilterEnum Enumeration",
+        "filename": "5e1087b7-a5a3-6ba4-a151-1ffac1322555.md"
+    },
+    "5e298e69-b2c4-26b8-bfc6-36c1fc28c893": {
+        "title": "IProject.ExternalFeedingDataExchangeFolder Property",
+        "filename": "5e298e69-b2c4-26b8-bfc6-36c1fc28c893.md"
+    },
+    "5ee0228a-a2de-07e3-529d-8d9cdcc76fbf": {
+        "title": "ExternalFeeding.EnableExternalFeedingInteractive Method (String, String, Double)",
+        "filename": "5ee0228a-a2de-07e3-529d-8d9cdcc76fbf.md"
+    },
+    "5396e4a7-d13f-3871-ce1e-33acd75308ba": {
+        "title": "Application.WaitEndOfSimulation Method",
+        "filename": "5396e4a7-d13f-3871-ce1e-33acd75308ba.md"
+    },
+    "582989d2-7332-d576-1a5c-7c48f101be66": {
+        "title": "IClxToDatDecode.Matches Method",
+        "filename": "582989d2-7332-d576-1a5c-7c48f101be66.md"
+    },
+    "56ebc9e1-4df5-9226-0402-59e3ca57c4f4": {
+        "title": "IExternalFeeding.EnableExternalFeedingPlayer Method",
+        "filename": "56ebc9e1-4df5-9226-0402-59e3ca57c4f4.md"
+    },
+    "633dde7d-8b9e-c845-a01f-046ead5d0579": {
+        "title": "IProject.SignalConversionFilePath Property",
+        "filename": "633dde7d-8b9e-c845-a01f-046ead5d0579.md"
+    },
+    "651d5952-255e-b5a5-174b-e8aab3bd2dd1": {
+        "title": "Preferences Constructor (ILocalLogHelper, IPreferenceFileProcessor, IObjectProcessor)",
+        "filename": "651d5952-255e-b5a5-174b-e8aab3bd2dd1.md"
+    },
+    "696e5b3a-ba1e-680b-aaaa-a32d339f832d": {
+        "title": "Application.SimulationIsRunning Method",
+        "filename": "696e5b3a-ba1e-680b-aaaa-a32d339f832d.md"
+    },
+    "6e53b062-9233-726e-39ec-a1a36e06d170": {
+        "title": "ConversionFormula Methods",
+        "filename": "6e53b062-9233-726e-39ec-a1a36e06d170.md"
+    },
+    "6664c119-8b00-466f-4b5b-ada48cf83659": {
+        "title": "ConversionFormula Constructor",
+        "filename": "6664c119-8b00-466f-4b5b-ada48cf83659.md"
+    },
+    "6cb89d9b-6a3f-b1f0-fb66-34c905766de6": {
+        "title": "IExternalFeeding Interface",
+        "filename": "6cb89d9b-6a3f-b1f0-fb66-34c905766de6.md"
+    },
+    "6ded7601-c8a4-99c1-93a6-a6e70d190319": {
+        "title": "ISignalConversion Interface",
+        "filename": "6ded7601-c8a4-99c1-93a6-a6e70d190319.md"
+    },
+    "6d763263-d8b4-905d-e454-ddead41e03b5": {
+        "title": "IApplication.StopSimulation Method",
+        "filename": "6d763263-d8b4-905d-e454-ddead41e03b5.md"
+    },
+    "7cc247de-52ba-6950-83e7-8c7bcf0db801": {
+        "title": "ClxToDatDecode.Load Method",
+        "filename": "7cc247de-52ba-6950-83e7-8c7bcf0db801.md"
+    },
+    "81401d85-f877-11d5-295d-381d1839f6dc": {
+        "title": "ClxToDatDecode Constructor",
+        "filename": "81401d85-f877-11d5-295d-381d1839f6dc.md"
+    },
+    "7ecb18bc-aeb3-1199-bfe6-b243e602cc19": {
+        "title": "IApplication.ResetSimulation Method",
+        "filename": "7ecb18bc-aeb3-1199-bfe6-b243e602cc19.md"
+    },
+    "7e02c744-c7d2-e502-5f28-9a6a29dc9d2e": {
+        "title": "ExternalFeeding.Kill Method",
+        "filename": "7e02c744-c7d2-e502-5f28-9a6a29dc9d2e.md"
+    },
+    "7b35772c-341d-d6e5-0d11-b57b93dba4d4": {
+        "title": "IApplication.LoadClx Method",
+        "filename": "7b35772c-341d-d6e5-0d11-b57b93dba4d4.md"
+    },
+    "7c6b908d-3fe4-0981-de8d-838f5873f331": {
+        "title": "IProject.GetSysmaProject Method",
+        "filename": "7c6b908d-3fe4-0981-de8d-838f5873f331.md"
+    },
+    "806ae9ec-7117-d53b-12e9-a2b4054ea8c1": {
+        "title": "IApplication.WaitEndOfSimulation Method",
+        "filename": "806ae9ec-7117-d53b-12e9-a2b4054ea8c1.md"
+    },
+    "83883fd5-ce0b-83f9-8dd4-cd3628f8bdaa": {
+        "title": "SignalConversion Class",
+        "filename": "83883fd5-ce0b-83f9-8dd4-cd3628f8bdaa.md"
+    },
+    "72648896-0bbd-5442-9d12-72c93b3c3520": {
+        "title": "IClxToDatDecode Properties",
+        "filename": "72648896-0bbd-5442-9d12-72c93b3c3520.md"
+    },
+    "86a57fc9-5506-e30f-7f15-1f23362bda0c": {
+        "title": "ConversionFormula.Finalize Method",
+        "filename": "86a57fc9-5506-e30f-7f15-1f23362bda0c.md"
+    },
+    "8862d9be-df58-07ee-e9b5-23cf8c2a50e5": {
+        "title": "ClxToDatDecode Class",
+        "filename": "8862d9be-df58-07ee-e9b5-23cf8c2a50e5.md"
+    },
+    "8b0617c1-da48-f944-d541-efe46fdfe8d1": {
+        "title": "Project.GetSysmaProject Method",
+        "filename": "8b0617c1-da48-f944-d541-efe46fdfe8d1.md"
+    },
+    "88f23118-0725-7703-5cea-3e5ff03bffca": {
+        "title": "Preferences Methods",
+        "filename": "88f23118-0725-7703-5cea-3e5ff03bffca.md"
+    },
+    "8f1a1ac7-71d8-173f-648d-be1d190b3e2f": {
+        "title": "Preferences Class",
+        "filename": "8f1a1ac7-71d8-173f-648d-be1d190b3e2f.md"
+    },
+    "5f51da60-a456-d232-26b6-eac15a0bf269": {
+        "title": "Preferences Constructor",
+        "filename": "5f51da60-a456-d232-26b6-eac15a0bf269.md"
+    },
+    "8ce21a10-fb33-3f9f-a505-62ca590755b9": {
+        "title": "VersionCheck Methods",
+        "filename": "8ce21a10-fb33-3f9f-a505-62ca590755b9.md"
+    },
+    "8d2abd31-e941-1db6-8318-5dde5af76185": {
+        "title": "Project Properties",
+        "filename": "8d2abd31-e941-1db6-8318-5dde5af76185.md"
+    },
+    "8ffab537-3039-7c40-2e09-b55350d9dbd6": {
+        "title": "Project.Finalize Method",
+        "filename": "8ffab537-3039-7c40-2e09-b55350d9dbd6.md"
+    },
+    "847a3527-199f-282f-b4eb-5787e7dd9b12": {
+        "title": "ConversionFormula.ApplyInverseFormula Method",
+        "filename": "847a3527-199f-282f-b4eb-5787e7dd9b12.md"
+    },
+    "8a4d3633-302f-8061-250e-660e294c63f3": {
+        "title": "Preferences Constructor",
+        "filename": "8a4d3633-302f-8061-250e-660e294c63f3.md"
+    },
+    "83f9caad-2e34-0063-3c3d-37e943bb0235": {
+        "title": "IClxToDatDecode.Load Method",
+        "filename": "83f9caad-2e34-0063-3c3d-37e943bb0235.md"
+    },
+    "97885baf-02c1-8414-1a61-573b44042767": {
+        "title": "SignalConversion.GetID Method",
+        "filename": "97885baf-02c1-8414-1a61-573b44042767.md"
+    },
+    "97a93ac0-e3b9-58e4-fdf6-b12f35a5e32e": {
+        "title": "Application.VMSError Enumeration",
+        "filename": "97a93ac0-e3b9-58e4-fdf6-b12f35a5e32e.md"
+    },
+    "9647b7d4-c861-a782-2a48-ca2ff213939d": {
+        "title": "ConversionFormula Class",
+        "filename": "9647b7d4-c861-a782-2a48-ca2ff213939d.md"
+    },
+    "990c2317-7d0c-6a6f-4d25-b9bae2306d61": {
+        "title": "Application.GetStatus Method",
+        "filename": "990c2317-7d0c-6a6f-4d25-b9bae2306d61.md"
+    },
+    "930e0deb-8de8-4b67-f0e7-31f370eca5e4": {
+        "title": "IPreferences Methods",
+        "filename": "930e0deb-8de8-4b67-f0e7-31f370eca5e4.md"
+    },
+    "9bc34609-869c-c770-bae4-2d2b2743f550": {
+        "title": "IConversionFormula.ApplyFormula Method",
+        "filename": "9bc34609-869c-c770-bae4-2d2b2743f550.md"
+    },
+    "9af14078-dacd-ef62-298a-8c2a3803dba4": {
+        "title": "IProject.ClxToDatDecodeFilePath Property",
+        "filename": "9af14078-dacd-ef62-298a-8c2a3803dba4.md"
+    },
+    "9f6a75f9-6bbc-8311-77de-a5b0da9a9a66": {
+        "title": "Application.VMSExecutionSpeedEnum Enumeration",
+        "filename": "9f6a75f9-6bbc-8311-77de-a5b0da9a9a66.md"
+    },
+    "9baeca01-8ea9-2944-bfe2-17c2f5d87e91": {
+        "title": "IPreferences.Load Method",
+        "filename": "9baeca01-8ea9-2944-bfe2-17c2f5d87e91.md"
+    },
+    "9217bb7c-364f-2c21-963e-3e28b53d70d2": {
+        "title": "Project.Save Method",
+        "filename": "9217bb7c-364f-2c21-963e-3e28b53d70d2.md"
+    },
+    "9c760ba9-7bea-91c8-3ec3-0940a2827b67": {
+        "title": "Project.Matches Method",
+        "filename": "9c760ba9-7bea-91c8-3ec3-0940a2827b67.md"
+    },
+    "9eb1b92f-0c28-99e5-74b0-408c0e05f30a": {
+        "title": "IApplication.GetStatus Method",
+        "filename": "9eb1b92f-0c28-99e5-74b0-408c0e05f30a.md"
+    },
+    "a0826722-d446-68e8-cd62-8938b345bb88": {
+        "title": "Project.ExternalFeedingDataExchangeFolder Property",
+        "filename": "a0826722-d446-68e8-cd62-8938b345bb88.md"
+    },
+    "98e9e16f-884c-0643-06f7-cbee8c64ad95": {
+        "title": "Project Class",
+        "filename": "98e9e16f-884c-0643-06f7-cbee8c64ad95.md"
+    },
+    "a3d513a7-a42e-07a6-aafa-893cebcb1bb6": {
+        "title": "IPreferences.Save Method",
+        "filename": "a3d513a7-a42e-07a6-aafa-893cebcb1bb6.md"
+    },
+    "a58819ab-cdff-0dc2-bd8e-7ba5bb5b5b66": {
+        "title": "IApplication.UnloadParameterFile Method",
+        "filename": "a58819ab-cdff-0dc2-bd8e-7ba5bb5b5b66.md"
+    },
+    "a4ba7714-9129-be87-36fb-d1fb51037af1": {
+        "title": "IApplication Interface",
+        "filename": "a4ba7714-9129-be87-36fb-d1fb51037af1.md"
+    },
+    "a20134de-78be-7b2f-939f-6c6a104395b7": {
+        "title": "Application.LoadParameterFile Method (String[], IPreferences, IClxToDatDecode)",
+        "filename": "a20134de-78be-7b2f-939f-6c6a104395b7.md"
+    },
+    "9daa5a37-9fb0-d7f3-6e9a-895b2c7360a2": {
+        "title": "Project.VMSPreferenceFilePath Property",
+        "filename": "9daa5a37-9fb0-d7f3-6e9a-895b2c7360a2.md"
+    },
+    "9d448acb-4d38-950f-bb17-00743516b858": {
+        "title": "Application.InitSimulation Method",
+        "filename": "9d448acb-4d38-950f-bb17-00743516b858.md"
+    },
+    "a8fb87b7-7a9e-5c21-3205-a94d420544a3": {
+        "title": "Application Class",
+        "filename": "a8fb87b7-7a9e-5c21-3205-a94d420544a3.md"
+    },
+    "aa6130b9-b8bb-e4cc-2d04-7f625a99eb32": {
+        "title": "IApplication.GetPreferences Method",
+        "filename": "aa6130b9-b8bb-e4cc-2d04-7f625a99eb32.md"
+    },
+    "a9210e50-d5bd-4568-2194-d37eb2cd118c": {
+        "title": "KtmVMSAutomation.Marelli.VMS Namespace",
+        "filename": "a9210e50-d5bd-4568-2194-d37eb2cd118c.md"
+    },
+    "ac088aaf-ca49-6a1f-83bd-64fdd468e1d4": {
+        "title": "GlobalLogHelper Methods",
+        "filename": "ac088aaf-ca49-6a1f-83bd-64fdd468e1d4.md"
+    },
+    "abf819e9-53c1-7be1-b964-0187531dc7f9": {
+        "title": "VersionCheck Class",
+        "filename": "abf819e9-53c1-7be1-b964-0187531dc7f9.md"
+    },
+    "b1b9fba0-23fe-b801-a2d0-1e51613a06ad": {
+        "title": "Project.Export Method",
+        "filename": "b1b9fba0-23fe-b801-a2d0-1e51613a06ad.md"
+    },
+    "ab09bb56-2145-c98b-54ea-85980668c05d": {
+        "title": "VersionCheck.DisableVersionCheck Method",
+        "filename": "ab09bb56-2145-c98b-54ea-85980668c05d.md"
+    },
+    "b1dcf6ea-b262-6038-8274-199443d6122e": {
+        "title": "ExternalFeeding.SetExternalFeedingInteractiveValue Method",
+        "filename": "b1dcf6ea-b262-6038-8274-199443d6122e.md"
+    },
+    "b206ed8c-57f9-9226-55d3-b3b02ce65c11": {
+        "title": "SignalConversion Fields",
+        "filename": "b206ed8c-57f9-9226-55d3-b3b02ce65c11.md"
+    },
+    "b0f5ea96-f98a-e988-5a07-e922354d3038": {
+        "title": "Application.VMSSimulationStatus Enumeration",
+        "filename": "b0f5ea96-f98a-e988-5a07-e922354d3038.md"
+    },
+    "ae05e8e0-7e42-d3da-847f-3be713b9ab79": {
+        "title": "Application.oVMSServer Property",
+        "filename": "ae05e8e0-7e42-d3da-847f-3be713b9ab79.md"
+    },
+    "acc4ae3f-71e1-b8a5-60da-0cab2315aac8": {
+        "title": "IProject.Export Method",
+        "filename": "acc4ae3f-71e1-b8a5-60da-0cab2315aac8.md"
+    },
+    "b22b81c4-c434-68d4-4011-04d03765540d": {
+        "title": "Application.StartConnectionMode Method",
+        "filename": "b22b81c4-c434-68d4-4011-04d03765540d.md"
+    },
+    "b36fe8b5-c549-e072-fd28-c899e7d27b75": {
+        "title": "ClxToDatDecode.Matches Method",
+        "filename": "b36fe8b5-c549-e072-fd28-c899e7d27b75.md"
+    },
+    "b29e5cf4-a272-3b7d-0b2c-fcb90c77840a": {
+        "title": "Preferences.Finalize Method",
+        "filename": "b29e5cf4-a272-3b7d-0b2c-fcb90c77840a.md"
+    },
+    "b5cb4b87-d1a5-94fb-3156-91c11107bf20": {
+        "title": "Project.NotifyStep Property",
+        "filename": "b5cb4b87-d1a5-94fb-3156-91c11107bf20.md"
+    },
+    "b30ed16f-93dd-2bf0-7831-53e47edb4e48": {
+        "title": "ClxToDatDecode Properties",
+        "filename": "b30ed16f-93dd-2bf0-7831-53e47edb4e48.md"
+    },
+    "b641e864-f787-d9af-be04-bca6b3faf629": {
+        "title": "Application.ResetSimulation Method",
+        "filename": "b641e864-f787-d9af-be04-bca6b3faf629.md"
+    },
+    "ba0d1e71-5b02-d7fc-2950-edfb195f9cf8": {
+        "title": "IApplication.InitSimulation Method",
+        "filename": "ba0d1e71-5b02-d7fc-2950-edfb195f9cf8.md"
+    },
+    "b98bc0f8-dcd4-2d24-9f80-68548a39eb3f": {
+        "title": "IProject.Save Method",
+        "filename": "b98bc0f8-dcd4-2d24-9f80-68548a39eb3f.md"
+    },
+    "b4f44242-4853-4de1-61f2-363dc3e4192b": {
+        "title": "IProject.GetSignalConversion Method",
+        "filename": "b4f44242-4853-4de1-61f2-363dc3e4192b.md"
+    },
+    "bd7ae0c1-5058-6b52-c59f-1941d5d638a0": {
+        "title": "IProject.NotifyStep Property",
+        "filename": "bd7ae0c1-5058-6b52-c59f-1941d5d638a0.md"
+    },
+    "c3dde62d-dc08-f1fe-39d7-85586626b449": {
+        "title": "ExternalFeeding.Finalize Method",
+        "filename": "c3dde62d-dc08-f1fe-39d7-85586626b449.md"
+    },
+    "bdd0688f-c247-3832-99e7-8dcdbf8c28d5": {
+        "title": "Preferences.Save Method",
+        "filename": "bdd0688f-c247-3832-99e7-8dcdbf8c28d5.md"
+    },
+    "bcfc52a9-8452-fb4c-a396-1641e8b195e8": {
+        "title": "ConversionFormula.ApplyFormula Method",
+        "filename": "bcfc52a9-8452-fb4c-a396-1641e8b195e8.md"
+    },
+    "ca2cfc84-306e-5e72-89f2-96fc6aa5e4e3": {
+        "title": "IClxToDatDecode.ClxToDatDecodeModel Property",
+        "filename": "ca2cfc84-306e-5e72-89f2-96fc6aa5e4e3.md"
+    },
+    "c9d74da4-fb7f-05fa-0d27-e2a6c6652b18": {
+        "title": "Application Properties",
+        "filename": "c9d74da4-fb7f-05fa-0d27-e2a6c6652b18.md"
+    },
+    "bd8e0b6a-1eef-cfbc-ae49-a680a8b5ab22": {
+        "title": "GlobalLogHelper.SetAssemblyName Method",
+        "filename": "bd8e0b6a-1eef-cfbc-ae49-a680a8b5ab22.md"
+    },
+    "c45a3b0f-656f-d860-7645-f0c3b81f764d": {
+        "title": "ClxToDatDecode.Finalize Method",
+        "filename": "c45a3b0f-656f-d860-7645-f0c3b81f764d.md"
+    },
+    "c66b1fb2-bd37-2a30-f531-cc4439e6a849": {
+        "title": "IClxToDatDecode Methods",
+        "filename": "c66b1fb2-bd37-2a30-f531-cc4439e6a849.md"
+    },
+    "ca41d0a9-1ed5-ab6d-9abe-1a4183656890": {
+        "title": "IApplication.LoadParameterFile Method (String[], IPreferences, IClxToDatDecode)",
+        "filename": "ca41d0a9-1ed5-ab6d-9abe-1a4183656890.md"
+    },
+    "cb9b177f-1685-24e9-bf69-f1f8f2c5e798": {
+        "title": "Application.InitializeObjectsLogger Method",
+        "filename": "cb9b177f-1685-24e9-bf69-f1f8f2c5e798.md"
+    },
+    "cb8f309e-19cb-d6a0-452d-c891aa8fe938": {
+        "title": "Preferences.Matches Method",
+        "filename": "cb8f309e-19cb-d6a0-452d-c891aa8fe938.md"
+    },
+    "df0ab2a7-1f1b-6e31-01e4-309175cb3f58": {
+        "title": "IApplication.SetPreferences Method",
+        "filename": "df0ab2a7-1f1b-6e31-01e4-309175cb3f58.md"
+    },
+    "d4849849-97fa-c793-e1e7-00cd9793b4fa": {
+        "title": "IApplication Methods",
+        "filename": "d4849849-97fa-c793-e1e7-00cd9793b4fa.md"
+    },
+    "cefe30e9-eb55-ba69-f98d-00121b6ba918": {
+        "title": "ISignalConversion Properties",
+        "filename": "cefe30e9-eb55-ba69-f98d-00121b6ba918.md"
+    },
+    "e2bef147-c450-ec09-b603-da3bb2db1829": {
+        "title": "ExternalFeeding.EnableExternalFeedingInteractive Method",
+        "filename": "e2bef147-c450-ec09-b603-da3bb2db1829.md"
+    },
+    "d87384af-a103-962b-87b3-4b4b9e7a9146": {
+        "title": "ExternalFeeding.StartSimulation Method",
+        "filename": "d87384af-a103-962b-87b3-4b4b9e7a9146.md"
+    },
+    "d0611f4c-7e3d-8c19-e770-e90035e0354d": {
+        "title": "SignalConversion Properties",
+        "filename": "d0611f4c-7e3d-8c19-e770-e90035e0354d.md"
+    },
+    "da0370b8-f333-ff99-da10-087c281751fb": {
+        "title": "Application.StopConnectionMode Method",
+        "filename": "da0370b8-f333-ff99-da10-087c281751fb.md"
+    },
+    "d6c7a8df-37bb-059c-3f49-b73c0732cb59": {
+        "title": "Project.SysmaPrjPath Property",
+        "filename": "d6c7a8df-37bb-059c-3f49-b73c0732cb59.md"
+    },
+    "dd4cb95f-dfbf-599d-3f36-b06b87a0baa1": {
+        "title": "IProject.VMSPreferenceFilePath Property",
+        "filename": "dd4cb95f-dfbf-599d-3f36-b06b87a0baa1.md"
+    },
+    "eac11df2-eab3-6aab-91e8-63f0ded57d3f": {
+        "title": "IExternalFeeding.EnableExternalFeedingInteractive Method (String, String, Double)",
+        "filename": "eac11df2-eab3-6aab-91e8-63f0ded57d3f.md"
+    },
+    "d7cd4ea1-50a4-fb24-38ee-5684febb2e85": {
+        "title": "ExternalFeeding.EnableExternalFeedingPlayer Method",
+        "filename": "d7cd4ea1-50a4-fb24-38ee-5684febb2e85.md"
+    },
+    "e1c857ae-cd3a-4ea5-6de9-9e813e415f68": {
+        "title": "Application.SetPreferences Method",
+        "filename": "e1c857ae-cd3a-4ea5-6de9-9e813e415f68.md"
+    },
+    "dec12dc0-72c9-1391-c214-39a5ed2e2c19": {
+        "title": "Project Constructor",
+        "filename": "dec12dc0-72c9-1391-c214-39a5ed2e2c19.md"
+    },
+    "edbf16f8-ac25-1dd8-c23f-38b7c1f50542": {
+        "title": "Application.GetPreferences Method",
+        "filename": "edbf16f8-ac25-1dd8-c23f-38b7c1f50542.md"
+    },
+    "e9060ac0-4903-3fcc-24c3-be59a6249c12": {
+        "title": "IConversionFormula Methods",
+        "filename": "e9060ac0-4903-3fcc-24c3-be59a6249c12.md"
+    },
+    "e4592184-cd4e-8c45-6a99-f4c67aace816": {
+        "title": "IExternalFeeding.SetExternalFeedingInteractiveValue Method",
+        "filename": "e4592184-cd4e-8c45-6a99-f4c67aace816.md"
+    },
+    "d2a9bff8-0f9c-0fe7-08e1-296594409e70": {
+        "title": "ISignalConversion Methods",
+        "filename": "d2a9bff8-0f9c-0fe7-08e1-296594409e70.md"
+    },
+    "ee9cf3b0-c918-f25a-c0da-ef3ea83e6314": {
+        "title": "Application.StopSimulation Method",
+        "filename": "ee9cf3b0-c918-f25a-c0da-ef3ea83e6314.md"
+    },
+    "fbda7f16-852f-a443-46a5-b44b402bafdd": {
+        "title": "VersionCheck.GetAssemblyVersion Method",
+        "filename": "fbda7f16-852f-a443-46a5-b44b402bafdd.md"
+    },
+    "f1454bb4-868c-d192-8ea3-7292e649be7a": {
+        "title": "SignalConversion Constructor",
+        "filename": "f1454bb4-868c-d192-8ea3-7292e649be7a.md"
+    },
+    "fa744576-89c2-e5ef-566b-d07c55ad3cbe": {
+        "title": "Project.GetClxToDatDecode Method",
+        "filename": "fa744576-89c2-e5ef-566b-d07c55ad3cbe.md"
+    },
+    "fd9a3d45-9433-d02d-beeb-2360663c494e": {
+        "title": "IPreferences.Matches Method",
+        "filename": "fd9a3d45-9433-d02d-beeb-2360663c494e.md"
+    },
+    "fbe983a4-89cb-b7f1-8b6d-365173cc2807": {
+        "title": "Project.Import Method",
+        "filename": "fbe983a4-89cb-b7f1-8b6d-365173cc2807.md"
+    },
+    "f67413e7-6046-fe6c-86bd-cf67b0444dc3": {
+        "title": "IApplication.SimulationIsRunning Method",
+        "filename": "f67413e7-6046-fe6c-86bd-cf67b0444dc3.md"
+    },
+    "ff10db12-bdcb-5ea2-cebb-71312b705bbb": {
+        "title": "IPreferences.GetNewInstance Method",
+        "filename": "ff10db12-bdcb-5ea2-cebb-71312b705bbb.md"
+    }
+}

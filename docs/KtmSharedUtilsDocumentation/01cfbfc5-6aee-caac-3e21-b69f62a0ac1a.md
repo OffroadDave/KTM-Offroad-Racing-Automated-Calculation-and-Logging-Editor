@@ -1,0 +1,38 @@
+Ktm Shared Utils
+
+# IT1DGetDelta Method   
+  
+---  
+  
+Get the "DELTA" of an interpolation. The DELTA is defines as: 
+
+  * **0** \- When the interpolating value is less than the first element in the breakpoint array
+  * **1** \- When the interpolating value is greater than the last element in the breakpoint array
+  * **The % distance between the interpolating value and the breakpoint at the INDEX position** \- When the interpolating value is between the first and last breapoint elements
+
+
+
+**Namespace:** Â [KtmSharedUtils.Interpolation](a97b521d-e7d3-4754-db26-75f258a42738.md) **Assembly:** Â KtmSharedUtils (in KtmSharedUtils.dll) Version: 1.5.10.0
+    
+    
+    double GetDelta()
+    
+    
+    Function GetDelta As Double
+    
+    
+    double GetDelta()
+    
+    
+    abstract GetDelta : unit -> float 
+    
+
+#### Return Value
+
+Type:Â Double Interpolation DELTA. 
+
+#### Reference
+
+[IT1D Interface](600d7f76-1bce-aed7-852b-e5e61a00e6ce.md)
+
+[KtmSharedUtils.Interpolation Namespace](a97b521d-e7d3-4754-db26-75f258a42738.md)

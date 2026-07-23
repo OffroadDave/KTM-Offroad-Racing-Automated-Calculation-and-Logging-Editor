@@ -1,0 +1,1894 @@
+{
+    "024f78d5-02b1-5b5a-7eae-ec8f5ff6956e": {
+        "title": "ArrayDataType.GetDim1(T) Method",
+        "filename": "024f78d5-02b1-5b5a-7eae-ec8f5ff6956e.md"
+    },
+    "002492b9-85f5-331e-56a9-3548c2d5c057": {
+        "title": "VersionCheck.GetAssemblyVersion Method",
+        "filename": "002492b9-85f5-331e-56a9-3548c2d5c057.md"
+    },
+    "0279dde4-dbd8-8b52-0fd8-28e0b0821bde": {
+        "title": "ITaskControl Methods",
+        "filename": "0279dde4-dbd8-8b52-0fd8-28e0b0821bde.md"
+    },
+    "05b37e61-8c84-b5d4-e470-53e1be42254d": {
+        "title": "IBinaryFileProcessor(T) Properties",
+        "filename": "05b37e61-8c84-b5d4-e470-53e1be42254d.md"
+    },
+    "006ee973-71e6-8344-3df8-01e3a828938b": {
+        "title": "CustomList(T).GetElement Method",
+        "filename": "006ee973-71e6-8344-3df8-01e3a828938b.md"
+    },
+    "0df7ba6f-5771-d9b8-567c-46cad06aa9f3": {
+        "title": "T3D Class",
+        "filename": "0df7ba6f-5771-d9b8-567c-46cad06aa9f3.md"
+    },
+    "029277c1-42fd-76bf-3779-6f4622d4be70": {
+        "title": "ICustomList(T).Add Method (T, Boolean)",
+        "filename": "029277c1-42fd-76bf-3779-6f4622d4be70.md"
+    },
+    "0942d364-57f1-546e-a06b-3d96d681f910": {
+        "title": "IT3D Interface",
+        "filename": "0942d364-57f1-546e-a06b-3d96d681f910.md"
+    },
+    "01cfbfc5-6aee-caac-3e21-b69f62a0ac1a": {
+        "title": "IT1D.GetDelta Method",
+        "filename": "01cfbfc5-6aee-caac-3e21-b69f62a0ac1a.md"
+    },
+    "10832dbf-a6d8-413e-5d9a-2422ce4e2ce3": {
+        "title": "LogHelper.LogLevel Property",
+        "filename": "10832dbf-a6d8-413e-5d9a-2422ce4e2ce3.md"
+    },
+    "1023822d-388e-afbd-fa93-15ba9feb6f54": {
+        "title": "IDataTypeDetails.Sizes Property",
+        "filename": "1023822d-388e-afbd-fa93-15ba9feb6f54.md"
+    },
+    "02f2ddfd-34e1-d9a7-6e31-d361f2cdd9db": {
+        "title": "CustomListArray(T) Methods",
+        "filename": "02f2ddfd-34e1-d9a7-6e31-d361f2cdd9db.md"
+    },
+    "0c1978a1-9f5f-b11d-63d9-546a31ad3f53": {
+        "title": "ArrayCompare.Matches Method",
+        "filename": "0c1978a1-9f5f-b11d-63d9-546a31ad3f53.md"
+    },
+    "10062920-291f-79bc-8ba4-718bb0551b3d": {
+        "title": "IExceptionLogInterface Interface",
+        "filename": "10062920-291f-79bc-8ba4-718bb0551b3d.md"
+    },
+    "0ea422e3-c503-54d2-10a2-70e5cc3011db": {
+        "title": "T2D Methods",
+        "filename": "0ea422e3-c503-54d2-10a2-70e5cc3011db.md"
+    },
+    "0e3ba024-8bd5-4dcd-7f55-bfca8fcddec6": {
+        "title": "ArrayDataType.IsIncreasingStrictlyMonotonically(T) Method",
+        "filename": "0e3ba024-8bd5-4dcd-7f55-bfca8fcddec6.md"
+    },
+    "0d112268-a575-0a17-a0e3-7fbbcf0ac73a": {
+        "title": "IPropertyList Properties",
+        "filename": "0d112268-a575-0a17-a0e3-7fbbcf0ac73a.md"
+    },
+    "08a6d25a-53e1-cd85-2879-5f1d1ba2bb28": {
+        "title": "Property Methods",
+        "filename": "08a6d25a-53e1-cd85-2879-5f1d1ba2bb28.md"
+    },
+    "0f6f3dea-d087-4a04-f497-aa93a777583f": {
+        "title": "CustomListArray(T).Clone Method",
+        "filename": "0f6f3dea-d087-4a04-f497-aa93a777583f.md"
+    },
+    "0bc067f3-c356-39d7-5239-cbaf8e954b41": {
+        "title": "ICrc32.Crc32Value Property",
+        "filename": "0bc067f3-c356-39d7-5239-cbaf8e954b41.md"
+    },
+    "10890d8d-a227-5f9b-ecdb-b776f2efafa1": {
+        "title": "Crc32.Crc32Value Property",
+        "filename": "10890d8d-a227-5f9b-ecdb-b776f2efafa1.md"
+    },
+    "10ec0289-f0ea-77d1-424c-c73c82aefa2b": {
+        "title": "T1D.GetDelta Method",
+        "filename": "10ec0289-f0ea-77d1-424c-c73c82aefa2b.md"
+    },
+    "11522bf4-a526-1cb0-7624-70ecb90582e8": {
+        "title": "ILogHelper.BEnableTraceView Property",
+        "filename": "11522bf4-a526-1cb0-7624-70ecb90582e8.md"
+    },
+    "11275ddc-245a-fee1-3471-f6eb5d706fbb": {
+        "title": "BinaryFileProcessorCpp Methods",
+        "filename": "11275ddc-245a-fee1-3471-f6eb5d706fbb.md"
+    },
+    "125c08c1-c1de-8dc7-4d08-d82a6fda8f7f": {
+        "title": "IO Class",
+        "filename": "125c08c1-c1de-8dc7-4d08-d82a6fda8f7f.md"
+    },
+    "12a25b77-0fb6-67ae-f3d2-9205426300ce": {
+        "title": "IT1D Methods",
+        "filename": "12a25b77-0fb6-67ae-f3d2-9205426300ce.md"
+    },
+    "14b9388e-6706-53f5-2fab-4a33ae61045c": {
+        "title": "ICustomList(T).Add Method",
+        "filename": "14b9388e-6706-53f5-2fab-4a33ae61045c.md"
+    },
+    "165c6d20-b76b-bc18-5b4e-54d00692a5b6": {
+        "title": "LogHelper.LogLevelType Enumeration",
+        "filename": "165c6d20-b76b-bc18-5b4e-54d00692a5b6.md"
+    },
+    "14531176-d068-6f02-1c9f-3a0bf60c148d": {
+        "title": "T3D Constructor",
+        "filename": "14531176-d068-6f02-1c9f-3a0bf60c148d.md"
+    },
+    "1552e370-9f90-eea1-b853-7c24b182ab71": {
+        "title": "IEnvironmentProperties Interface",
+        "filename": "1552e370-9f90-eea1-b853-7c24b182ab71.md"
+    },
+    "17747315-31b9-a8c8-a92c-1ca0e8603114": {
+        "title": "T2D.GetDelta1 Method",
+        "filename": "17747315-31b9-a8c8-a92c-1ca0e8603114.md"
+    },
+    "160dd9d8-2219-0300-aee8-537208ffaa6d": {
+        "title": "IXMLFileProcessor(T) Methods",
+        "filename": "160dd9d8-2219-0300-aee8-537208ffaa6d.md"
+    },
+    "1635baec-3abe-c5a4-0f6a-6f71ad660f66": {
+        "title": "ILogHelper Interface",
+        "filename": "1635baec-3abe-c5a4-0f6a-6f71ad660f66.md"
+    },
+    "1bf3264b-6a82-73e7-588b-eba2b817a9c5": {
+        "title": "PropertyListArray Class",
+        "filename": "1bf3264b-6a82-73e7-588b-eba2b817a9c5.md"
+    },
+    "1e6f3d7e-eab0-7cc9-a621-fe7e92cdb77e": {
+        "title": "IExceptionLogInterface.WriteDeepLog Method",
+        "filename": "1e6f3d7e-eab0-7cc9-a621-fe7e92cdb77e.md"
+    },
+    "1e9a75e1-c32b-650f-6984-b54eaf457663": {
+        "title": "ICrc32 Interface",
+        "filename": "1e9a75e1-c32b-650f-6984-b54eaf457663.md"
+    },
+    "1e4e8f0b-946b-cfc5-f3e9-fdc202b41a43": {
+        "title": "IProperty.Name Property",
+        "filename": "1e4e8f0b-946b-cfc5-f3e9-fdc202b41a43.md"
+    },
+    "1c919763-dd1d-24fc-5ecf-b3e03b18d6f1": {
+        "title": "PropertyListArray.Finalize Method",
+        "filename": "1c919763-dd1d-24fc-5ecf-b3e03b18d6f1.md"
+    },
+    "1ee0e9ff-2798-ad0a-0928-a38f9b403f38": {
+        "title": "CustomList(T).GetEnumerator Method",
+        "filename": "1ee0e9ff-2798-ad0a-0928-a38f9b403f38.md"
+    },
+    "16905b6c-dbfe-61cd-ed6c-ae132dc715fb": {
+        "title": "DebugWriteTXTLog Constructor",
+        "filename": "16905b6c-dbfe-61cd-ed6c-ae132dc715fb.md"
+    },
+    "20c2acfd-66c7-f59d-8821-869fff065760": {
+        "title": "ICustomList(T).Add Method (T)",
+        "filename": "20c2acfd-66c7-f59d-8821-869fff065760.md"
+    },
+    "20e3fcf8-29dd-f87a-40f3-21aa7d84821d": {
+        "title": "IT3D.SetBkp1 Method",
+        "filename": "20e3fcf8-29dd-f87a-40f3-21aa7d84821d.md"
+    },
+    "1a90df96-d9c9-cf5d-aeda-ae4988845c03": {
+        "title": "ILogHelper.BDeepLogEnable Property",
+        "filename": "1a90df96-d9c9-cf5d-aeda-ae4988845c03.md"
+    },
+    "179af8ea-7b69-ce56-5e34-d00d6c559f16": {
+        "title": "ITaskControl.Launch Method",
+        "filename": "179af8ea-7b69-ce56-5e34-d00d6c559f16.md"
+    },
+    "1ba90ea4-5b25-efb5-8e3a-d3370e4484a0": {
+        "title": "IBinaryFileProcessor(T) Methods",
+        "filename": "1ba90ea4-5b25-efb5-8e3a-d3370e4484a0.md"
+    },
+    "186963bb-b4de-691c-a73d-c6de677e5f80": {
+        "title": "ICustomList(T).Matches Method",
+        "filename": "186963bb-b4de-691c-a73d-c6de677e5f80.md"
+    },
+    "17ad49a5-1daf-5c0a-e570-696c8e837e84": {
+        "title": "T3D.GetDelta2 Method",
+        "filename": "17ad49a5-1daf-5c0a-e570-696c8e837e84.md"
+    },
+    "180115cf-45df-205a-931f-764be08ba21c": {
+        "title": "PropertyList Methods",
+        "filename": "180115cf-45df-205a-931f-764be08ba21c.md"
+    },
+    "1a0c5eb3-4d2d-2ae7-d3e8-11ac7eb30367": {
+        "title": "ArrayDataType.ConvertType(T, G) Method (G[,])",
+        "filename": "1a0c5eb3-4d2d-2ae7-d3e8-11ac7eb30367.md"
+    },
+    "1a6599fd-88c2-dd7e-0a90-e80406fc39b4": {
+        "title": "ILogHelper.WriteTrace Method",
+        "filename": "1a6599fd-88c2-dd7e-0a90-e80406fc39b4.md"
+    },
+    "21ce9c77-49d8-d4c6-bd30-220257e03429": {
+        "title": "IProperty.Value Property",
+        "filename": "21ce9c77-49d8-d4c6-bd30-220257e03429.md"
+    },
+    "25674ea3-c057-f1ad-c739-29d1a488bb53": {
+        "title": "ICustomListArray(T) Methods",
+        "filename": "25674ea3-c057-f1ad-c739-29d1a488bb53.md"
+    },
+    "23879376-bd28-8de7-870d-a912b7814af1": {
+        "title": "CustomList(T).GetID Method",
+        "filename": "23879376-bd28-8de7-870d-a912b7814af1.md"
+    },
+    "24550c95-d40e-9bcc-2002-054df2bd3c87": {
+        "title": "CustomList(T).Save Method",
+        "filename": "24550c95-d40e-9bcc-2002-054df2bd3c87.md"
+    },
+    "2689a2b6-3968-84de-1b21-f7376fe98ae0": {
+        "title": "VersionCheck.CompareAssemblyVersion Method",
+        "filename": "2689a2b6-3968-84de-1b21-f7376fe98ae0.md"
+    },
+    "270d67c9-13e1-e2f9-71f0-384e08bf3c19": {
+        "title": "ArrayCompare.Matches(T, G) Method (T[,], G[,])",
+        "filename": "270d67c9-13e1-e2f9-71f0-384e08bf3c19.md"
+    },
+    "28c85e86-83a5-2eeb-7140-f2c2694ecebb": {
+        "title": "PropertyListArray.Add Method",
+        "filename": "28c85e86-83a5-2eeb-7140-f2c2694ecebb.md"
+    },
+    "27bfe436-946c-87bf-5488-134f600c9db5": {
+        "title": "KtmSharedUtils.Filter.IInterfaces Namespace",
+        "filename": "27bfe436-946c-87bf-5488-134f600c9db5.md"
+    },
+    "22fd603c-a682-3ad2-8ff3-bddd1f288084": {
+        "title": "T2D.SetBkp1 Method",
+        "filename": "22fd603c-a682-3ad2-8ff3-bddd1f288084.md"
+    },
+    "2ab2b49d-329d-8240-b54a-eef5d3bf301e": {
+        "title": "IJsonFileProcessor(T) Methods",
+        "filename": "2ab2b49d-329d-8240-b54a-eef5d3bf301e.md"
+    },
+    "2890b88e-4450-e362-a18c-5ee3416ab967": {
+        "title": "ZeroPhase Constructor",
+        "filename": "2890b88e-4450-e362-a18c-5ee3416ab967.md"
+    },
+    "2d229956-1b22-2ec4-762c-2a5ec804e9c8": {
+        "title": "IPropertyList.Add Method (String, Object, Boolean)",
+        "filename": "2d229956-1b22-2ec4-762c-2a5ec804e9c8.md"
+    },
+    "2b8f6225-06e2-5139-a321-ce5e094f0d60": {
+        "title": "CustomList(T).Add Method (T)",
+        "filename": "2b8f6225-06e2-5139-a321-ce5e094f0d60.md"
+    },
+    "2905a794-fe16-a463-bec2-d852606792b4": {
+        "title": "CustomList(T).Matches Method",
+        "filename": "2905a794-fe16-a463-bec2-d852606792b4.md"
+    },
+    "2d4f31ea-450c-709e-4d20-b3e259ac50d6": {
+        "title": "Property Class",
+        "filename": "2d4f31ea-450c-709e-4d20-b3e259ac50d6.md"
+    },
+    "29126bd6-e6a9-d810-00ec-036f7427e3f6": {
+        "title": "IO Methods",
+        "filename": "29126bd6-e6a9-d810-00ec-036f7427e3f6.md"
+    },
+    "2866cd54-5e9d-3014-8ea0-07ae5377557e": {
+        "title": "ZipFileHandler Methods",
+        "filename": "2866cd54-5e9d-3014-8ea0-07ae5377557e.md"
+    },
+    "2ad5f406-6601-c518-f36c-d900f35cec5e": {
+        "title": "ReflectionAssembly Methods",
+        "filename": "2ad5f406-6601-c518-f36c-d900f35cec5e.md"
+    },
+    "28fdc7e2-1df7-0ed0-a55b-71bd9c9afc90": {
+        "title": "T2D.SetBkp2 Method",
+        "filename": "28fdc7e2-1df7-0ed0-a55b-71bd9c9afc90.md"
+    },
+    "2c14cdee-b2cc-5bcd-30ef-210f161d720f": {
+        "title": "ILogHelper Methods",
+        "filename": "2c14cdee-b2cc-5bcd-30ef-210f161d720f.md"
+    },
+    "2e0f6d18-05b7-f3fa-6e82-1792fb3d0e03": {
+        "title": "VersionCheck.GetApplicationInfo Method",
+        "filename": "2e0f6d18-05b7-f3fa-6e82-1792fb3d0e03.md"
+    },
+    "2d89416b-9571-405c-8ecd-80a5db8e1a7b": {
+        "title": "CustomList(T).ToArray Method",
+        "filename": "2d89416b-9571-405c-8ecd-80a5db8e1a7b.md"
+    },
+    "2e7d414c-867d-a629-c13e-917356938d87": {
+        "title": "KtmSharedUtils.Utils Namespace",
+        "filename": "2e7d414c-867d-a629-c13e-917356938d87.md"
+    },
+    "2f197ca1-ed66-a32c-0fce-8ae8eceae130": {
+        "title": "ArrayDataType.GetDim2(T) Method",
+        "filename": "2f197ca1-ed66-a32c-0fce-8ae8eceae130.md"
+    },
+    "2f89a6a0-4920-353e-9532-a367feec3572": {
+        "title": "GenUtils.GenTempFilePath Method",
+        "filename": "2f89a6a0-4920-353e-9532-a367feec3572.md"
+    },
+    "2f97fa74-0ecc-9c14-2d02-9824d547f52e": {
+        "title": "ArrayCompare.Matches(T, G) Method (T, G)",
+        "filename": "2f97fa74-0ecc-9c14-2d02-9824d547f52e.md"
+    },
+    "2ff11fe6-36f9-7c5e-fcaa-f383c961aadf": {
+        "title": "DebugWriteTXTLog.PrintString Method",
+        "filename": "2ff11fe6-36f9-7c5e-fcaa-f383c961aadf.md"
+    },
+    "300f8b71-40c6-25d7-8c03-1f2aac4da14c": {
+        "title": "ArrayDataType Methods",
+        "filename": "300f8b71-40c6-25d7-8c03-1f2aac4da14c.md"
+    },
+    "31f086d0-1519-e276-131c-a722abdfba23": {
+        "title": "PropertyList.Add Method",
+        "filename": "31f086d0-1519-e276-131c-a722abdfba23.md"
+    },
+    "302799f5-ffd9-b9f4-4d9e-c0da43a4bcbd": {
+        "title": "CustomList(T).Add Method (T, Boolean)",
+        "filename": "302799f5-ffd9-b9f4-4d9e-c0da43a4bcbd.md"
+    },
+    "322bffc1-3012-be84-e295-11609fbfbac3": {
+        "title": "JsonFileProcessor(T).Save Method",
+        "filename": "322bffc1-3012-be84-e295-11609fbfbac3.md"
+    },
+    "337be813-edfa-efc3-6626-96accfc4da00": {
+        "title": "ArrayDataType.ConvertType(G) Method (G[,], Type)",
+        "filename": "337be813-edfa-efc3-6626-96accfc4da00.md"
+    },
+    "300064ff-fff4-bf1f-ff03-40c000a14df5": {
+        "title": "PropertyList Fields",
+        "filename": "300064ff-fff4-bf1f-ff03-40c000a14df5.md"
+    },
+    "33db1568-14db-d1d5-a537-818da590ddd6": {
+        "title": "DataTypeDetails.DataType Property",
+        "filename": "33db1568-14db-d1d5-a537-818da590ddd6.md"
+    },
+    "3458a102-8ed5-1f6e-2f1f-0ada39a71185": {
+        "title": "T1D Constructor (Double[], Double[])",
+        "filename": "3458a102-8ed5-1f6e-2f1f-0ada39a71185.md"
+    },
+    "34870388-32dd-1370-97e7-c1e2ceeb4365": {
+        "title": "BinaryFileProcessor(T).Load Method",
+        "filename": "34870388-32dd-1370-97e7-c1e2ceeb4365.md"
+    },
+    "3723f276-d03c-66a6-bf5d-8dc59738b0a1": {
+        "title": "T3D.SetBkp3 Method",
+        "filename": "3723f276-d03c-66a6-bf5d-8dc59738b0a1.md"
+    },
+    "37915e6c-3e7a-9514-eef8-4bd1d3399fd2": {
+        "title": "ZeroPhase Class",
+        "filename": "37915e6c-3e7a-9514-eef8-4bd1d3399fd2.md"
+    },
+    "39b92c0b-c2e8-0769-c6ca-0360c4b3ed81": {
+        "title": "ICustomList(T).GetElement Method",
+        "filename": "39b92c0b-c2e8-0769-c6ca-0360c4b3ed81.md"
+    },
+    "38ef82c0-b3c8-b98f-ada3-493f4da491e7": {
+        "title": "VersionCheck.GetApplicationVersion Method",
+        "filename": "38ef82c0-b3c8-b98f-ada3-493f4da491e7.md"
+    },
+    "37ce8bf1-efdf-350e-d893-796c27e9316b": {
+        "title": "IXMLFileProcessor(T) Interface",
+        "filename": "37ce8bf1-efdf-350e-d893-796c27e9316b.md"
+    },
+    "38ad71d7-8e91-6cf3-4d2c-2d38bafd95f5": {
+        "title": "Crc32.Reset Method",
+        "filename": "38ad71d7-8e91-6cf3-4d2c-2d38bafd95f5.md"
+    },
+    "2eff6192-1701-46b6-34d1-95bce13e1547": {
+        "title": "IJsonFileProcessor(T) Interface",
+        "filename": "2eff6192-1701-46b6-34d1-95bce13e1547.md"
+    },
+    "361043a6-adf0-c63d-f4c6-9a50ace7a7ed": {
+        "title": "IArrayCompare.Matches(T, G) Method (T[,], G[,])",
+        "filename": "361043a6-adf0-c63d-f4c6-9a50ace7a7ed.md"
+    },
+    "35c120dd-0100-2038-dedc-33cd2a764ce2": {
+        "title": "IPropertyListArray.Item Property",
+        "filename": "35c120dd-0100-2038-dedc-33cd2a764ce2.md"
+    },
+    "3660088e-d314-1209-9767-fb36efafb0e3": {
+        "title": "TaskControl Constructor",
+        "filename": "3660088e-d314-1209-9767-fb36efafb0e3.md"
+    },
+    "34afd650-a784-c867-8663-caa9414991e8": {
+        "title": "ILogHelper.WriteDeepLog Method",
+        "filename": "34afd650-a784-c867-8663-caa9414991e8.md"
+    },
+    "375e31ae-071e-e745-5e53-9800c1e435bb": {
+        "title": "ICustomListArray(T).Resize Method",
+        "filename": "375e31ae-071e-e745-5e53-9800c1e435bb.md"
+    },
+    "3507ee51-65ed-76d2-f5b9-97e180222b9c": {
+        "title": "T1D.SetMap Method",
+        "filename": "3507ee51-65ed-76d2-f5b9-97e180222b9c.md"
+    },
+    "35292806-b9e9-5f88-4a29-c3f8aa5b7d69": {
+        "title": "ArrayDataType.StringToVector(T) Method",
+        "filename": "35292806-b9e9-5f88-4a29-c3f8aa5b7d69.md"
+    },
+    "39f5b582-b0a8-7286-2aca-c003ba719601": {
+        "title": "CustomList(T).Count Method",
+        "filename": "39f5b582-b0a8-7286-2aca-c003ba719601.md"
+    },
+    "3c2d488f-1343-b64c-e2b5-4227ebd46eef": {
+        "title": "CustomListArray(T).Remove Method",
+        "filename": "3c2d488f-1343-b64c-e2b5-4227ebd46eef.md"
+    },
+    "3c2d6291-5e23-8ff1-6a17-d649789f1542": {
+        "title": "T3D.GetIndex1 Method",
+        "filename": "3c2d6291-5e23-8ff1-6a17-d649789f1542.md"
+    },
+    "3c933b21-fd3f-9b3b-a6b8-be89495db1ed": {
+        "title": "IArrayCompare Interface",
+        "filename": "3c933b21-fd3f-9b3b-a6b8-be89495db1ed.md"
+    },
+    "3c5b25bc-542a-e3dc-fd33-2248c81206c0": {
+        "title": "T2D Constructor",
+        "filename": "3c5b25bc-542a-e3dc-fd33-2248c81206c0.md"
+    },
+    "4057d19c-fe28-2f87-c31f-6eafd4aa1516": {
+        "title": "KtmSharedUtils.Filter Namespace",
+        "filename": "4057d19c-fe28-2f87-c31f-6eafd4aa1516.md"
+    },
+    "3e308834-ba1f-481d-6d06-37a00a4ec46d": {
+        "title": "BinaryFileProcessorCpp Class",
+        "filename": "3e308834-ba1f-481d-6d06-37a00a4ec46d.md"
+    },
+    "3df9c527-5723-e57a-c2fd-b8d3c9a5a452": {
+        "title": "IArrayDataType.ConvertType Method",
+        "filename": "3df9c527-5723-e57a-c2fd-b8d3c9a5a452.md"
+    },
+    "3cd3e6df-4a6d-9996-0f76-795c295c98ca": {
+        "title": "IDataTypeDetails Methods",
+        "filename": "3cd3e6df-4a6d-9996-0f76-795c295c98ca.md"
+    },
+    "3d5d7574-35bc-ba62-aede-d4925d5bf588": {
+        "title": "Crc32 Methods",
+        "filename": "3d5d7574-35bc-ba62-aede-d4925d5bf588.md"
+    },
+    "415732de-bcc6-5eba-002e-635112eab66f": {
+        "title": "ArrayDataType.IsDecreasingMonotonically(T) Method",
+        "filename": "415732de-bcc6-5eba-002e-635112eab66f.md"
+    },
+    "3f356762-a57e-40fb-d678-996816871a0a": {
+        "title": "T2D Constructor",
+        "filename": "3f356762-a57e-40fb-d678-996816871a0a.md"
+    },
+    "3e7fd2d7-2237-e16c-b33d-1ef81b0abb4c": {
+        "title": "ICustomList(T).AddRange Method",
+        "filename": "3e7fd2d7-2237-e16c-b33d-1ef81b0abb4c.md"
+    },
+    "3d5c5e23-e97f-3e03-252a-5db6fc1fc196": {
+        "title": "T1D Methods",
+        "filename": "3d5c5e23-e97f-3e03-252a-5db6fc1fc196.md"
+    },
+    "3fd3e85a-592c-5a84-3172-f33a22e39995": {
+        "title": "ArrayDataType.ConvertType(T, G) Method (G[,])",
+        "filename": "3fd3e85a-592c-5a84-3172-f33a22e39995.md"
+    },
+    "41223fb2-b80b-8b2a-1f0e-d5ac9ffd5e24": {
+        "title": "PropertyListArray.Item Property",
+        "filename": "41223fb2-b80b-8b2a-1f0e-d5ac9ffd5e24.md"
+    },
+    "4014460c-d032-7d60-fd53-ade0e30a8117": {
+        "title": "DebugWriteTXTLog Properties",
+        "filename": "4014460c-d032-7d60-fd53-ade0e30a8117.md"
+    },
+    "403be8ff-3677-7e5e-ebcd-c95c385ac19b": {
+        "title": "Utils.ReleaseObject Method",
+        "filename": "403be8ff-3677-7e5e-ebcd-c95c385ac19b.md"
+    },
+    "3cd6bf49-27bd-c386-d1e7-578573b28bac": {
+        "title": "IPropertyListArray.Remove Method",
+        "filename": "3cd6bf49-27bd-c386-d1e7-578573b28bac.md"
+    },
+    "41964ee6-b57e-9294-2ca1-9f38f7af5ebe": {
+        "title": "ICustomList(T) Interface",
+        "filename": "41964ee6-b57e-9294-2ca1-9f38f7af5ebe.md"
+    },
+    "413b4fa5-8e70-fbd1-203b-845a3bdaf7ab": {
+        "title": "IPropertyList Methods",
+        "filename": "413b4fa5-8e70-fbd1-203b-845a3bdaf7ab.md"
+    },
+    "42d2867f-d748-2cfb-ba91-427f387d54b0": {
+        "title": "VersionCheck.CheckAssemblyCompatibilityVersion Method",
+        "filename": "42d2867f-d748-2cfb-ba91-427f387d54b0.md"
+    },
+    "43e51922-ccb9-b6b3-66d0-8ebae1510e57": {
+        "title": "PropertyListArray.Resize Method",
+        "filename": "43e51922-ccb9-b6b3-66d0-8ebae1510e57.md"
+    },
+    "470f497a-3e45-0cfe-399e-a2260756ec52": {
+        "title": "T1D Class",
+        "filename": "470f497a-3e45-0cfe-399e-a2260756ec52.md"
+    },
+    "456f85dd-cea9-908a-6acf-10605a4961f1": {
+        "title": "DataTypeDetails.IsNumber Property",
+        "filename": "456f85dd-cea9-908a-6acf-10605a4961f1.md"
+    },
+    "48a7db99-af7d-84a7-867a-88f1abd94190": {
+        "title": "ZipFileHandler Class",
+        "filename": "48a7db99-af7d-84a7-867a-88f1abd94190.md"
+    },
+    "481b52f3-5b00-c754-dfc4-177260ed3080": {
+        "title": "CustomList(T).Set Method",
+        "filename": "481b52f3-5b00-c754-dfc4-177260ed3080.md"
+    },
+    "485b71bd-d17c-cba2-5cfe-dc5e1ab6d317": {
+        "title": "BinaryFileProcessorCpp.WriteDouble Method",
+        "filename": "485b71bd-d17c-cba2-5cfe-dc5e1ab6d317.md"
+    },
+    "4768b9e0-5044-1451-89fc-8cb57070bc4e": {
+        "title": "VersionCheck.GetDirectoryPath Method",
+        "filename": "4768b9e0-5044-1451-89fc-8cb57070bc4e.md"
+    },
+    "460c6153-ab9b-2993-be97-706318f692c5": {
+        "title": "CustomListArray(T).Item Property",
+        "filename": "460c6153-ab9b-2993-be97-706318f692c5.md"
+    },
+    "48f00c64-d915-3860-0427-72f687894e88": {
+        "title": "IArrayCompare Methods",
+        "filename": "48f00c64-d915-3860-0427-72f687894e88.md"
+    },
+    "494cbc09-c525-d3c3-f8f6-f6c4f10e2060": {
+        "title": "Property Constructor",
+        "filename": "494cbc09-c525-d3c3-f8f6-f6c4f10e2060.md"
+    },
+    "49b3827f-6432-1562-e530-73c18944789a": {
+        "title": "IBinaryFileProcessor(T).Load Method",
+        "filename": "49b3827f-6432-1562-e530-73c18944789a.md"
+    },
+    "4aba3902-426c-37e4-bc5f-528aad288d6c": {
+        "title": "IPropertyListArray Properties",
+        "filename": "4aba3902-426c-37e4-bc5f-528aad288d6c.md"
+    },
+    "49197f9e-3899-b4d7-170e-97b698f65671": {
+        "title": "CustomList(T).Finalize Method",
+        "filename": "49197f9e-3899-b4d7-170e-97b698f65671.md"
+    },
+    "4c4eac5b-df1b-d5e0-b26a-4cfe3cfe9b6b": {
+        "title": "ArrayDataType.TransposeMatrix(T) Method",
+        "filename": "4c4eac5b-df1b-d5e0-b26a-4cfe3cfe9b6b.md"
+    },
+    "49798475-f2eb-b7a4-678f-a9656654500f": {
+        "title": "IFilter Methods",
+        "filename": "49798475-f2eb-b7a4-678f-a9656654500f.md"
+    },
+    "4ba1543e-a60c-1d07-47c2-095e1f2d5f04": {
+        "title": "Utils.DeepClone Method",
+        "filename": "4ba1543e-a60c-1d07-47c2-095e1f2d5f04.md"
+    },
+    "4c8560ed-0ade-aa39-3cff-bd3d0e9ebc44": {
+        "title": "VersionCheck.CompareVersion Enumeration",
+        "filename": "4c8560ed-0ade-aa39-3cff-bd3d0e9ebc44.md"
+    },
+    "4cab40e1-5ded-8e41-a529-9e51ca1e9cf3": {
+        "title": "T1D Constructor",
+        "filename": "4cab40e1-5ded-8e41-a529-9e51ca1e9cf3.md"
+    },
+    "4cfa7cfc-18fe-63d7-52c3-f0bb7e5488a3": {
+        "title": "ICustomListArray(T).Length Property",
+        "filename": "4cfa7cfc-18fe-63d7-52c3-f0bb7e5488a3.md"
+    },
+    "4cc18f96-4737-26b6-afb1-5e11dc440fcb": {
+        "title": "ArrayDataType.SetDim1(T) Method",
+        "filename": "4cc18f96-4737-26b6-afb1-5e11dc440fcb.md"
+    },
+    "4d2dd808-ec82-1b56-aa32-b0e0c0b2c23a": {
+        "title": "KtmSharedUtils.AssemblyUtils Namespace",
+        "filename": "4d2dd808-ec82-1b56-aa32-b0e0c0b2c23a.md"
+    },
+    "4cb60614-cfa2-47b5-75eb-f246566843bb": {
+        "title": "Utils Methods",
+        "filename": "4cb60614-cfa2-47b5-75eb-f246566843bb.md"
+    },
+    "4e2b7931-a655-2881-181a-9f0763958011": {
+        "title": "KtmSharedUtils.Environment Namespace",
+        "filename": "4e2b7931-a655-2881-181a-9f0763958011.md"
+    },
+    "4e20853e-d94b-3381-7b81-cf500a100779": {
+        "title": "T3D.SetBkp1 Method",
+        "filename": "4e20853e-d94b-3381-7b81-cf500a100779.md"
+    },
+    "4db441ed-9337-fd50-fec0-cece6a0ee244": {
+        "title": "JsonFileProcessor(T) Methods",
+        "filename": "4db441ed-9337-fd50-fec0-cece6a0ee244.md"
+    },
+    "4dee3918-34a0-e3e7-d666-b606d446333f": {
+        "title": "IBinaryFileProcessor(T) Interface",
+        "filename": "4dee3918-34a0-e3e7-d666-b606d446333f.md"
+    },
+    "436414c3-e554-b559-4aed-8788717f1030": {
+        "title": "IDataTypeDetails.Rank Property",
+        "filename": "436414c3-e554-b559-4aed-8788717f1030.md"
+    },
+    "43bfb173-c19f-eed7-a4f8-21c4a2fae604": {
+        "title": "ICustomList(T).Item Property",
+        "filename": "43bfb173-c19f-eed7-a4f8-21c4a2fae604.md"
+    },
+    "4e5b5c09-62f3-5cb1-3127-f71d083db71b": {
+        "title": "VersionCheck.CompatibilityVersionStateIndex Enumeration",
+        "filename": "4e5b5c09-62f3-5cb1-3127-f71d083db71b.md"
+    },
+    "4e78d5fd-0c64-63c3-26ac-609d21f5b5b6": {
+        "title": "IArrayDataType Interface",
+        "filename": "4e78d5fd-0c64-63c3-26ac-609d21f5b5b6.md"
+    },
+    "4e3e3d78-d82b-276c-23ac-341f165cee28": {
+        "title": "GenUtils.IsValidFileName Method",
+        "filename": "4e3e3d78-d82b-276c-23ac-341f165cee28.md"
+    },
+    "510f30e1-8ee7-5397-de62-15394fc929b1": {
+        "title": "DebugWriteTXTLog Class",
+        "filename": "510f30e1-8ee7-5397-de62-15394fc929b1.md"
+    },
+    "4e5fee84-30ae-1e86-c359-f77555a90653": {
+        "title": "VersionCheck Class",
+        "filename": "4e5fee84-30ae-1e86-c359-f77555a90653.md"
+    },
+    "57728690-3bab-3bc7-c1f0-24d738574958": {
+        "title": "IPropertyList.Add Method",
+        "filename": "57728690-3bab-3bc7-c1f0-24d738574958.md"
+    },
+    "575faec3-b769-003c-c1ee-f3fca2d363cc": {
+        "title": "IProperty Properties",
+        "filename": "575faec3-b769-003c-c1ee-f3fca2d363cc.md"
+    },
+    "4fa6eefc-41fd-a3b1-0e79-2ad6f231d449": {
+        "title": "IT3D.SetBkp2 Method",
+        "filename": "4fa6eefc-41fd-a3b1-0e79-2ad6f231d449.md"
+    },
+    "59c1370e-699d-f3f7-bd11-e0dad27e4e15": {
+        "title": "ITaskControl.CheckElevation Method",
+        "filename": "59c1370e-699d-f3f7-bd11-e0dad27e4e15.md"
+    },
+    "569e518f-3ae1-dece-765f-636f11333757": {
+        "title": "GenUtils.ValidateFilePath Method",
+        "filename": "569e518f-3ae1-dece-765f-636f11333757.md"
+    },
+    "52f6dd57-a8e2-2827-c973-dd61b930b0fb": {
+        "title": "ITaskControl.Exist Method",
+        "filename": "52f6dd57-a8e2-2827-c973-dd61b930b0fb.md"
+    },
+    "512451cb-c813-469a-5c3e-477fa6a1f729": {
+        "title": "BinaryFileProcessor(T).ValidFileExtToUse Property",
+        "filename": "512451cb-c813-469a-5c3e-477fa6a1f729.md"
+    },
+    "4fbded95-a005-663a-9ee2-173964418d6a": {
+        "title": "T3D.GetIndex2 Method",
+        "filename": "4fbded95-a005-663a-9ee2-173964418d6a.md"
+    },
+    "55770452-eac5-efb8-56da-1629940fe5bb": {
+        "title": "TaskProperties Class",
+        "filename": "55770452-eac5-efb8-56da-1629940fe5bb.md"
+    },
+    "5cd2c134-d21b-c6c4-cce2-e951dfd4a402": {
+        "title": "KtmSharedUtils.Array Namespace",
+        "filename": "5cd2c134-d21b-c6c4-cce2-e951dfd4a402.md"
+    },
+    "574899a4-f21b-3831-275a-076ccb7297be": {
+        "title": "ArrayCompare Constructor",
+        "filename": "574899a4-f21b-3831-275a-076ccb7297be.md"
+    },
+    "583bdc01-c5de-9c5b-077e-9513ad808158": {
+        "title": "Property Constructor (String, Object)",
+        "filename": "583bdc01-c5de-9c5b-077e-9513ad808158.md"
+    },
+    "51b5729d-f6ee-8a5d-9b3f-aee8d39e40c3": {
+        "title": "BinaryFileProcessorCpp.ReadDouble Method",
+        "filename": "51b5729d-f6ee-8a5d-9b3f-aee8d39e40c3.md"
+    },
+    "5686cc79-0cf6-011d-09f2-49d042eb2f8c": {
+        "title": "T1D.Interpolate Method",
+        "filename": "5686cc79-0cf6-011d-09f2-49d042eb2f8c.md"
+    },
+    "5ca7a439-2c1b-a241-19c7-c8b92bf729bd": {
+        "title": "KtmSharedUtils.CRC Namespace",
+        "filename": "5ca7a439-2c1b-a241-19c7-c8b92bf729bd.md"
+    },
+    "5065b4fe-71c7-485f-462d-7b8b2aa03232": {
+        "title": "Utils.Copy Method",
+        "filename": "5065b4fe-71c7-485f-462d-7b8b2aa03232.md"
+    },
+    "5d1807ff-a7d1-f41c-cf9a-f9369daa94cf": {
+        "title": "Crc32 Properties",
+        "filename": "5d1807ff-a7d1-f41c-cf9a-f9369daa94cf.md"
+    },
+    "5d1e85b6-feb4-ea7e-0cd1-d91a50fd2342": {
+        "title": "EnvironmentProperties.GetEnvironmentProperties Method",
+        "filename": "5d1e85b6-feb4-ea7e-0cd1-d91a50fd2342.md"
+    },
+    "5d4764c4-595b-d4a5-cbe7-11451ee92142": {
+        "title": "T2D.SetMap Method",
+        "filename": "5d4764c4-595b-d4a5-cbe7-11451ee92142.md"
+    },
+    "5f63ccc8-cae6-3f68-8dc1-ba9bd3b49e0d": {
+        "title": "EnvironmentProperties Class",
+        "filename": "5f63ccc8-cae6-3f68-8dc1-ba9bd3b49e0d.md"
+    },
+    "5e88c4b4-5a2b-393b-9f1c-4628a94a6d67": {
+        "title": "IT3D.GetDelta2 Method",
+        "filename": "5e88c4b4-5a2b-393b-9f1c-4628a94a6d67.md"
+    },
+    "606ac609-4ce8-2950-7fd2-da703d280497": {
+        "title": "IT2D.SetMap Method",
+        "filename": "606ac609-4ce8-2950-7fd2-da703d280497.md"
+    },
+    "5f80bb8a-a2bd-16ce-41d0-3f37a41d94a2": {
+        "title": "IBinaryFileProcessorCpp Methods",
+        "filename": "5f80bb8a-a2bd-16ce-41d0-3f37a41d94a2.md"
+    },
+    "5fe2bc68-8002-0bdf-9c3e-292aaca47a1c": {
+        "title": "CustomListArray(T).Resize Method",
+        "filename": "5fe2bc68-8002-0bdf-9c3e-292aaca47a1c.md"
+    },
+    "601cce59-e745-3951-d688-3d22e786edb1": {
+        "title": "T3D.GetDelta1 Method",
+        "filename": "601cce59-e745-3951-d688-3d22e786edb1.md"
+    },
+    "63239eef-c824-9dd8-da32-9eba0a36a316": {
+        "title": "IExceptionLogInterface Methods",
+        "filename": "63239eef-c824-9dd8-da32-9eba0a36a316.md"
+    },
+    "63329a89-1e77-523c-1218-ad02b97fc1fe": {
+        "title": "DataTypeDetails.Rank Property",
+        "filename": "63329a89-1e77-523c-1218-ad02b97fc1fe.md"
+    },
+    "600d7f76-1bce-aed7-852b-e5e61a00e6ce": {
+        "title": "IT1D Interface",
+        "filename": "600d7f76-1bce-aed7-852b-e5e61a00e6ce.md"
+    },
+    "60528550-0a96-28b4-36fe-ad25973235c8": {
+        "title": "ICustomList(T).Count Method",
+        "filename": "60528550-0a96-28b4-36fe-ad25973235c8.md"
+    },
+    "630ba37f-3f14-3df1-caac-3d38c348e092": {
+        "title": "EventWindowHandler Class",
+        "filename": "630ba37f-3f14-3df1-caac-3d38c348e092.md"
+    },
+    "61e0e9a1-b7e7-665a-2ea9-3af010ab4b02": {
+        "title": "IDataTypeDetails.ProcessVariable Method",
+        "filename": "61e0e9a1-b7e7-665a-2ea9-3af010ab4b02.md"
+    },
+    "6a138026-d5c7-df31-9bfd-e4b18f7d68f3": {
+        "title": "IArrayCompare.Matches(T, G) Method (T, G)",
+        "filename": "6a138026-d5c7-df31-9bfd-e4b18f7d68f3.md"
+    },
+    "6a205b00-c84a-d715-d1dd-4732695864a8": {
+        "title": "EventWindowHandler Methods",
+        "filename": "6a205b00-c84a-d715-d1dd-4732695864a8.md"
+    },
+    "6ad3235a-3fea-e2e9-699e-8ddc9c455a9d": {
+        "title": "ILogHelper.BLogEnable Property",
+        "filename": "6ad3235a-3fea-e2e9-699e-8ddc9c455a9d.md"
+    },
+    "6af10692-a593-bb9b-dfd9-35e8344695bb": {
+        "title": "IZeroPhase Interface",
+        "filename": "6af10692-a593-bb9b-dfd9-35e8344695bb.md"
+    },
+    "6c6787d1-cde9-e5dd-f335-d28fb66b2814": {
+        "title": "PropertyList Class",
+        "filename": "6c6787d1-cde9-e5dd-f335-d28fb66b2814.md"
+    },
+    "6bc6e93b-54a1-44d2-4a12-95a2f397c75d": {
+        "title": "Utils.DeepClone(T) Method (T)",
+        "filename": "6bc6e93b-54a1-44d2-4a12-95a2f397c75d.md"
+    },
+    "6b3cd72b-5056-ff6b-9e06-aeb51dbc16b6": {
+        "title": "IT1D.Interpolate Method",
+        "filename": "6b3cd72b-5056-ff6b-9e06-aeb51dbc16b6.md"
+    },
+    "644d3d8a-e5ae-fabf-7f99-734ef0abf75b": {
+        "title": "ILogHelper.SetLogLevel Method",
+        "filename": "644d3d8a-e5ae-fabf-7f99-734ef0abf75b.md"
+    },
+    "6d0080f3-3434-d571-0602-44c91c723854": {
+        "title": "Property Properties",
+        "filename": "6d0080f3-3434-d571-0602-44c91c723854.md"
+    },
+    "66cd543e-034c-2b03-c5f2-bb106b2039ee": {
+        "title": "IT2D.GetDelta2 Method",
+        "filename": "66cd543e-034c-2b03-c5f2-bb106b2039ee.md"
+    },
+    "684d29e2-e63c-9878-146c-567f82e3e7ae": {
+        "title": "VersionCheck.GetFileVersion Method",
+        "filename": "684d29e2-e63c-9878-146c-567f82e3e7ae.md"
+    },
+    "68ac0a34-fc8b-d047-6a64-30f9278e9a8c": {
+        "title": "T1D.GetIndex Method",
+        "filename": "68ac0a34-fc8b-d047-6a64-30f9278e9a8c.md"
+    },
+    "680204d3-9a0e-e307-cd39-e86e2a2682b9": {
+        "title": "BinaryFileProcessor(T) Constructor",
+        "filename": "680204d3-9a0e-e307-cd39-e86e2a2682b9.md"
+    },
+    "698e3508-177d-465b-3e0d-c4811cde1b5d": {
+        "title": "XMLParser Methods",
+        "filename": "698e3508-177d-465b-3e0d-c4811cde1b5d.md"
+    },
+    "6deb85a6-621a-575e-6622-34cf45cacac1": {
+        "title": "T3D.GetDelta3 Method",
+        "filename": "6deb85a6-621a-575e-6622-34cf45cacac1.md"
+    },
+    "73c0246c-5a4d-fbf7-c483-2e2d70155728": {
+        "title": "IXMLFileProcessor(T).Load Method",
+        "filename": "73c0246c-5a4d-fbf7-c483-2e2d70155728.md"
+    },
+    "7046bbb1-2cd9-959f-0529-3d1e6225d3c6": {
+        "title": "CustomList(T).Load Method",
+        "filename": "7046bbb1-2cd9-959f-0529-3d1e6225d3c6.md"
+    },
+    "6f201fb0-c47b-c640-4ef7-3f770fdea19d": {
+        "title": "ICustomList(T).Exist Method",
+        "filename": "6f201fb0-c47b-c640-4ef7-3f770fdea19d.md"
+    },
+    "719b0ed7-ffb6-a14c-71b9-9a258324779f": {
+        "title": "PropertyList.Finalize Method",
+        "filename": "719b0ed7-ffb6-a14c-71b9-9a258324779f.md"
+    },
+    "702b7b39-0cc5-fc91-c848-5179ce8d1b3e": {
+        "title": "T1D.Interpolate Method (Double[])",
+        "filename": "702b7b39-0cc5-fc91-c848-5179ce8d1b3e.md"
+    },
+    "7674942b-9b73-4051-6535-9d5630fcf87d": {
+        "title": "ZipFileHandler.CreateZipFile Method",
+        "filename": "7674942b-9b73-4051-6535-9d5630fcf87d.md"
+    },
+    "705c80e2-cca6-b4d0-a7a1-155fdf1d738d": {
+        "title": "Utils.Compare Method",
+        "filename": "705c80e2-cca6-b4d0-a7a1-155fdf1d738d.md"
+    },
+    "6ed62166-06bb-abeb-ab42-9c1927b90511": {
+        "title": "ZeroPhase Methods",
+        "filename": "6ed62166-06bb-abeb-ab42-9c1927b90511.md"
+    },
+    "6e7b7630-f479-e798-6f22-cd9ea687e962": {
+        "title": "ZeroPhase.RunFilter Method",
+        "filename": "6e7b7630-f479-e798-6f22-cd9ea687e962.md"
+    },
+    "7760f9cb-ca60-fde1-36a1-a9913a94779b": {
+        "title": "DataTypeDetails Methods",
+        "filename": "7760f9cb-ca60-fde1-36a1-a9913a94779b.md"
+    },
+    "724b0d27-92f7-17a0-11c9-7ecd37d6f292": {
+        "title": "T2D Class",
+        "filename": "724b0d27-92f7-17a0-11c9-7ecd37d6f292.md"
+    },
+    "745fba9f-3649-0b6f-d568-7829bc1bade7": {
+        "title": "CustomList(T).Exist Method",
+        "filename": "745fba9f-3649-0b6f-d568-7829bc1bade7.md"
+    },
+    "751bf694-f30f-f2a0-48ce-d916d9907ded": {
+        "title": "ITaskControl.Kill Method",
+        "filename": "751bf694-f30f-f2a0-48ce-d916d9907ded.md"
+    },
+    "72ba8c2c-bc9a-71d4-b1df-6d4be0b6b278": {
+        "title": "IT2D Interface",
+        "filename": "72ba8c2c-bc9a-71d4-b1df-6d4be0b6b278.md"
+    },
+    "754c517b-4be4-3afc-c938-f2757901f55b": {
+        "title": "IDataTypeDetails.IsArray Property",
+        "filename": "754c517b-4be4-3afc-c938-f2757901f55b.md"
+    },
+    "6f13a5ff-1765-114e-ae78-42572ec8ae1e": {
+        "title": "ExceptionUtils Class",
+        "filename": "6f13a5ff-1765-114e-ae78-42572ec8ae1e.md"
+    },
+    "778a0e8a-50e8-2c69-a3ac-8fb8394791fb": {
+        "title": "EventWindowHandler Constructor",
+        "filename": "778a0e8a-50e8-2c69-a3ac-8fb8394791fb.md"
+    },
+    "740b02c5-f089-dbd0-9ee6-ba317d791c21": {
+        "title": "CustomList(T).ObjectList Field",
+        "filename": "740b02c5-f089-dbd0-9ee6-ba317d791c21.md"
+    },
+    "706ceae9-3048-c4a3-e427-bd41e749ef18": {
+        "title": "DataTypeDetails Class",
+        "filename": "706ceae9-3048-c4a3-e427-bd41e749ef18.md"
+    },
+    "7299ee97-81a0-3765-2e1c-9961741e3459": {
+        "title": "IDataTypeDetails.DataType Property",
+        "filename": "7299ee97-81a0-3765-2e1c-9961741e3459.md"
+    },
+    "785611d5-d1c3-09b5-56df-4862e58e4ec9": {
+        "title": "CustomList(T).Item Property",
+        "filename": "785611d5-d1c3-09b5-56df-4862e58e4ec9.md"
+    },
+    "7df47ad1-4ecc-b45e-36f1-4550c210a5f0": {
+        "title": "ArrayCompare Class",
+        "filename": "7df47ad1-4ecc-b45e-36f1-4550c210a5f0.md"
+    },
+    "78641293-fa59-b269-6296-901db96c8cd4": {
+        "title": "CustomListArray(T) Class",
+        "filename": "78641293-fa59-b269-6296-901db96c8cd4.md"
+    },
+    "7a176978-ebfd-3a92-7c19-ab2d19b5a499": {
+        "title": "DataTypeDetails Constructor",
+        "filename": "7a176978-ebfd-3a92-7c19-ab2d19b5a499.md"
+    },
+    "7f9dddae-2d7c-c6fc-1ea5-7c1ddd1126af": {
+        "title": "IArrayDataType.ConvertType(G) Method (G[,], Type)",
+        "filename": "7f9dddae-2d7c-c6fc-1ea5-7c1ddd1126af.md"
+    },
+    "80f63357-963a-28eb-7ca1-a2ca7d7bfa64": {
+        "title": "TaskProperties.IsRunningAsAdmin Method",
+        "filename": "80f63357-963a-28eb-7ca1-a2ca7d7bfa64.md"
+    },
+    "7b434a87-930b-2b5e-17a8-1982b52f5a12": {
+        "title": "CustomListArray(T).NewElement Method",
+        "filename": "7b434a87-930b-2b5e-17a8-1982b52f5a12.md"
+    },
+    "7a73e6bf-22fe-22f6-90c9-761c6e329898": {
+        "title": "ReflectionAssembly.LoadAssembly Method",
+        "filename": "7a73e6bf-22fe-22f6-90c9-761c6e329898.md"
+    },
+    "7bb60e64-894b-30ba-4219-5da686037665": {
+        "title": "Property.Value Property",
+        "filename": "7bb60e64-894b-30ba-4219-5da686037665.md"
+    },
+    "8274b77a-8757-3555-428d-aa1b5a040ffa": {
+        "title": "XMLParser Class",
+        "filename": "8274b77a-8757-3555-428d-aa1b5a040ffa.md"
+    },
+    "8057733c-3e59-29e9-9c63-150d52c89e95": {
+        "title": "DataTypeDetails.ProcessVariable Method",
+        "filename": "8057733c-3e59-29e9-9c63-150d52c89e95.md"
+    },
+    "7a683360-1e74-66e4-eec0-4dcba15f393d": {
+        "title": "PropertyListArray Properties",
+        "filename": "7a683360-1e74-66e4-eec0-4dcba15f393d.md"
+    },
+    "810b2bac-a9f5-c132-6e7c-ca623137fa89": {
+        "title": "PropertyListArray Constructor",
+        "filename": "810b2bac-a9f5-c132-6e7c-ca623137fa89.md"
+    },
+    "7cf2f094-4697-90b7-0dc7-b3949516d2c8": {
+        "title": "T3D.SetBkp2 Method",
+        "filename": "7cf2f094-4697-90b7-0dc7-b3949516d2c8.md"
+    },
+    "8172b2cc-41ec-232b-b837-f715e7f5719e": {
+        "title": "IExceptionLogInterface.Write Method",
+        "filename": "8172b2cc-41ec-232b-b837-f715e7f5719e.md"
+    },
+    "8554abbb-ad4a-5e3d-4903-e29b32259442": {
+        "title": "ArrayDataType.ConvertType(T, G) Method (G)",
+        "filename": "8554abbb-ad4a-5e3d-4903-e29b32259442.md"
+    },
+    "8687c49c-6658-ebf0-d94b-2725f1463f0e": {
+        "title": "T2D.Interpolate Method",
+        "filename": "8687c49c-6658-ebf0-d94b-2725f1463f0e.md"
+    },
+    "87af27c8-053b-52b6-4348-2718d66952a3": {
+        "title": "LogHelper Methods",
+        "filename": "87af27c8-053b-52b6-4348-2718d66952a3.md"
+    },
+    "860f2d64-0723-2a1c-dee6-52916e614316": {
+        "title": "JsonFileProcessor(T) Constructor",
+        "filename": "860f2d64-0723-2a1c-dee6-52916e614316.md"
+    },
+    "8873c6ae-f389-9269-91c7-edb5866e9566": {
+        "title": "T3D.GetIndex3 Method",
+        "filename": "8873c6ae-f389-9269-91c7-edb5866e9566.md"
+    },
+    "87da0ee6-30d6-77c4-47e3-b955783ced13": {
+        "title": "ICrc32.Reset Method",
+        "filename": "87da0ee6-30d6-77c4-47e3-b955783ced13.md"
+    },
+    "898b4022-687a-af42-e54a-43734093be64": {
+        "title": "ArrayDataType.ToJaggedArray(T) Method",
+        "filename": "898b4022-687a-af42-e54a-43734093be64.md"
+    },
+    "896b5117-8562-22a3-af9a-5e40178b2e8d": {
+        "title": "KtmSharedUtils.ZipHandler Namespace",
+        "filename": "896b5117-8562-22a3-af9a-5e40178b2e8d.md"
+    },
+    "842c37a6-42f4-069b-c58b-432bd04e2943": {
+        "title": "DataTypeDetails.Clone Method",
+        "filename": "842c37a6-42f4-069b-c58b-432bd04e2943.md"
+    },
+    "830a3fd6-274d-5b65-6cb9-4f2e2c11f4b7": {
+        "title": "Utils.DeepClone(T) Method (T, T, List(String))",
+        "filename": "830a3fd6-274d-5b65-6cb9-4f2e2c11f4b7.md"
+    },
+    "851466ad-84d2-a4c4-4da6-cdfb453393ab": {
+        "title": "IT2D.GetDelta1 Method",
+        "filename": "851466ad-84d2-a4c4-4da6-cdfb453393ab.md"
+    },
+    "84f1b508-57df-6fd2-1137-efdecb204065": {
+        "title": "IDataTypeDetails Interface",
+        "filename": "84f1b508-57df-6fd2-1137-efdecb204065.md"
+    },
+    "84e721d5-698f-c7e1-f7ef-c63c2217ce24": {
+        "title": "BinaryFileProcessor(T) Properties",
+        "filename": "84e721d5-698f-c7e1-f7ef-c63c2217ce24.md"
+    },
+    "89923834-58f9-9a58-790c-81afdc68d7a8": {
+        "title": "LogHelper.WriteTrace Method",
+        "filename": "89923834-58f9-9a58-790c-81afdc68d7a8.md"
+    },
+    "8a430bcb-d396-87f3-397b-aa9df67380e6": {
+        "title": "IT1D.GetIndex Method",
+        "filename": "8a430bcb-d396-87f3-397b-aa9df67380e6.md"
+    },
+    "8ab75dca-1b66-9745-47a0-1c18404881c8": {
+        "title": "GenUtils Methods",
+        "filename": "8ab75dca-1b66-9745-47a0-1c18404881c8.md"
+    },
+    "8bed9340-a8fd-14c6-7b52-6c826b7ba098": {
+        "title": "KtmSharedUtils.Log Namespace",
+        "filename": "8bed9340-a8fd-14c6-7b52-6c826b7ba098.md"
+    },
+    "8aa20637-e0c3-3e66-462a-d37cae1d07e0": {
+        "title": "ICrc32 Properties",
+        "filename": "8aa20637-e0c3-3e66-462a-d37cae1d07e0.md"
+    },
+    "8cbc7b13-06cc-b938-54f9-361a8e6d75ea": {
+        "title": "ICustomList(T).GetElementIDs Method",
+        "filename": "8cbc7b13-06cc-b938-54f9-361a8e6d75ea.md"
+    },
+    "8a7e9cbe-c7b9-3af6-a2fb-147b93337e3f": {
+        "title": "T1D.Interpolate Method (Double)",
+        "filename": "8a7e9cbe-c7b9-3af6-a2fb-147b93337e3f.md"
+    },
+    "8d347fe6-5b51-feb4-a0d9-5f3d8b07bb3a": {
+        "title": "DataTypeDetails.Sizes Property",
+        "filename": "8d347fe6-5b51-feb4-a0d9-5f3d8b07bb3a.md"
+    },
+    "91a6cf7d-3d54-0483-ca71-41d4dec1a0ad": {
+        "title": "ILogHelper Properties",
+        "filename": "91a6cf7d-3d54-0483-ca71-41d4dec1a0ad.md"
+    },
+    "8dc5b171-1a46-3933-08ed-68cffd988b52": {
+        "title": "PropertyList.GetID Method",
+        "filename": "8dc5b171-1a46-3933-08ed-68cffd988b52.md"
+    },
+    "9240a481-7ac4-f6ab-f286-2eec1139ca7b": {
+        "title": "EnvironmentProperties.Finalize Method",
+        "filename": "9240a481-7ac4-f6ab-f286-2eec1139ca7b.md"
+    },
+    "8f71d0c4-ba89-2f63-d5ed-6e46a7ddff0c": {
+        "title": "JsonFileProcessor(T) Class",
+        "filename": "8f71d0c4-ba89-2f63-d5ed-6e46a7ddff0c.md"
+    },
+    "9178f17b-d188-0c5f-ce9a-989b682ebb2e": {
+        "title": "KtmSharedUtils.FileEventWindows Namespace",
+        "filename": "9178f17b-d188-0c5f-ce9a-989b682ebb2e.md"
+    },
+    "8abffe87-a8cc-ca9e-acd5-171d97d5a9dd": {
+        "title": "T3D.SetMap Method",
+        "filename": "8abffe87-a8cc-ca9e-acd5-171d97d5a9dd.md"
+    },
+    "8f76a7c9-1b71-6981-0801-296f141d1d87": {
+        "title": "LogHelper Constructor",
+        "filename": "8f76a7c9-1b71-6981-0801-296f141d1d87.md"
+    },
+    "90e44795-2fa6-0989-10d4-a45496deb441": {
+        "title": "IT3D.SetBkp3 Method",
+        "filename": "90e44795-2fa6-0989-10d4-a45496deb441.md"
+    },
+    "917fa4ab-25ac-e759-ab11-c9ba3410368e": {
+        "title": "VersionCheck.CheckFileCompatibilityVersion Method",
+        "filename": "917fa4ab-25ac-e759-ab11-c9ba3410368e.md"
+    },
+    "8e230bf6-420d-a1cb-b2e1-ad0588da4b13": {
+        "title": "CustomList(T).Clone Method",
+        "filename": "8e230bf6-420d-a1cb-b2e1-ad0588da4b13.md"
+    },
+    "8d7749e0-86c2-9cf4-a620-810fc339b9d7": {
+        "title": "ArrayDataType.IsIncreasingMonotonically(T) Method",
+        "filename": "8d7749e0-86c2-9cf4-a620-810fc339b9d7.md"
+    },
+    "926ae6f2-532f-4393-c430-6da17ddeb5cd": {
+        "title": "CustomList(T) Class",
+        "filename": "926ae6f2-532f-4393-c430-6da17ddeb5cd.md"
+    },
+    "93765eb2-2505-15c7-7f96-144e04c3be80": {
+        "title": "LogHelper.SetLogLevel Method",
+        "filename": "93765eb2-2505-15c7-7f96-144e04c3be80.md"
+    },
+    "93b5965a-b200-d547-89fa-a4ffd38b9329": {
+        "title": "ArrayDataType.IsDecreasingStrictlyMonotonically(T) Method",
+        "filename": "93b5965a-b200-d547-89fa-a4ffd38b9329.md"
+    },
+    "941ad530-bd87-0e9a-03c8-a48e4d4d4a1d": {
+        "title": "LogHelper.BEnableTraceView Property",
+        "filename": "941ad530-bd87-0e9a-03c8-a48e4d4d4a1d.md"
+    },
+    "94988d93-2114-3bb7-c7c4-f29d1ad0359f": {
+        "title": "ZipFileHandler Constructor",
+        "filename": "94988d93-2114-3bb7-c7c4-f29d1ad0359f.md"
+    },
+    "959c7b7b-29e6-512a-d38e-d863240d4c6b": {
+        "title": "T2D.GetIndex2 Method",
+        "filename": "959c7b7b-29e6-512a-d38e-d863240d4c6b.md"
+    },
+    "95ae1167-c0bc-a6d6-3e35-3040f754dc68": {
+        "title": "EnvironmentProperties Methods",
+        "filename": "95ae1167-c0bc-a6d6-3e35-3040f754dc68.md"
+    },
+    "95dbb648-0db9-1361-9642-c818a85a8e79": {
+        "title": "Property Constructor",
+        "filename": "95dbb648-0db9-1361-9642-c818a85a8e79.md"
+    },
+    "969609b9-0371-1bfa-6e0d-25355889450d": {
+        "title": "IT3D.GetIndex1 Method",
+        "filename": "969609b9-0371-1bfa-6e0d-25355889450d.md"
+    },
+    "995c86bf-12f6-6798-4f36-dddf81a737dc": {
+        "title": "CustomList(T) Properties",
+        "filename": "995c86bf-12f6-6798-4f36-dddf81a737dc.md"
+    },
+    "96c0e21e-9257-81b4-d823-99779e9f2853": {
+        "title": "IT3D.GetIndex3 Method",
+        "filename": "96c0e21e-9257-81b4-d823-99779e9f2853.md"
+    },
+    "998a275e-923b-2f84-8861-06f8bc09872c": {
+        "title": "T2D.GetIndex1 Method",
+        "filename": "998a275e-923b-2f84-8861-06f8bc09872c.md"
+    },
+    "9a9e9206-8f5c-5e1d-ec35-0a74753bb824": {
+        "title": "IT2D.GetIndex1 Method",
+        "filename": "9a9e9206-8f5c-5e1d-ec35-0a74753bb824.md"
+    },
+    "9823842f-ffab-2e04-0b48-91fd51717ae3": {
+        "title": "IT1D.FindVeryFastBkp_V Method",
+        "filename": "9823842f-ffab-2e04-0b48-91fd51717ae3.md"
+    },
+    "9b82c535-17bc-56f8-1fdb-53e46f51c9f1": {
+        "title": "ArrayDataType.ConvertType(G) Method (G[,], Type)",
+        "filename": "9b82c535-17bc-56f8-1fdb-53e46f51c9f1.md"
+    },
+    "9a3ddf39-b3ae-5aed-2f51-97065dfa10bf": {
+        "title": "PropertyListArray.Length Property",
+        "filename": "9a3ddf39-b3ae-5aed-2f51-97065dfa10bf.md"
+    },
+    "9bb0f522-3fbd-59a3-9f0d-87413e095c85": {
+        "title": "CustomList(T) Constructor",
+        "filename": "9bb0f522-3fbd-59a3-9f0d-87413e095c85.md"
+    },
+    "99ac2212-f1aa-dbe4-df12-a0b6f2577521": {
+        "title": "CustomList(T) Fields",
+        "filename": "99ac2212-f1aa-dbe4-df12-a0b6f2577521.md"
+    },
+    "9d12e446-efcc-6eec-65b7-39c3adc51162": {
+        "title": "IProperty Interface",
+        "filename": "9d12e446-efcc-6eec-65b7-39c3adc51162.md"
+    },
+    "9d5540b0-080c-a235-bb42-d11a135dd029": {
+        "title": "IT2D.SetBkp2 Method",
+        "filename": "9d5540b0-080c-a235-bb42-d11a135dd029.md"
+    },
+    "9e3e1d08-6166-7410-0ff6-58fd02974739": {
+        "title": "LogHelper.BLogEnable Property",
+        "filename": "9e3e1d08-6166-7410-0ff6-58fd02974739.md"
+    },
+    "9efbc19b-6060-a91c-1818-e8c6b4d83166": {
+        "title": "ArrayDataType.JaggedTo2D(T) Method",
+        "filename": "9efbc19b-6060-a91c-1818-e8c6b4d83166.md"
+    },
+    "9f3bc7c1-78b8-58be-7ee1-d904d98a8936": {
+        "title": "TaskControl Class",
+        "filename": "9f3bc7c1-78b8-58be-7ee1-d904d98a8936.md"
+    },
+    "a1dd5189-50b8-268e-a856-08599e02c0d9": {
+        "title": "IFilter.RunFilter Method",
+        "filename": "a1dd5189-50b8-268e-a856-08599e02c0d9.md"
+    },
+    "94e20695-1e14-4a2d-ba22-0d7056957370": {
+        "title": "TaskControl Methods",
+        "filename": "94e20695-1e14-4a2d-ba22-0d7056957370.md"
+    },
+    "9c6987fd-34c3-e1c0-8467-7a62e45fa404": {
+        "title": "IBinaryFileProcessorCpp.ReadDouble Method",
+        "filename": "9c6987fd-34c3-e1c0-8467-7a62e45fa404.md"
+    },
+    "a147a1f8-8d71-7b70-9b00-c5de00e1042d": {
+        "title": "IT3D.Interpolate Method",
+        "filename": "a147a1f8-8d71-7b70-9b00-c5de00e1042d.md"
+    },
+    "9bcfbef0-64ef-6202-a327-2862949f607e": {
+        "title": "ICustomList(T) Methods",
+        "filename": "9bcfbef0-64ef-6202-a327-2862949f607e.md"
+    },
+    "95d1a8c5-244d-d27f-417d-f7b53792d314": {
+        "title": "ICustomList(T).ToList Method",
+        "filename": "95d1a8c5-244d-d27f-417d-f7b53792d314.md"
+    },
+    "9fed5fee-370d-8bd8-8e19-87ce7136ea4b": {
+        "title": "KtmSharedUtils.FileIO Namespace",
+        "filename": "9fed5fee-370d-8bd8-8e19-87ce7136ea4b.md"
+    },
+    "9e951a4d-8ced-e2da-6829-216b39444bda": {
+        "title": "DataTypeDetails Properties",
+        "filename": "9e951a4d-8ced-e2da-6829-216b39444bda.md"
+    },
+    "9d37c173-bc9a-96e1-0b05-5db4bd447a11": {
+        "title": "BinaryFileProcessorCpp Constructor",
+        "filename": "9d37c173-bc9a-96e1-0b05-5db4bd447a11.md"
+    },
+    "a2ad0c03-71a0-bda9-abc2-be5b6c112a93": {
+        "title": "VersionCheck.CheckApplicationCompatibilityVersion Method",
+        "filename": "a2ad0c03-71a0-bda9-abc2-be5b6c112a93.md"
+    },
+    "a33621c6-e9f3-a724-36c4-87e632ad06d5": {
+        "title": "IXMLFileProcessor(T).Save Method",
+        "filename": "a33621c6-e9f3-a724-36c4-87e632ad06d5.md"
+    },
+    "a2f98cc2-3b1a-5a0c-1194-480a45967f36": {
+        "title": "IDataTypeDetails.IsNull Property",
+        "filename": "a2f98cc2-3b1a-5a0c-1194-480a45967f36.md"
+    },
+    "a361b66b-9a42-1824-d27c-de1a4b8ff630": {
+        "title": "DataTypeDetails.IsArray Property",
+        "filename": "a361b66b-9a42-1824-d27c-de1a4b8ff630.md"
+    },
+    "a52ee060-ceb4-40fc-45ba-d2bc1d122e99": {
+        "title": "IT2D Methods",
+        "filename": "a52ee060-ceb4-40fc-45ba-d2bc1d122e99.md"
+    },
+    "a61a84a4-67a6-5622-c41a-60e24a163219": {
+        "title": "ICustomListArray(T).Item Property",
+        "filename": "a61a84a4-67a6-5622-c41a-60e24a163219.md"
+    },
+    "a51b4359-fac2-01c7-85f5-41f163388084": {
+        "title": "IEnvironmentProperties Methods",
+        "filename": "a51b4359-fac2-01c7-85f5-41f163388084.md"
+    },
+    "a729feed-0ea8-dee5-1f25-ed7cc1dba7ad": {
+        "title": "IO.CloneDirectory Method",
+        "filename": "a729feed-0ea8-dee5-1f25-ed7cc1dba7ad.md"
+    },
+    "a2e3145a-7542-c506-c701-89a3d193edfe": {
+        "title": "VersionCheck.DisableVersionCheck Method",
+        "filename": "a2e3145a-7542-c506-c701-89a3d193edfe.md"
+    },
+    "a680766d-0822-c8ff-3b98-2b9f1a3f36b3": {
+        "title": "IBinaryFileProcessorCpp.WriteDouble Method",
+        "filename": "a680766d-0822-c8ff-3b98-2b9f1a3f36b3.md"
+    },
+    "a5c7d275-ad03-28ef-ded6-5ccae76ad4c9": {
+        "title": "KtmSharedUtils.DataType Namespace",
+        "filename": "a5c7d275-ad03-28ef-ded6-5ccae76ad4c9.md"
+    },
+    "a97b521d-e7d3-4754-db26-75f258a42738": {
+        "title": "KtmSharedUtils.Interpolation Namespace",
+        "filename": "a97b521d-e7d3-4754-db26-75f258a42738.md"
+    },
+    "a96df3a2-ccbb-e8fa-5529-480c35e6869d": {
+        "title": "IArrayCompare.Matches(T, G) Method (T[], G[])",
+        "filename": "a96df3a2-ccbb-e8fa-5529-480c35e6869d.md"
+    },
+    "aa146298-f072-33bb-06ab-c109a223d41e": {
+        "title": "VersionCheck.GetAssemblyInfo Method",
+        "filename": "aa146298-f072-33bb-06ab-c109a223d41e.md"
+    },
+    "a60a3d1b-7638-6d7d-3d29-3ffe36e3ddfd": {
+        "title": "KtmSharedUtils.ObjectUtils Namespace",
+        "filename": "a60a3d1b-7638-6d7d-3d29-3ffe36e3ddfd.md"
+    },
+    "a5f7da0a-e751-9a2d-cbeb-8c8f3071f297": {
+        "title": "ArrayDataType.ConvertType Method",
+        "filename": "a5f7da0a-e751-9a2d-cbeb-8c8f3071f297.md"
+    },
+    "a796b1ff-8905-582b-bbc3-492f6daabc11": {
+        "title": "XMLFileProcessor(T) Constructor",
+        "filename": "a796b1ff-8905-582b-bbc3-492f6daabc11.md"
+    },
+    "a807f781-531b-b72b-24c3-0864f20a714b": {
+        "title": "ArrayDataType.ConvertType(T, G) Method (G[])",
+        "filename": "a807f781-531b-b72b-24c3-0864f20a714b.md"
+    },
+    "a7876e95-c4ee-ab81-0f77-e34af2ac3d22": {
+        "title": "CustomList(T).GetElementIDs Method",
+        "filename": "a7876e95-c4ee-ab81-0f77-e34af2ac3d22.md"
+    },
+    "a6d4eec6-23e9-2569-d23f-e8eff0a5a915": {
+        "title": "Crc32 Class",
+        "filename": "a6d4eec6-23e9-2569-d23f-e8eff0a5a915.md"
+    },
+    "a828eb0c-ecce-9b2d-b06d-401538ab27ab": {
+        "title": "IT1D.SetMap Method",
+        "filename": "a828eb0c-ecce-9b2d-b06d-401538ab27ab.md"
+    },
+    "abb7a663-7be0-3c82-4ece-a3a8364c0f1d": {
+        "title": "TaskControl.Exist Method",
+        "filename": "abb7a663-7be0-3c82-4ece-a3a8364c0f1d.md"
+    },
+    "ae823464-bcff-c10e-8fb0-e56f2f4e747a": {
+        "title": "GenUtils.GenTempFolderPath Method",
+        "filename": "ae823464-bcff-c10e-8fb0-e56f2f4e747a.md"
+    },
+    "ade79384-f6c3-4c3d-fc80-5eb0180f5d82": {
+        "title": "DataTypeDetails.ElementDataType Property",
+        "filename": "ade79384-f6c3-4c3d-fc80-5eb0180f5d82.md"
+    },
+    "af81987e-bb3b-021d-15af-c3b9546f601a": {
+        "title": "EventWindowHandler.GetLogEntries Method",
+        "filename": "af81987e-bb3b-021d-15af-c3b9546f601a.md"
+    },
+    "b0c2eae2-bf00-50ef-ac0d-cd7aa0304ff6": {
+        "title": "LogHelper.logLevelOld Property",
+        "filename": "b0c2eae2-bf00-50ef-ac0d-cd7aa0304ff6.md"
+    },
+    "af9c7d7f-9a49-408d-d57f-22eef7474aef": {
+        "title": "IArrayDataType.ConvertType(G) Method (G[], Type)",
+        "filename": "af9c7d7f-9a49-408d-d57f-22eef7474aef.md"
+    },
+    "b015854a-6efe-3033-ae29-2b45de7b7076": {
+        "title": "IJsonFileProcessor(T).Load Method",
+        "filename": "b015854a-6efe-3033-ae29-2b45de7b7076.md"
+    },
+    "b151e5c4-7015-daa7-f800-a1769a0a928b": {
+        "title": "IArrayDataType.ConvertType(T, G) Method (G[])",
+        "filename": "b151e5c4-7015-daa7-f800-a1769a0a928b.md"
+    },
+    "b1770ac3-c6cc-7c3a-d4b3-da96ada46151": {
+        "title": "PropertyList.Add Method (String, Object, Boolean)",
+        "filename": "b1770ac3-c6cc-7c3a-d4b3-da96ada46151.md"
+    },
+    "b2c3abf7-d607-0566-c452-c7ef44b8b2a5": {
+        "title": "JsonFileProcessor(T).Load Method",
+        "filename": "b2c3abf7-d607-0566-c452-c7ef44b8b2a5.md"
+    },
+    "b648053f-fd4c-fb1c-98d9-35a6b5f22f1c": {
+        "title": "IJsonFileProcessor(T).Save Method",
+        "filename": "b648053f-fd4c-fb1c-98d9-35a6b5f22f1c.md"
+    },
+    "b975e354-ae11-72c5-bbc0-5381988a8f8f": {
+        "title": "IDataTypeDetails.IsNumber Property",
+        "filename": "b975e354-ae11-72c5-bbc0-5381988a8f8f.md"
+    },
+    "badcbfc9-ccdf-23f8-f808-7c8c148481fe": {
+        "title": "LogHelper Class",
+        "filename": "badcbfc9-ccdf-23f8-f808-7c8c148481fe.md"
+    },
+    "baf3f0d8-b7e4-7e48-f7da-483039b49a23": {
+        "title": "T1D.SetBkp Method",
+        "filename": "baf3f0d8-b7e4-7e48-f7da-483039b49a23.md"
+    },
+    "acbe803d-ae42-4f70-22df-472362703f8c": {
+        "title": "ICustomListArray(T).Remove Method",
+        "filename": "acbe803d-ae42-4f70-22df-472362703f8c.md"
+    },
+    "bd1f1723-63fd-d1c1-f0cb-e452423a0570": {
+        "title": "PropertyListArray.Remove Method",
+        "filename": "bd1f1723-63fd-d1c1-f0cb-e452423a0570.md"
+    },
+    "bc5527e8-a0c0-62d1-6e78-c9233b6238dd": {
+        "title": "CustomListArray(T).Add Method",
+        "filename": "bc5527e8-a0c0-62d1-6e78-c9233b6238dd.md"
+    },
+    "b258143f-08a7-e279-bc11-ed34762067f4": {
+        "title": "CustomList(T).RemoveNULL Method",
+        "filename": "b258143f-08a7-e279-bc11-ed34762067f4.md"
+    },
+    "b3967880-fc11-c51f-d561-ed861f0788a3": {
+        "title": "CustomList(T).ToList Method",
+        "filename": "b3967880-fc11-c51f-d561-ed861f0788a3.md"
+    },
+    "bcb6a8be-1b53-b570-8f49-f9422afe2277": {
+        "title": "ICustomList(T).ToArray Method",
+        "filename": "bcb6a8be-1b53-b570-8f49-f9422afe2277.md"
+    },
+    "b6a44eab-f0bf-eab3-2461-37921cfc1985": {
+        "title": "Crc32 Constructor",
+        "filename": "b6a44eab-f0bf-eab3-2461-37921cfc1985.md"
+    },
+    "b77ff02b-5f91-05e3-3b19-066989112ab9": {
+        "title": "KtmSharedUtils.Globals Namespace",
+        "filename": "b77ff02b-5f91-05e3-3b19-066989112ab9.md"
+    },
+    "b7b7de60-93ae-3042-e1de-cd5f2e218b4a": {
+        "title": "IArrayDataType.ConvertType(G) Method (G, Type)",
+        "filename": "b7b7de60-93ae-3042-e1de-cd5f2e218b4a.md"
+    },
+    "b83ed483-c456-1a53-06b5-881b6961b217": {
+        "title": "IArrayCompare.Matches Method",
+        "filename": "b83ed483-c456-1a53-06b5-881b6961b217.md"
+    },
+    "ba5a0efb-6872-c460-a24c-5718f6f34dfd": {
+        "title": "IBinaryFileProcessor(T).Save Method",
+        "filename": "ba5a0efb-6872-c460-a24c-5718f6f34dfd.md"
+    },
+    "b9fd7e65-e04c-e2b0-c595-482ca9d6ff74": {
+        "title": "ArrayCompare.Matches(T, G) Method (T[,], G[,])",
+        "filename": "b9fd7e65-e04c-e2b0-c595-482ca9d6ff74.md"
+    },
+    "b4cb660f-5df3-cee7-1a5c-9ffb3f41de4f": {
+        "title": "ICrc32.AddData Method",
+        "filename": "b4cb660f-5df3-cee7-1a5c-9ffb3f41de4f.md"
+    },
+    "b724e56e-2228-ba36-4108-090293735364": {
+        "title": "IT2D.Slice Method",
+        "filename": "b724e56e-2228-ba36-4108-090293735364.md"
+    },
+    "b1b359dd-d722-806d-544d-3797c22d5fa2": {
+        "title": "T2D.Slice Method",
+        "filename": "b1b359dd-d722-806d-544d-3797c22d5fa2.md"
+    },
+    "bde88ad1-e1c0-cbef-68e7-dcd5ab969589": {
+        "title": "IArrayDataType.ConvertType(T, G) Method (G)",
+        "filename": "bde88ad1-e1c0-cbef-68e7-dcd5ab969589.md"
+    },
+    "bde22346-3036-d100-0a8e-2bbed832a267": {
+        "title": "IT3D.GetDelta3 Method",
+        "filename": "bde22346-3036-d100-0a8e-2bbed832a267.md"
+    },
+    "be36dabd-bb74-0663-e2d5-93424e447ca4": {
+        "title": "IT3D.GetDelta1 Method",
+        "filename": "be36dabd-bb74-0663-e2d5-93424e447ca4.md"
+    },
+    "bfe1a409-cece-e29f-c169-e3ab98b5440b": {
+        "title": "ICustomList(T).Remove Method",
+        "filename": "bfe1a409-cece-e29f-c169-e3ab98b5440b.md"
+    },
+    "bff67e21-8c13-fa57-da4d-f35464db67bb": {
+        "title": "ReflectionAssembly Class",
+        "filename": "bff67e21-8c13-fa57-da4d-f35464db67bb.md"
+    },
+    "bf9ef33a-f9aa-20b0-6ea4-0f7933cbe29f": {
+        "title": "ICustomList(T).NumElements Method",
+        "filename": "bf9ef33a-f9aa-20b0-6ea4-0f7933cbe29f.md"
+    },
+    "c6f3aed6-faf4-dcc6-cdd2-c7452ecd91d5": {
+        "title": "IDataTypeDetails.ElementDataType Property",
+        "filename": "c6f3aed6-faf4-dcc6-cdd2-c7452ecd91d5.md"
+    },
+    "be01b33c-a1e1-afe8-c023-faa6f2b10184": {
+        "title": "IPropertyListArray.Length Property",
+        "filename": "be01b33c-a1e1-afe8-c023-faa6f2b10184.md"
+    },
+    "c39ca553-c0a4-5382-8856-b49cb7c271a7": {
+        "title": "ArrayCompare.Matches(T, G) Method (T[], G[])",
+        "filename": "c39ca553-c0a4-5382-8856-b49cb7c271a7.md"
+    },
+    "c5a12b4c-2c29-8913-0c7f-7cc35020d847": {
+        "title": "IT2D.GetIndex2 Method",
+        "filename": "c5a12b4c-2c29-8913-0c7f-7cc35020d847.md"
+    },
+    "bfbe4537-2d2c-484b-a721-088d6d83549f": {
+        "title": "T3D.Interpolate Method",
+        "filename": "bfbe4537-2d2c-484b-a721-088d6d83549f.md"
+    },
+    "c26f7a6a-34b9-60b2-275d-90ee63f82e46": {
+        "title": "XMLFileProcessor(T) Class",
+        "filename": "c26f7a6a-34b9-60b2-275d-90ee63f82e46.md"
+    },
+    "bf84d4a8-ecac-a53d-001b-a6f38f972e8c": {
+        "title": "ICustomList(T) Properties",
+        "filename": "bf84d4a8-ecac-a53d-001b-a6f38f972e8c.md"
+    },
+    "c0a322f4-63c9-1076-c660-8285e4e582bf": {
+        "title": "IFilter Interface",
+        "filename": "c0a322f4-63c9-1076-c660-8285e4e582bf.md"
+    },
+    "c3204e3d-85b9-1642-db2c-e3e016a72fbd": {
+        "title": "ArrayCompare Methods",
+        "filename": "c3204e3d-85b9-1642-db2c-e3e016a72fbd.md"
+    },
+    "c4f2ef22-d92e-798f-904c-bf7a92bc4bfb": {
+        "title": "IDataTypeDetails Properties",
+        "filename": "c4f2ef22-d92e-798f-904c-bf7a92bc4bfb.md"
+    },
+    "c6aaaaa1-5b44-61a4-a392-2ca4bc809599": {
+        "title": "IEnvironmentProperties.GetEnvironmentProperties Method",
+        "filename": "c6aaaaa1-5b44-61a4-a392-2ca4bc809599.md"
+    },
+    "c2ccf335-dd2d-d0d9-3b5a-e4e3ac22811c": {
+        "title": "T2D.GetDelta2 Method",
+        "filename": "c2ccf335-dd2d-d0d9-3b5a-e4e3ac22811c.md"
+    },
+    "c1fea651-c52d-e63b-26cd-753096526e20": {
+        "title": "VersionCheck.GetFileInfo Method",
+        "filename": "c1fea651-c52d-e63b-26cd-753096526e20.md"
+    },
+    "c45ac1b2-ffec-0ac2-9d6f-7be2ce7a3b88": {
+        "title": "IT3D Methods",
+        "filename": "c45ac1b2-ffec-0ac2-9d6f-7be2ce7a3b88.md"
+    },
+    "c801d58b-8f01-288e-6667-42b71f04a384": {
+        "title": "CustomListArray(T).Length Property",
+        "filename": "c801d58b-8f01-288e-6667-42b71f04a384.md"
+    },
+    "c7c775b7-717f-22b6-30c2-7e269047b5d4": {
+        "title": "CustomList(T) Methods",
+        "filename": "c7c775b7-717f-22b6-30c2-7e269047b5d4.md"
+    },
+    "c9485394-3c00-7d1f-772e-f0647d444bc2": {
+        "title": "ArrayDataType.ConvertType(G) Method (G[], Type)",
+        "filename": "c9485394-3c00-7d1f-772e-f0647d444bc2.md"
+    },
+    "c88101b1-2312-5900-92d5-054b367c8459": {
+        "title": "PropertyList Constructor",
+        "filename": "c88101b1-2312-5900-92d5-054b367c8459.md"
+    },
+    "c93f2e42-3f02-1ca9-edc6-ee2ce6eeb294": {
+        "title": "LogHelper.LogFolderPath Property",
+        "filename": "c93f2e42-3f02-1ca9-edc6-ee2ce6eeb294.md"
+    },
+    "c87fbbd5-a5ea-b4ee-580c-bac0d4ee1672": {
+        "title": "PropertyListArray Methods",
+        "filename": "c87fbbd5-a5ea-b4ee-580c-bac0d4ee1672.md"
+    },
+    "c9b7348a-5b9a-25b1-6cc8-e693b2edfd3e": {
+        "title": "IPropertyListArray.Add Method",
+        "filename": "c9b7348a-5b9a-25b1-6cc8-e693b2edfd3e.md"
+    },
+    "c9aaadc3-ac41-7423-afea-4c00be5b5225": {
+        "title": "CustomListArray(T).Finalize Method",
+        "filename": "c9aaadc3-ac41-7423-afea-4c00be5b5225.md"
+    },
+    "c8d07939-6aa9-dff3-129b-0c8321d07083": {
+        "title": "IPropertyListArray.Resize Method",
+        "filename": "c8d07939-6aa9-dff3-129b-0c8321d07083.md"
+    },
+    "caa4ec27-bafd-7010-7ac0-2a86eadd34e2": {
+        "title": "IT1D.Interpolate Method (Double[])",
+        "filename": "caa4ec27-bafd-7010-7ac0-2a86eadd34e2.md"
+    },
+    "cad23350-c145-5eac-8b6a-7c9dd3a8821f": {
+        "title": "IArrayCompare.Matches(T, G) Method (T[,], G[,])",
+        "filename": "cad23350-c145-5eac-8b6a-7c9dd3a8821f.md"
+    },
+    "c9ecc8f1-9e40-7f71-afc3-54cfdc6d28ee": {
+        "title": "EnvironmentProperties Constructor",
+        "filename": "c9ecc8f1-9e40-7f71-afc3-54cfdc6d28ee.md"
+    },
+    "cfc077e9-7777-0c37-f47a-3b9ad05f8186": {
+        "title": "IT1D.SetBkp Method",
+        "filename": "cfc077e9-7777-0c37-f47a-3b9ad05f8186.md"
+    },
+    "d0d56490-7120-df80-0fe3-0b0badb9765c": {
+        "title": "CustomList(T).Add Method",
+        "filename": "d0d56490-7120-df80-0fe3-0b0badb9765c.md"
+    },
+    "cbd0585c-afeb-4b15-2eb3-6f0331004af8": {
+        "title": "PropertyList Properties",
+        "filename": "cbd0585c-afeb-4b15-2eb3-6f0331004af8.md"
+    },
+    "d2ce3b35-92fe-6b88-c4bf-82e2d4036148": {
+        "title": "IT2D.Interpolate Method",
+        "filename": "d2ce3b35-92fe-6b88-c4bf-82e2d4036148.md"
+    },
+    "d3891fe3-2f4c-40c9-2576-630a4a9e6f3e": {
+        "title": "XMLParser.IsXmlFormat Method",
+        "filename": "d3891fe3-2f4c-40c9-2576-630a4a9e6f3e.md"
+    },
+    "d0e32349-bc15-a3bb-253e-c652950cdb94": {
+        "title": "IPropertyList Interface",
+        "filename": "d0e32349-bc15-a3bb-253e-c652950cdb94.md"
+    },
+    "cc1c2fc2-6a3c-c076-e0e1-9551408aec50": {
+        "title": "IT2D.SetBkp1 Method",
+        "filename": "cc1c2fc2-6a3c-c076-e0e1-9551408aec50.md"
+    },
+    "cd665bee-ad69-8b28-68ab-4d0aede5aab2": {
+        "title": "LogHelper.GenericErrorIDs Enumeration",
+        "filename": "cd665bee-ad69-8b28-68ab-4d0aede5aab2.md"
+    },
+    "d2758b06-d8c1-3a78-8098-8054ba2ecfd6": {
+        "title": "XMLFileProcessor(T).Save Method",
+        "filename": "d2758b06-d8c1-3a78-8098-8054ba2ecfd6.md"
+    },
+    "d4450d15-5483-9cea-610c-3c861d3847cc": {
+        "title": "IT1D.Interpolate Method (Double)",
+        "filename": "d4450d15-5483-9cea-610c-3c861d3847cc.md"
+    },
+    "d433259b-cc2d-cfe7-5ac7-a45a8c6dded5": {
+        "title": "T1D.FindVeryFastBkp_V Method",
+        "filename": "d433259b-cc2d-cfe7-5ac7-a45a8c6dded5.md"
+    },
+    "d38e1005-e7bc-b663-b04f-caa7ebc4688a": {
+        "title": "ICustomList(T).RemoveNULL Method",
+        "filename": "d38e1005-e7bc-b663-b04f-caa7ebc4688a.md"
+    },
+    "cdd7254c-a212-328c-350a-e85255b79717": {
+        "title": "ILogHelper.SetLogProperties Method",
+        "filename": "cdd7254c-a212-328c-350a-e85255b79717.md"
+    },
+    "ce1ae546-d61b-960b-2741-68131d06cc39": {
+        "title": "T3D Constructor (Double[], Double[], Double[], Double[,])",
+        "filename": "ce1ae546-d61b-960b-2741-68131d06cc39.md"
+    },
+    "cec0382c-4323-252d-b6e3-518890a39ec4": {
+        "title": "IArrayDataType.ConvertType(T, G) Method (G[,])",
+        "filename": "cec0382c-4323-252d-b6e3-518890a39ec4.md"
+    },
+    "cf6c2223-3846-0e07-1429-12d84c087338": {
+        "title": "LogHelper.SetLogProperties Method",
+        "filename": "cf6c2223-3846-0e07-1429-12d84c087338.md"
+    },
+    "cf29ee83-f9af-a662-f078-ef4defbe1942": {
+        "title": "ICustomList(T).Save Method",
+        "filename": "cf29ee83-f9af-a662-f078-ef4defbe1942.md"
+    },
+    "d3932672-9a73-5f39-3782-1482cc6f029e": {
+        "title": "ICustomListArray(T) Interface",
+        "filename": "d3932672-9a73-5f39-3782-1482cc6f029e.md"
+    },
+    "d481df8f-d1a6-a103-7ea7-5d741fe3152b": {
+        "title": "T2D Constructor (Double[], Double[], Double[,])",
+        "filename": "d481df8f-d1a6-a103-7ea7-5d741fe3152b.md"
+    },
+    "d484ee51-05cb-4595-649a-34648e76eb38": {
+        "title": "TaskControl.TaskLaunchFcnType Delegate",
+        "filename": "d484ee51-05cb-4595-649a-34648e76eb38.md"
+    },
+    "d57b7185-8308-7019-9964-dbd1e9ceadaa": {
+        "title": "VersionCheck.CompareStringFormatVersion Method",
+        "filename": "d57b7185-8308-7019-9964-dbd1e9ceadaa.md"
+    },
+    "d4c5199a-ad23-beb4-15d9-7fdf8c5de38f": {
+        "title": "VersionCheck.CheckCompatibilityVersion Method",
+        "filename": "d4c5199a-ad23-beb4-15d9-7fdf8c5de38f.md"
+    },
+    "d5e1c133-743a-8708-4712-56d6cbd6d960": {
+        "title": "ICustomListArray(T) Properties",
+        "filename": "d5e1c133-743a-8708-4712-56d6cbd6d960.md"
+    },
+    "d59228bb-2f71-4edf-1513-0aa8f73212df": {
+        "title": "TaskControl.Kill Method",
+        "filename": "d59228bb-2f71-4edf-1513-0aa8f73212df.md"
+    },
+    "d86d57eb-cbe1-0cd0-f7ad-631135a58d0c": {
+        "title": "LogHelper.BDeepLogEnable Property",
+        "filename": "d86d57eb-cbe1-0cd0-f7ad-631135a58d0c.md"
+    },
+    "d8153d98-8c79-71db-208c-82c9172f2b9f": {
+        "title": "IPropertyListArray Methods",
+        "filename": "d8153d98-8c79-71db-208c-82c9172f2b9f.md"
+    },
+    "d8e2bf70-d260-7286-67f2-01c51d068190": {
+        "title": "ArrayDataType.ConvertType(G) Method (G, Type)",
+        "filename": "d8e2bf70-d260-7286-67f2-01c51d068190.md"
+    },
+    "d6a5d0cc-39ff-dc6c-dfd6-81277639550c": {
+        "title": "CustomListArray(T) Properties",
+        "filename": "d6a5d0cc-39ff-dc6c-dfd6-81277639550c.md"
+    },
+    "d7211fe8-f4a5-895b-530e-d37090558de7": {
+        "title": "VersionCheck Methods",
+        "filename": "d7211fe8-f4a5-895b-530e-d37090558de7.md"
+    },
+    "d84c3542-d8ff-ebc9-24d6-1b444b17f5ef": {
+        "title": "TaskProperties Methods",
+        "filename": "d84c3542-d8ff-ebc9-24d6-1b444b17f5ef.md"
+    },
+    "d9cefd42-f293-9196-7dfc-4bae4e1270f1": {
+        "title": "LogHelper.Write Method",
+        "filename": "d9cefd42-f293-9196-7dfc-4bae4e1270f1.md"
+    },
+    "da844552-693d-9a13-7c1b-527a5e7d7fbd": {
+        "title": "XMLFileProcessor(T) Methods",
+        "filename": "da844552-693d-9a13-7c1b-527a5e7d7fbd.md"
+    },
+    "d7fce805-f3de-f2af-5980-b20069df076a": {
+        "title": "XMLFileProcessor(T).Load Method",
+        "filename": "d7fce805-f3de-f2af-5980-b20069df076a.md"
+    },
+    "d98f079c-03c9-bf35-3dc0-c99f1e75c801": {
+        "title": "Utils Class",
+        "filename": "d98f079c-03c9-bf35-3dc0-c99f1e75c801.md"
+    },
+    "d8506bc5-abf4-3d83-2d66-a1e31b1cb83f": {
+        "title": "TaskControl.CheckElevation Method",
+        "filename": "d8506bc5-abf4-3d83-2d66-a1e31b1cb83f.md"
+    },
+    "d7b1422c-7750-0f23-9593-f3882069e7b0": {
+        "title": "IArrayDataType.ConvertType(G) Method (G[,], Type)",
+        "filename": "d7b1422c-7750-0f23-9593-f3882069e7b0.md"
+    },
+    "db3877d5-e64d-e840-77df-067b427cab9c": {
+        "title": "DataTypeDetails.IsNull Property",
+        "filename": "db3877d5-e64d-e840-77df-067b427cab9c.md"
+    },
+    "d9f8b977-d430-7fcc-dae7-9bd623aad0f4": {
+        "title": "KtmSharedUtils.AppVersion Namespace",
+        "filename": "d9f8b977-d430-7fcc-dae7-9bd623aad0f4.md"
+    },
+    "dc48ea6b-bd23-ea7d-e59a-c446362bb2d7": {
+        "title": "IBinaryFileProcessor(T).ValidFileExtToUse Property",
+        "filename": "dc48ea6b-bd23-ea7d-e59a-c446362bb2d7.md"
+    },
+    "dbba10bb-a0ab-1093-256d-ca190911a8e5": {
+        "title": "T3D Methods",
+        "filename": "dbba10bb-a0ab-1093-256d-ca190911a8e5.md"
+    },
+    "dd652c46-4f1f-1b66-a4bd-5e547ee1dd7b": {
+        "title": "ICustomList(T).Load Method",
+        "filename": "dd652c46-4f1f-1b66-a4bd-5e547ee1dd7b.md"
+    },
+    "deddbc3b-e878-7e7f-bbac-56ee13643972": {
+        "title": "DebugWriteTXTLog.PrintToTxt Method",
+        "filename": "deddbc3b-e878-7e7f-bbac-56ee13643972.md"
+    },
+    "df4ebc75-8ae9-9d09-c7d9-f64bf238e44f": {
+        "title": "LogHelper.WriteDeepLog Method",
+        "filename": "df4ebc75-8ae9-9d09-c7d9-f64bf238e44f.md"
+    },
+    "dfaa21a9-990b-06a3-4e67-dd53ab058590": {
+        "title": "IT3D.GetIndex2 Method",
+        "filename": "dfaa21a9-990b-06a3-4e67-dd53ab058590.md"
+    },
+    "e04f7f87-dc0d-2f3c-fbb8-7fce6fc23eb4": {
+        "title": "KtmSharedUtils.Exceptions Namespace",
+        "filename": "e04f7f87-dc0d-2f3c-fbb8-7fce6fc23eb4.md"
+    },
+    "dfadd5b5-ff5c-66a5-3e97-e2711d981e9c": {
+        "title": "VersionCheck.GetAssemblyVersion Method",
+        "filename": "dfadd5b5-ff5c-66a5-3e97-e2711d981e9c.md"
+    },
+    "e0903ca9-cba0-bf71-e556-910f8264fd78": {
+        "title": "BinaryFileProcessor(T) Methods",
+        "filename": "e0903ca9-cba0-bf71-e556-910f8264fd78.md"
+    },
+    "e33b436c-c699-cb87-d1b9-68cda5191ac4": {
+        "title": "BinaryFileProcessor(T) Class",
+        "filename": "e33b436c-c699-cb87-d1b9-68cda5191ac4.md"
+    },
+    "e586cdf4-603b-f6e1-a01d-c39a3a63a810": {
+        "title": "ArrayDataType.StringToMatrix(T) Method",
+        "filename": "e586cdf4-603b-f6e1-a01d-c39a3a63a810.md"
+    },
+    "e628f3b7-428d-a012-45bc-40cb2b1ad8b7": {
+        "title": "IT3D.SetMap Method",
+        "filename": "e628f3b7-428d-a012-45bc-40cb2b1ad8b7.md"
+    },
+    "e4414bea-b768-5ae7-63e5-e7d39f3573c6": {
+        "title": "ICustomList(T).Set Method",
+        "filename": "e4414bea-b768-5ae7-63e5-e7d39f3573c6.md"
+    },
+    "e8ce0934-c0f5-7826-9586-c79cfb6d542d": {
+        "title": "ILogHelper.Write Method",
+        "filename": "e8ce0934-c0f5-7826-9586-c79cfb6d542d.md"
+    },
+    "e5ef0fa3-a7d9-fedd-02fc-b8f4a0e49527": {
+        "title": "TaskControl.Launch Method",
+        "filename": "e5ef0fa3-a7d9-fedd-02fc-b8f4a0e49527.md"
+    },
+    "e2415ce8-75d5-a58b-babb-8a95ef64583d": {
+        "title": "IPropertyListArray Interface",
+        "filename": "e2415ce8-75d5-a58b-babb-8a95ef64583d.md"
+    },
+    "e4069dc4-9f12-23cb-9816-097aac973de6": {
+        "title": "GenUtils Class",
+        "filename": "e4069dc4-9f12-23cb-9816-097aac973de6.md"
+    },
+    "e9c29f26-c032-07c7-a73b-1833bb7a4c52": {
+        "title": "T3D Constructor",
+        "filename": "e9c29f26-c032-07c7-a73b-1833bb7a4c52.md"
+    },
+    "eab4b5c3-5c4b-1bc5-67c9-e992dce0d1bd": {
+        "title": "DebugWriteTXTLog.StringToWrite Property",
+        "filename": "eab4b5c3-5c4b-1bc5-67c9-e992dce0d1bd.md"
+    },
+    "e9e0453b-c852-383a-0d28-5485e82ce653": {
+        "title": "ExceptionUtils Methods",
+        "filename": "e9e0453b-c852-383a-0d28-5485e82ce653.md"
+    },
+    "ebdb741a-9aab-d4e2-36d8-d8093c1c0908": {
+        "title": "DebugWriteTXTLog Methods",
+        "filename": "ebdb741a-9aab-d4e2-36d8-d8093c1c0908.md"
+    },
+    "eb3c1514-f4c3-ee1d-acbe-94bde2f45bb6": {
+        "title": "IPropertyList.GetID Method",
+        "filename": "eb3c1514-f4c3-ee1d-acbe-94bde2f45bb6.md"
+    },
+    "eddfe020-001f-dbeb-6d35-a7763677f1e1": {
+        "title": "ICrc32 Methods",
+        "filename": "eddfe020-001f-dbeb-6d35-a7763677f1e1.md"
+    },
+    "ed5eb484-6cfd-54e6-cdb8-729b58e77078": {
+        "title": "KtmSharedUtils.DirectoriesAndFiles Namespace",
+        "filename": "ed5eb484-6cfd-54e6-cdb8-729b58e77078.md"
+    },
+    "e72d881f-3f30-e8e8-2697-46a3557f6e92": {
+        "title": "DataTypeDetails.IsElementNumber Property",
+        "filename": "e72d881f-3f30-e8e8-2697-46a3557f6e92.md"
+    },
+    "ede21419-9621-91c3-46dd-ec9456c7ec49": {
+        "title": "CustomList(T).Clear Method",
+        "filename": "ede21419-9621-91c3-46dd-ec9456c7ec49.md"
+    },
+    "e8638854-6a14-d56e-6845-a8973d594077": {
+        "title": "IBinaryFileProcessorCpp Interface",
+        "filename": "e8638854-6a14-d56e-6845-a8973d594077.md"
+    },
+    "e7f7d5d5-f937-62d1-135e-fa3cc24b739c": {
+        "title": "ArrayDataType.SetDim2(T) Method",
+        "filename": "e7f7d5d5-f937-62d1-135e-fa3cc24b739c.md"
+    },
+    "eb0d613f-db54-ace5-97cf-16ad4b5b5a2d": {
+        "title": "CustomList(T).AddRange Method",
+        "filename": "eb0d613f-db54-ace5-97cf-16ad4b5b5a2d.md"
+    },
+    "e775ffa2-aa1f-2c63-954d-fb9b7fd42e39": {
+        "title": "ICustomListArray(T).Add Method",
+        "filename": "e775ffa2-aa1f-2c63-954d-fb9b7fd42e39.md"
+    },
+    "eec10fb7-82de-77c9-1889-8ae87eb34a7d": {
+        "title": "Property.Name Property",
+        "filename": "eec10fb7-82de-77c9-1889-8ae87eb34a7d.md"
+    },
+    "ef774d6e-d5a5-5bd8-5ab7-2e31282c6c79": {
+        "title": "IArrayDataType.ConvertType(T, G) Method (G[,])",
+        "filename": "ef774d6e-d5a5-5bd8-5ab7-2e31282c6c79.md"
+    },
+    "ee8c2cfa-68f3-598e-4f8e-54bcdaa56eb1": {
+        "title": "Utils.IsPrimitive Method",
+        "filename": "ee8c2cfa-68f3-598e-4f8e-54bcdaa56eb1.md"
+    },
+    "f077ee89-2c29-6d7b-ffb2-549491eec56f": {
+        "title": "IZeroPhase Methods",
+        "filename": "f077ee89-2c29-6d7b-ffb2-549491eec56f.md"
+    },
+    "f08d78cd-25d4-630c-9460-52a2f10b6ed3": {
+        "title": "KtmSharedUtils.TaskHandling Namespace",
+        "filename": "f08d78cd-25d4-630c-9460-52a2f10b6ed3.md"
+    },
+    "f0a8206e-f751-93a2-06d7-9b3def812e84": {
+        "title": "ICustomList(T).Clear Method",
+        "filename": "f0a8206e-f751-93a2-06d7-9b3def812e84.md"
+    },
+    "effa8304-656a-37df-cd6f-c8fa8e206f9f": {
+        "title": "LogHelper Properties",
+        "filename": "effa8304-656a-37df-cd6f-c8fa8e206f9f.md"
+    },
+    "f19a4244-de60-578f-3020-982bcb80a9c3": {
+        "title": "PropertyListArray.Clone Method",
+        "filename": "f19a4244-de60-578f-3020-982bcb80a9c3.md"
+    },
+    "f83a9e3f-0ad1-dec0-3a4a-b95167a8fdb4": {
+        "title": "VersionCheck Methods",
+        "filename": "f83a9e3f-0ad1-dec0-3a4a-b95167a8fdb4.md"
+    },
+    "f6e8b9f2-4933-9841-22ea-a05308b18aad": {
+        "title": "ArrayDataType.ResizeArray(T) Method",
+        "filename": "f6e8b9f2-4933-9841-22ea-a05308b18aad.md"
+    },
+    "f3cbd12e-972e-4422-7737-a195c7c68d10": {
+        "title": "CustomListArray(T) Constructor",
+        "filename": "f3cbd12e-972e-4422-7737-a195c7c68d10.md"
+    },
+    "f6611a50-2186-fca0-5dd1-416f570518e1": {
+        "title": "Crc32.AddData Method",
+        "filename": "f6611a50-2186-fca0-5dd1-416f570518e1.md"
+    },
+    "f972b94d-32a8-fafa-d159-aaf0a2b3ce99": {
+        "title": "ExceptionUtils.FlatAggregatedExceptions Method",
+        "filename": "f972b94d-32a8-fafa-d159-aaf0a2b3ce99.md"
+    },
+    "f9f260f4-7758-5f96-eace-238fba5c5784": {
+        "title": "XMLParser.ExtractElements Method",
+        "filename": "f9f260f4-7758-5f96-eace-238fba5c5784.md"
+    },
+    "f9a28e8d-a0aa-e19a-7760-0c18981b9df1": {
+        "title": "VersionCheck Class",
+        "filename": "f9a28e8d-a0aa-e19a-7760-0c18981b9df1.md"
+    },
+    "f4dfd327-6b20-a3d8-2ddd-4ebddae4bf36": {
+        "title": "CustomList(T).NumElements Method",
+        "filename": "f4dfd327-6b20-a3d8-2ddd-4ebddae4bf36.md"
+    },
+    "f07217f4-973e-1226-422e-faff2656afab": {
+        "title": "ArrayDataType Constructor",
+        "filename": "f07217f4-973e-1226-422e-faff2656afab.md"
+    },
+    "f82a935e-7635-3354-fc7f-7bf6b21efa15": {
+        "title": "ITaskControl Interface",
+        "filename": "f82a935e-7635-3354-fc7f-7bf6b21efa15.md"
+    },
+    "fb20b3f2-8576-a274-6461-7f17e9f4ec26": {
+        "title": "BinaryFileProcessor(T).Save Method",
+        "filename": "fb20b3f2-8576-a274-6461-7f17e9f4ec26.md"
+    },
+    "f6ba2c96-ecfe-dfc2-5d0c-ad50832e5e0a": {
+        "title": "ArrayDataType Class",
+        "filename": "f6ba2c96-ecfe-dfc2-5d0c-ad50832e5e0a.md"
+    },
+    "f34c3615-f929-f332-c7b3-c30d3df1408b": {
+        "title": "IArrayDataType Methods",
+        "filename": "f34c3615-f929-f332-c7b3-c30d3df1408b.md"
+    },
+    "fb862b55-70fd-cbdb-7aa9-fff5610de575": {
+        "title": "CustomList(T).Remove Method",
+        "filename": "fb862b55-70fd-cbdb-7aa9-fff5610de575.md"
+    },
+    "fd30e0e1-1e08-ec85-367f-0b9c30bc9d6d": {
+        "title": "T1D Constructor",
+        "filename": "fd30e0e1-1e08-ec85-367f-0b9c30bc9d6d.md"
+    }
+}

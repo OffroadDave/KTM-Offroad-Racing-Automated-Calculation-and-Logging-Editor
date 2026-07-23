@@ -1,0 +1,546 @@
+{
+    "04ad1196-417b-e817-0d92-3a7dd9cf217c": {
+        "title": "IProject Methods",
+        "filename": "04ad1196-417b-e817-0d92-3a7dd9cf217c.md"
+    },
+    "023f3729-3925-cc0b-dcb6-59831b90007c": {
+        "title": "Application.AddToDynamicTable Method",
+        "filename": "023f3729-3925-cc0b-dcb6-59831b90007c.md"
+    },
+    "08605568-744d-537f-2cdb-4092eabdce00": {
+        "title": "Application.ReleaseObjects Method",
+        "filename": "08605568-744d-537f-2cdb-4092eabdce00.md"
+    },
+    "13d572d0-9ff8-1453-398f-0a9654b69fdf": {
+        "title": "Application.LoadProject Method",
+        "filename": "13d572d0-9ff8-1453-398f-0a9654b69fdf.md"
+    },
+    "117bbf8b-d9c3-467c-9683-aca5cada83ea": {
+        "title": "Application Methods",
+        "filename": "117bbf8b-d9c3-467c-9683-aca5cada83ea.md"
+    },
+    "09de087c-f235-04f0-89c6-3fc444ba0b38": {
+        "title": "Application.SetLogger Method",
+        "filename": "09de087c-f235-04f0-89c6-3fc444ba0b38.md"
+    },
+    "1e5712ea-6320-d881-ca88-47f3f84f17c4": {
+        "title": "GlobalLogHelper.SetAssemblyName Method",
+        "filename": "1e5712ea-6320-d881-ca88-47f3f84f17c4.md"
+    },
+    "01816d62-c4ff-2f17-b663-8b1aad18a1be": {
+        "title": "Application.BUseCLXInterface Property",
+        "filename": "01816d62-c4ff-2f17-b663-8b1aad18a1be.md"
+    },
+    "100234c8-37f7-5dc5-10a1-c596f892f0b7": {
+        "title": "Application.SetDevice Method",
+        "filename": "100234c8-37f7-5dc5-10a1-c596f892f0b7.md"
+    },
+    "109f293c-cd8d-f727-5f9c-3f2051e595c5": {
+        "title": "Application.SetApplicationVisible Method",
+        "filename": "109f293c-cd8d-f727-5f9c-3f2051e595c5.md"
+    },
+    "0cf524aa-6171-868d-2de9-e2303ee503dd": {
+        "title": "Application.WriteCalibrations Method",
+        "filename": "0cf524aa-6171-868d-2de9-e2303ee503dd.md"
+    },
+    "146a74ed-f4da-5420-7136-ba13bab81988": {
+        "title": "IApplication.LoadProject Method",
+        "filename": "146a74ed-f4da-5420-7136-ba13bab81988.md"
+    },
+    "16c89f38-255e-1ea4-aeaf-50cac3286ae4": {
+        "title": "IProject.PrjFolder Property",
+        "filename": "16c89f38-255e-1ea4-aeaf-50cac3286ae4.md"
+    },
+    "1002a7ad-96bf-208c-1c98-4d3b4aed961d": {
+        "title": "IApplication Interface",
+        "filename": "1002a7ad-96bf-208c-1c98-4d3b4aed961d.md"
+    },
+    "1e65e5f2-a178-94b0-d4eb-3b57a68039e7": {
+        "title": "IProject.Export Method",
+        "filename": "1e65e5f2-a178-94b0-d4eb-3b57a68039e7.md"
+    },
+    "11d96343-d95d-24cf-28a4-4c039b4eab5f": {
+        "title": "Project.CLXFolder Property",
+        "filename": "11d96343-d95d-24cf-28a4-4c039b4eab5f.md"
+    },
+    "173780f2-1c54-b3ca-06b4-e5345fa198e9": {
+        "title": "KtmSysmaAutomation.Globals Namespace",
+        "filename": "173780f2-1c54-b3ca-06b4-e5345fa198e9.md"
+    },
+    "1eb7eb94-a111-a83f-4d58-b03a2beac2d5": {
+        "title": "Project Constructor",
+        "filename": "1eb7eb94-a111-a83f-4d58-b03a2beac2d5.md"
+    },
+    "17f7e889-0414-60bb-1de5-6431679991d7": {
+        "title": "IApplication.BUseCLXInterface Property",
+        "filename": "17f7e889-0414-60bb-1de5-6431679991d7.md"
+    },
+    "1faadf50-c376-b4f2-3cf0-09c1b84bb5dc": {
+        "title": "IApplication.BAutoUpdateDynamicTable Property",
+        "filename": "1faadf50-c376-b4f2-3cf0-09c1b84bb5dc.md"
+    },
+    "099424d8-03e3-1942-5179-a1dfd963f4e1": {
+        "title": "Application.GetTablesChannelNames Method",
+        "filename": "099424d8-03e3-1942-5179-a1dfd963f4e1.md"
+    },
+    "15316db8-574e-f153-bffc-d5d664a3121b": {
+        "title": "IApplication.SaveProject Method",
+        "filename": "15316db8-574e-f153-bffc-d5d664a3121b.md"
+    },
+    "214b3b8f-b377-d886-18b9-90f75e3c407c": {
+        "title": "Application.StopEcuLink Method",
+        "filename": "214b3b8f-b377-d886-18b9-90f75e3c407c.md"
+    },
+    "228fe724-4468-7da1-4be2-20122c4de4f0": {
+        "title": "SysmaRTLength Enumeration",
+        "filename": "228fe724-4468-7da1-4be2-20122c4de4f0.md"
+    },
+    "2b8bbc9d-d209-aa3e-b059-32aa7069814c": {
+        "title": "Application.ProjectFolderPath Property",
+        "filename": "2b8bbc9d-d209-aa3e-b059-32aa7069814c.md"
+    },
+    "27e610ea-cf54-d919-dacd-8b41b8a76568": {
+        "title": "Application.GetEcuLink Method",
+        "filename": "27e610ea-cf54-d919-dacd-8b41b8a76568.md"
+    },
+    "28bb427e-f2d0-b4f6-7e35-581150760727": {
+        "title": "VersionCheck.GetAssemblyVersion Method",
+        "filename": "28bb427e-f2d0-b4f6-7e35-581150760727.md"
+    },
+    "21a507ed-91b6-687e-b355-454bf399e796": {
+        "title": "Application.GetLayByOLE Method",
+        "filename": "21a507ed-91b6-687e-b355-454bf399e796.md"
+    },
+    "3421540e-1fe5-f438-d1df-61911ef77d44": {
+        "title": "IProject.PrjName Property",
+        "filename": "3421540e-1fe5-f438-d1df-61911ef77d44.md"
+    },
+    "318e9b7e-f2dd-f43f-eb92-82b7f91be18b": {
+        "title": "SysmaLoggerCommError Enumeration",
+        "filename": "318e9b7e-f2dd-f43f-eb92-82b7f91be18b.md"
+    },
+    "33f79ef7-3949-16af-d862-9df67aa3fa09": {
+        "title": "IApplication.GetLoggerLink Method",
+        "filename": "33f79ef7-3949-16af-d862-9df67aa3fa09.md"
+    },
+    "39aa3000-0270-010c-bdc9-94d1fcf8c835": {
+        "title": "Application.CloseApplication Method",
+        "filename": "39aa3000-0270-010c-bdc9-94d1fcf8c835.md"
+    },
+    "36284441-052f-fce5-3f45-c6a073d485f8": {
+        "title": "IProject.LoadProject Method",
+        "filename": "36284441-052f-fce5-3f45-c6a073d485f8.md"
+    },
+    "2c4f1fd7-ef07-362b-0163-370be10fb8f3": {
+        "title": "IApplication.WriteTable Method",
+        "filename": "2c4f1fd7-ef07-362b-0163-370be10fb8f3.md"
+    },
+    "431706ad-cbb5-f88d-1e21-72fb4cb11fd1": {
+        "title": "IApplicationGettableFiles.GetCLXByOLE Method",
+        "filename": "431706ad-cbb5-f88d-1e21-72fb4cb11fd1.md"
+    },
+    "4879e298-bf13-118a-a370-d97822c24bfb": {
+        "title": "Application.GetTablesByOLE Method",
+        "filename": "4879e298-bf13-118a-a370-d97822c24bfb.md"
+    },
+    "4fa8edeb-ce7c-21ad-0565-9fe2f9584eb0": {
+        "title": "Application.BAutoUpdateDynamicTable Property",
+        "filename": "4fa8edeb-ce7c-21ad-0565-9fe2f9584eb0.md"
+    },
+    "48ceed89-59c1-9b01-8ba2-9c42bbc37692": {
+        "title": "Project.Finalize Method",
+        "filename": "48ceed89-59c1-9b01-8ba2-9c42bbc37692.md"
+    },
+    "47975a24-0409-09c3-5c5a-e4fd3a090893": {
+        "title": "IProject Properties",
+        "filename": "47975a24-0409-09c3-5c5a-e4fd3a090893.md"
+    },
+    "4bc2a43b-f2af-6ead-d192-ffa5376930c5": {
+        "title": "IApplication.AddToDynamicTable Method",
+        "filename": "4bc2a43b-f2af-6ead-d192-ffa5376930c5.md"
+    },
+    "209ead64-3b6d-5bf7-aad3-6657fb5ebbca": {
+        "title": "Application.GetProjectDeviceList Method",
+        "filename": "209ead64-3b6d-5bf7-aad3-6657fb5ebbca.md"
+    },
+    "3a4cbc75-bcc4-0790-deca-afa39cfc6bc0": {
+        "title": "IApplication.ReplaceCLXProject Method",
+        "filename": "3a4cbc75-bcc4-0790-deca-afa39cfc6bc0.md"
+    },
+    "51c34642-8f5c-5dca-8db6-314217315fd8": {
+        "title": "IApplication.GetDeviceList Method",
+        "filename": "51c34642-8f5c-5dca-8db6-314217315fd8.md"
+    },
+    "3cf911b1-d574-9aa8-250d-c6505d1c92b6": {
+        "title": "IApplication.SetApplicationVisible Method",
+        "filename": "3cf911b1-d574-9aa8-250d-c6505d1c92b6.md"
+    },
+    "4c1719bf-2ce2-918e-4b6f-c278206f07b5": {
+        "title": "IApplication.ProjectIsOk Method",
+        "filename": "4c1719bf-2ce2-918e-4b6f-c278206f07b5.md"
+    },
+    "3ac1a524-ac52-efb0-83ff-c43aaaac76d6": {
+        "title": "Project.PrjFilePath Property",
+        "filename": "3ac1a524-ac52-efb0-83ff-c43aaaac76d6.md"
+    },
+    "3c20b145-daac-a622-ef53-d6590a708708": {
+        "title": "Application.ProjectName Property",
+        "filename": "3c20b145-daac-a622-ef53-d6590a708708.md"
+    },
+    "426f226f-3c35-544e-a6df-60f0716cf3d9": {
+        "title": "IProject.IsProjectType Method",
+        "filename": "426f226f-3c35-544e-a6df-60f0716cf3d9.md"
+    },
+    "430184f9-7e61-fc1d-eebc-dd4e5b60b8f2": {
+        "title": "Application Class",
+        "filename": "430184f9-7e61-fc1d-eebc-dd4e5b60b8f2.md"
+    },
+    "411f3373-9bfc-3828-765e-2871b1149428": {
+        "title": "IApplication.SetDevice Method",
+        "filename": "411f3373-9bfc-3828-765e-2871b1149428.md"
+    },
+    "5282c3fd-9a13-7475-bfd3-f22eb870b058": {
+        "title": "Application.GetMeasurement Method",
+        "filename": "5282c3fd-9a13-7475-bfd3-f22eb870b058.md"
+    },
+    "55b024ff-d1c9-7976-0183-cb3c7acfd7b1": {
+        "title": "Application.SetApplicationMaximized Method",
+        "filename": "55b024ff-d1c9-7976-0183-cb3c7acfd7b1.md"
+    },
+    "55403d45-7f75-6a6d-064c-ba9fd356456f": {
+        "title": "IApplication.CloseApplication Method",
+        "filename": "55403d45-7f75-6a6d-064c-ba9fd356456f.md"
+    },
+    "63210b68-ad93-b86d-5124-78036fb8a685": {
+        "title": "Project.PrjFolder Property",
+        "filename": "63210b68-ad93-b86d-5124-78036fb8a685.md"
+    },
+    "5c20135f-bb6f-125e-a4b9-a6f606d03210": {
+        "title": "Application.ConnectLogger Method",
+        "filename": "5c20135f-bb6f-125e-a4b9-a6f606d03210.md"
+    },
+    "7359963d-4da4-c3dc-4f0a-989ce72f7b13": {
+        "title": "IApplication.SetApplicationMinimized Method",
+        "filename": "7359963d-4da4-c3dc-4f0a-989ce72f7b13.md"
+    },
+    "68776fbf-3717-ccda-b898-541aed4cb1b3": {
+        "title": "Application.GetCalibration Method",
+        "filename": "68776fbf-3717-ccda-b898-541aed4cb1b3.md"
+    },
+    "72d454d6-a506-c0ab-b27d-38725577c8b3": {
+        "title": "Project.GetSysmaFiles Method",
+        "filename": "72d454d6-a506-c0ab-b27d-38725577c8b3.md"
+    },
+    "7c462760-b12f-9645-d100-d7cc7a12d9b9": {
+        "title": "SysmaLoggerChannelFloatVisualizationFormat Enumeration",
+        "filename": "7c462760-b12f-9645-d100-d7cc7a12d9b9.md"
+    },
+    "76e0e634-5968-d135-cce5-e7684e1327f2": {
+        "title": "IApplication.StartEcuLink Method",
+        "filename": "76e0e634-5968-d135-cce5-e7684e1327f2.md"
+    },
+    "85238740-b80f-fb31-7e2f-977d716d5231": {
+        "title": "Project.PrjName Property",
+        "filename": "85238740-b80f-fb31-7e2f-977d716d5231.md"
+    },
+    "80e976b9-5869-d8e4-6e11-d89d0248c156": {
+        "title": "Application.StopLoggerLink Method",
+        "filename": "80e976b9-5869-d8e4-6e11-d89d0248c156.md"
+    },
+    "5601a34d-13fa-eeaf-7342-51656a9a8d7b": {
+        "title": "IApplicationGettableFiles Methods",
+        "filename": "5601a34d-13fa-eeaf-7342-51656a9a8d7b.md"
+    },
+    "72181261-5728-724e-1e37-3662eecf7f1b": {
+        "title": "Application.GetCalibrationNames Method",
+        "filename": "72181261-5728-724e-1e37-3662eecf7f1b.md"
+    },
+    "57bc5269-c750-251e-8cb0-be5da6bce8d7": {
+        "title": "IApplication.AddCLXToProject Method",
+        "filename": "57bc5269-c750-251e-8cb0-be5da6bce8d7.md"
+    },
+    "7f5594cc-8f21-c5fd-9b92-a3b0a428ebc6": {
+        "title": "Application.SetApplicationMinimized Method",
+        "filename": "7f5594cc-8f21-c5fd-9b92-a3b0a428ebc6.md"
+    },
+    "685d9692-ca85-6717-f258-1a82c6b000da": {
+        "title": "IApplication Methods",
+        "filename": "685d9692-ca85-6717-f258-1a82c6b000da.md"
+    },
+    "8876db0c-d8d0-27ef-fc94-2f2b56191c88": {
+        "title": "GlobalLogHelper Methods",
+        "filename": "8876db0c-d8d0-27ef-fc94-2f2b56191c88.md"
+    },
+    "6f6f03d1-cc31-2806-8465-5971531ceefe": {
+        "title": "SysmaLoggerCommStatus Enumeration",
+        "filename": "6f6f03d1-cc31-2806-8465-5971531ceefe.md"
+    },
+    "7cd8bfbe-2973-ca09-7e08-a5a65089d8d5": {
+        "title": "Application Properties",
+        "filename": "7cd8bfbe-2973-ca09-7e08-a5a65089d8d5.md"
+    },
+    "66588be6-f9f8-8e79-1a47-a5257dd36d03": {
+        "title": "SysmaECULinkStatus Enumeration",
+        "filename": "66588be6-f9f8-8e79-1a47-a5257dd36d03.md"
+    },
+    "88e848ea-c497-65ce-416d-f26f3c5d8c70": {
+        "title": "IApplication.GetSysmaFiles Method",
+        "filename": "88e848ea-c497-65ce-416d-f26f3c5d8c70.md"
+    },
+    "88ec77c6-72ff-c018-7925-c391b365de7e": {
+        "title": "IProject.Import Method",
+        "filename": "88ec77c6-72ff-c018-7925-c391b365de7e.md"
+    },
+    "8afbadbc-54a4-28f0-a202-a9373e37cc4b": {
+        "title": "Project.Import Method",
+        "filename": "8afbadbc-54a4-28f0-a202-a9373e37cc4b.md"
+    },
+    "8c09acff-30c4-760f-7429-b201ec5d08f3": {
+        "title": "Project.IsProjectType Method",
+        "filename": "8c09acff-30c4-760f-7429-b201ec5d08f3.md"
+    },
+    "8bc2691e-87f9-73c0-2452-f9888d9dbe7e": {
+        "title": "VersionCheck Methods",
+        "filename": "8bc2691e-87f9-73c0-2452-f9888d9dbe7e.md"
+    },
+    "8fb1e4c0-eac3-b3f8-7cbf-7d282c9886fc": {
+        "title": "Application.GetTablesChannel Method",
+        "filename": "8fb1e4c0-eac3-b3f8-7cbf-7d282c9886fc.md"
+    },
+    "8cb3fb15-651c-517c-e9f6-9e1b264aa954": {
+        "title": "Application.GetLoggerLink Method",
+        "filename": "8cb3fb15-651c-517c-e9f6-9e1b264aa954.md"
+    },
+    "8c52d572-2ed9-a552-ab0c-d972d67599bb": {
+        "title": "IApplication.ProjectName Property",
+        "filename": "8c52d572-2ed9-a552-ab0c-d972d67599bb.md"
+    },
+    "8cd9dc7c-8771-debd-9d0f-284fedc36af0": {
+        "title": "Application.GetCLXByOLE Method",
+        "filename": "8cd9dc7c-8771-debd-9d0f-284fedc36af0.md"
+    },
+    "8ef14e93-5fe4-7414-09d8-249b836346c8": {
+        "title": "IApplication.GetTablesChannel Method",
+        "filename": "8ef14e93-5fe4-7414-09d8-249b836346c8.md"
+    },
+    "93424cc7-c21d-9e4d-ab9d-22e86aa4b56a": {
+        "title": "Application.WriteTable Method",
+        "filename": "93424cc7-c21d-9e4d-ab9d-22e86aa4b56a.md"
+    },
+    "90fa45e2-ab12-1304-a450-a0b12801b1a6": {
+        "title": "Project.IsSysmaProjectFolder Method",
+        "filename": "90fa45e2-ab12-1304-a450-a0b12801b1a6.md"
+    },
+    "950d2385-8cce-f7e1-a23f-df0c87e3f2cc": {
+        "title": "IApplication Properties",
+        "filename": "950d2385-8cce-f7e1-a23f-df0c87e3f2cc.md"
+    },
+    "9cd97a46-8b54-874d-d7e7-ff9347722b46": {
+        "title": "IApplication.Launch Method",
+        "filename": "9cd97a46-8b54-874d-d7e7-ff9347722b46.md"
+    },
+    "a5bb2e0a-3693-f0a8-c9db-2a2ac40dbcc5": {
+        "title": "GlobalLogHelper Class",
+        "filename": "a5bb2e0a-3693-f0a8-c9db-2a2ac40dbcc5.md"
+    },
+    "9e8c5e24-8c17-b69b-a6c0-a83a0fa290e3": {
+        "title": "IApplication.SaveAsProject Method",
+        "filename": "9e8c5e24-8c17-b69b-a6c0-a83a0fa290e3.md"
+    },
+    "a046bf1f-012c-78c9-09be-c896291c2b5e": {
+        "title": "IApplicationGettableFiles Interface",
+        "filename": "a046bf1f-012c-78c9-09be-c896291c2b5e.md"
+    },
+    "acdcfa01-2313-931c-e576-2717e818796c": {
+        "title": "Application.ConnectEcu Method",
+        "filename": "acdcfa01-2313-931c-e576-2717e818796c.md"
+    },
+    "a70fdbda-c961-2974-aa63-37ee403e6b0c": {
+        "title": "Application Constructor",
+        "filename": "a70fdbda-c961-2974-aa63-37ee403e6b0c.md"
+    },
+    "9f6e5858-d8a6-3ae6-634a-e0dc6434a8e2": {
+        "title": "IApplication.SetLogger Method",
+        "filename": "9f6e5858-d8a6-3ae6-634a-e0dc6434a8e2.md"
+    },
+    "a30af448-9b00-c60e-7596-d9de9f0a74e2": {
+        "title": "IApplication.ProjectFolderPath Property",
+        "filename": "a30af448-9b00-c60e-7596-d9de9f0a74e2.md"
+    },
+    "b0cf4c19-6a75-9d72-d159-fa09ac0fe0cc": {
+        "title": "IProject.PrjFilePath Property",
+        "filename": "b0cf4c19-6a75-9d72-d159-fa09ac0fe0cc.md"
+    },
+    "976dc07c-2421-583e-72b2-830675ee5be8": {
+        "title": "Application.Launch Method",
+        "filename": "976dc07c-2421-583e-72b2-830675ee5be8.md"
+    },
+    "96f4ca90-4fa5-b52f-a3d9-ca0bd33bbd98": {
+        "title": "Application.GetMeasurementNames Method",
+        "filename": "96f4ca90-4fa5-b52f-a3d9-ca0bd33bbd98.md"
+    },
+    "9b9a4954-b2ea-aaf1-533e-3b8548ebbc3e": {
+        "title": "Project.Export Method",
+        "filename": "9b9a4954-b2ea-aaf1-533e-3b8548ebbc3e.md"
+    },
+    "9b987dc8-b119-e7de-9300-7dc32b23622b": {
+        "title": "IApplication.StopLoggerLink Method",
+        "filename": "9b987dc8-b119-e7de-9300-7dc32b23622b.md"
+    },
+    "9b8152f9-8a39-06fd-ae7f-68667f7c2813": {
+        "title": "IApplication.ProjectFilePath Property",
+        "filename": "9b8152f9-8a39-06fd-ae7f-68667f7c2813.md"
+    },
+    "9c1a4a28-271e-4bef-b2b4-123d6f14a903": {
+        "title": "Application.StartLoggerLink Method",
+        "filename": "9c1a4a28-271e-4bef-b2b4-123d6f14a903.md"
+    },
+    "99a61cbf-d7f3-326b-ca03-993a9d0c7529": {
+        "title": "Application.AddCLXToProject Method",
+        "filename": "99a61cbf-d7f3-326b-ca03-993a9d0c7529.md"
+    },
+    "b8cc84a6-8481-e0bc-e86e-260d42b56f14": {
+        "title": "Application.GetSysmaFiles Method",
+        "filename": "b8cc84a6-8481-e0bc-e86e-260d42b56f14.md"
+    },
+    "b20811f3-c225-fd55-60de-73fb713e6678": {
+        "title": "IApplication.GetProjectDeviceList Method",
+        "filename": "b20811f3-c225-fd55-60de-73fb713e6678.md"
+    },
+    "bc7e012b-74a2-656a-0f53-433cae26bc9c": {
+        "title": "Project.LoadProject Method",
+        "filename": "bc7e012b-74a2-656a-0f53-433cae26bc9c.md"
+    },
+    "db4f3666-12ed-d06c-9962-bf89e25aeefc": {
+        "title": "IProject Interface",
+        "filename": "db4f3666-12ed-d06c-9962-bf89e25aeefc.md"
+    },
+    "ba2bbb0a-de50-ed52-ed74-82ced428a61a": {
+        "title": "KtmSysmaAutomation.Marelli.Sysma Namespace",
+        "filename": "ba2bbb0a-de50-ed52-ed74-82ced428a61a.md"
+    },
+    "d2809f82-12f1-b31b-4246-8e56c2263364": {
+        "title": "IApplication.GetEcuLink Method",
+        "filename": "d2809f82-12f1-b31b-4246-8e56c2263364.md"
+    },
+    "bee0d2c9-e1a5-5e3b-b970-1ff523077a8c": {
+        "title": "SysmaProjectDeviceType Enumeration",
+        "filename": "bee0d2c9-e1a5-5e3b-b970-1ff523077a8c.md"
+    },
+    "cd47b313-6f88-99ee-b963-68c31959be70": {
+        "title": "IProject.GetSysmaFiles Method",
+        "filename": "cd47b313-6f88-99ee-b963-68c31959be70.md"
+    },
+    "c96bf8d3-7eb9-c90d-49f6-5f3b6d1c65d2": {
+        "title": "IApplication.WriteCalibrations Method",
+        "filename": "c96bf8d3-7eb9-c90d-49f6-5f3b6d1c65d2.md"
+    },
+    "d5ef34f9-7446-d5a2-1042-d245e49559b7": {
+        "title": "Project Class",
+        "filename": "d5ef34f9-7446-d5a2-1042-d245e49559b7.md"
+    },
+    "d6198ec1-bc74-bce4-1212-48a30ab1579b": {
+        "title": "Application.StartEcuLink Method",
+        "filename": "d6198ec1-bc74-bce4-1212-48a30ab1579b.md"
+    },
+    "c228004b-f7c7-2018-f05c-7a2fe6e7df85": {
+        "title": "IApplication.GetTablesChannelNames Method",
+        "filename": "c228004b-f7c7-2018-f05c-7a2fe6e7df85.md"
+    },
+    "c1d12490-b41d-fb33-2305-b326749e4214": {
+        "title": "Application.ProjectFilePath Property",
+        "filename": "c1d12490-b41d-fb33-2305-b326749e4214.md"
+    },
+    "c4181516-355e-0a76-c5c3-6f3d61c36f07": {
+        "title": "Application.Finalize Method",
+        "filename": "c4181516-355e-0a76-c5c3-6f3d61c36f07.md"
+    },
+    "c3a6f5a7-f61e-33b6-6317-6fe3e9e75bac": {
+        "title": "IApplication.ConnectLogger Method",
+        "filename": "c3a6f5a7-f61e-33b6-6317-6fe3e9e75bac.md"
+    },
+    "be64fa78-97de-4d15-582d-6e40c1973217": {
+        "title": "IApplication.ConnectEcu Method",
+        "filename": "be64fa78-97de-4d15-582d-6e40c1973217.md"
+    },
+    "c649b1eb-106a-c62e-f13c-be11d4f41c98": {
+        "title": "Application.ReplaceCLXProject Method",
+        "filename": "c649b1eb-106a-c62e-f13c-be11d4f41c98.md"
+    },
+    "deb4f652-ea47-7f36-3745-d6d70ea2d43d": {
+        "title": "Application.ProjectIsOk Method",
+        "filename": "deb4f652-ea47-7f36-3745-d6d70ea2d43d.md"
+    },
+    "d281e82f-0c1e-3580-36e8-1b4048ef6ca1": {
+        "title": "Application.WriteCalibrationsExternalCLX Method",
+        "filename": "d281e82f-0c1e-3580-36e8-1b4048ef6ca1.md"
+    },
+    "c304a4ea-94bb-5da9-d298-b1d2fb54cd0b": {
+        "title": "Application.SaveAsProject Method",
+        "filename": "c304a4ea-94bb-5da9-d298-b1d2fb54cd0b.md"
+    },
+    "defb1793-a9ce-420c-38dd-3f02b0cc6417": {
+        "title": "Project Properties",
+        "filename": "defb1793-a9ce-420c-38dd-3f02b0cc6417.md"
+    },
+    "e0d0c157-5405-94fe-aea3-b22af3beaea2": {
+        "title": "IApplicationGettableFiles.GetTablesByOLE Method",
+        "filename": "e0d0c157-5405-94fe-aea3-b22af3beaea2.md"
+    },
+    "e1cfacd8-c82e-cbed-4565-70cd31dd8c28": {
+        "title": "IApplication.StopEcuLink Method",
+        "filename": "e1cfacd8-c82e-cbed-4565-70cd31dd8c28.md"
+    },
+    "e59f6c89-9a32-8470-11d4-8f5b2bf9b48d": {
+        "title": "Application.SaveProject Method",
+        "filename": "e59f6c89-9a32-8470-11d4-8f5b2bf9b48d.md"
+    },
+    "e1ddba47-c9c5-1c9e-c516-8729138d5abf": {
+        "title": "SysmaLoggerSelectionError Enumeration",
+        "filename": "e1ddba47-c9c5-1c9e-c516-8729138d5abf.md"
+    },
+    "f19a02cd-1176-0af7-990a-b21bd331a164": {
+        "title": "IProject.CLXFolder Property",
+        "filename": "f19a02cd-1176-0af7-990a-b21bd331a164.md"
+    },
+    "e4c70f5b-935c-4a52-3638-32b231de136b": {
+        "title": "Project Methods",
+        "filename": "e4c70f5b-935c-4a52-3638-32b231de136b.md"
+    },
+    "ecb6a6a6-215b-7318-50ab-022b43da2aa5": {
+        "title": "SysmaApplicationError Enumeration",
+        "filename": "ecb6a6a6-215b-7318-50ab-022b43da2aa5.md"
+    },
+    "ec6c2d23-bc9c-9102-0a58-ff33b79f40e1": {
+        "title": "IApplication.WriteCalibrationsExternalCLX Method",
+        "filename": "ec6c2d23-bc9c-9102-0a58-ff33b79f40e1.md"
+    },
+    "f222f9df-2f48-8602-731a-b128c1e2118b": {
+        "title": "IApplicationGettableFiles.GetLayByOLE Method",
+        "filename": "f222f9df-2f48-8602-731a-b128c1e2118b.md"
+    },
+    "f20ca916-38e1-c848-a116-2a9807040dcf": {
+        "title": "VersionCheck Class",
+        "filename": "f20ca916-38e1-c848-a116-2a9807040dcf.md"
+    },
+    "f131139f-fe5f-fca0-d66b-ca2545b1e282": {
+        "title": "IProject.IsSysmaProjectFolder Method",
+        "filename": "f131139f-fe5f-fca0-d66b-ca2545b1e282.md"
+    },
+    "f9be7dd3-f925-62e8-76e0-42da85cae4a1": {
+        "title": "Application.GetDeviceList Method",
+        "filename": "f9be7dd3-f925-62e8-76e0-42da85cae4a1.md"
+    },
+    "facc069f-09f9-e4d8-df6c-aae6d5ec150d": {
+        "title": "IApplicationGettableFiles Properties",
+        "filename": "facc069f-09f9-e4d8-df6c-aae6d5ec150d.md"
+    },
+    "f3563141-9369-8517-073e-ca4d3b4c5c74": {
+        "title": "IApplication.SetApplicationMaximized Method",
+        "filename": "f3563141-9369-8517-073e-ca4d3b4c5c74.md"
+    },
+    "fac11e16-5ac9-1f7a-6823-4fe03a52506b": {
+        "title": "IApplication.StartLoggerLink Method",
+        "filename": "fac11e16-5ac9-1f7a-6823-4fe03a52506b.md"
+    }
+}

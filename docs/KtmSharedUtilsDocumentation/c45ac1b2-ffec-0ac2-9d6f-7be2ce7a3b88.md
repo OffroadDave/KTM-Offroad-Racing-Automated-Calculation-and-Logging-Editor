@@ -1,0 +1,27 @@
+Ktm Shared Utils
+
+# IT3D Methods  
+  
+---  
+  
+The [IT3D](0942d364-57f1-546e-a06b-3d96d681f910.md) type exposes the following members.
+
+| Â | Name | Description |
+| --- | --- | --- |
+|  | [GetDelta1](be36dabd-bb74-0663-e2d5-93424e447ca4.md) | Get the "DELTA" of an interpolation for the first dimension. See [GetDelta](10ec0289-f0ea-77d1-424c-c73c82aefa2b.md) for the definition of DELTA. |
+|  | [GetDelta2](5e88c4b4-5a2b-393b-9f1c-4628a94a6d67.md) | DELTA for the second dimension. See [GetDelta](10ec0289-f0ea-77d1-424c-c73c82aefa2b.md) for the definition of DELTA. |
+|  | [GetDelta3](bde22346-3036-d100-0a8e-2bbed832a267.md) | DELTA for the third dimension. See [GetDelta](10ec0289-f0ea-77d1-424c-c73c82aefa2b.md) for the definition of DELTA. |
+|  | [GetIndex1](969609b9-0371-1bfa-6e0d-25355889450d.md) | Get the "INDEX" of an interpolation for the first dimension. See [GetIndex](68ac0a34-fc8b-d047-6a64-30f9278e9a8c.md) for the definition of INDEX. |
+|  | [GetIndex2](dfaa21a9-990b-06a3-4e67-dd53ab058590.md) | INDEX for the second dimension.. See [GetIndex](68ac0a34-fc8b-d047-6a64-30f9278e9a8c.md) for the definition of INDEX. |
+|  | [GetIndex3](96c0e21e-9257-81b4-d823-99779e9f2853.md) | INDEX for the third dimension.. See [GetIndex](68ac0a34-fc8b-d047-6a64-30f9278e9a8c.md) for the definition of INDEX. |
+|  | [Interpolate](a147a1f8-8d71-7b70-9b00-c5de00e1042d.md) | Perform the 3D interpolation. |
+|  | [SetBkp1](20e3fcf8-29dd-f87a-40f3-21aa7d84821d.md) | Set breakpoint array for the first dimension. |
+|  | [SetBkp2](4fa6eefc-41fd-a3b1-0e79-2ad6f231d449.md) | Set breakpoint array for the second dimension. |
+|  | [SetBkp3](90e44795-2fa6-0989-10d4-a45496deb441.md) | Set breakpoint array for the third dimension. |
+|  | [SetMap](e628f3b7-428d-a012-45bc-40cb2b1ad8b7.md) | Set the map 3D-array. |
+  
+#### Reference
+
+[IT3D Interface](0942d364-57f1-546e-a06b-3d96d681f910.md)
+
+[KtmSharedUtils.Interpolation Namespace](a97b521d-e7d3-4754-db26-75f258a42738.md)

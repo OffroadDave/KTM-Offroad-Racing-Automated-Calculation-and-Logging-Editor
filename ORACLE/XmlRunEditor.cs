@@ -7,8 +7,28 @@ using System.Xml;
 namespace ORACLE
 {
     /// <summary>
-    /// Service-Klasse für das Bearbeiten von XML-Dateien in Run-Ordnern.
+    /// [LEGACY FALLBACK] Service-Klasse für das direkte Bearbeiten von XML-Dateien in Run-Ordnern.
+    /// 
+    /// <para>
+    /// <b>Hinweis:</b> Diese Klasse wurde durch <see cref="RunPropertyEditor"/> ersetzt,
+    /// die die offizielle KtmDataHandler-API (AddRunProperty/AddLapProperty) verwendet.
+    /// RunPropertyEditor ist die empfohlene Methode für das Setzen von Run-/Lap-Properties.
+    /// </para>
+    /// 
+    /// <para>
+    /// XmlRunEditor wird als Fallback-Implementierung beibehalten für Szenarien,
+    /// in denen die KtmDataHandler-API nicht verfügbar ist oder direkte XML-Kontrolle
+    /// über Session.xml, Car.xml und LapHeader.xml benötigt wird.
+    /// </para>
+    /// 
+    /// <para><b>Bearbeitete XML-Dateien:</b></para>
+    /// <list type="bullet">
+    ///   <item>Session.xml ? Track, TrackLen (jetzt via AddRunProperty)</item>
+    ///   <item>Car.xml ? Name (Alias), DriverName (jetzt via AddRunProperty)</item>
+    ///   <item>LapHeader.xml ? Lap, TrackLap, Alias, Run, Marker (jetzt via AddLapProperty)</item>
+    /// </list>
     /// </summary>
+    [Obsolete("Ersetzt durch RunPropertyEditor. Beibehalten als Legacy-Fallback.")]
     public class XmlRunEditor
     {
         /// <summary>
@@ -21,39 +41,39 @@ namespace ORACLE
         /// <param name="rider">Fahrername.</param>
         public void EditXMLFiles(string[] validRuns, string alias, string track, string trackLength, string rider)
         {
-            for (int runIdx = 0; runIdx < validRuns.Length; runIdx++)
+            foreach (var runPath in validRuns)
             {
                 // Bearbeite LapHeader.xml
-                EditLapXMLFiles(validRuns, runIdx, alias);
+                EditLapXMLFiles(runPath, alias);
                 // Bearbeite Session.xml
-                EditSessionXML(validRuns, runIdx, track, trackLength);
+                EditSessionXML(runPath, track, trackLength);
                 // Bearbeite Car.xml
-                EditCarXML(validRuns, runIdx, alias, rider);
+                EditCarXML(runPath, alias, rider);
             }
         }
 
         /// <summary>
         /// Bearbeitet alle LapHeader.xml-Dateien im angegebenen Run-Ordner.
         /// </summary>
-        /// <param name="validRuns">Array mit Pfaden zu gültigen Run-Ordnern.</param>
-        /// <param name="runIdx">Index des aktuellen Runs.</param>
+        /// <param name="runPath">Pfad zum Run-Ordner.</param>
         /// <param name="alias">Alias für Fahrer/Bike.</param>
-        public void EditLapXMLFiles(string[] validRuns, int runIdx, string alias)
+        public void EditLapXMLFiles(string runPath, string alias)
         {
             Console.WriteLine($"Writing lapnumbers and alias \"{alias}\" in LapHeader.xml file.");
-            var allLapFiles = GatherAllLapHeaders(validRuns[runIdx]);
+            var allLapFiles = GatherAllLapHeaders(runPath);
             if (allLapFiles.Length == 0)
             {
                 Console.WriteLine("No LapHeader.xml files found.");
                 return;
             }
             int lapIdxTotal = allLapFiles.Length;
+
+            // Extrahiere Run-Nummer einmalig aus Ordnername
+            string runFolderName = new DirectoryInfo(runPath).Name;
+            int runNumber = int.TryParse(runFolderName.Replace("Run_", ""), out int num) ? num : 0;
+
             for (int lapIdx = 0; lapIdx < lapIdxTotal; lapIdx++)
             {
-                // Extrahiere Run-Nummer aus Ordnername
-                string runFolderName = new DirectoryInfo(validRuns[runIdx]).Name;
-                int runNumber = int.TryParse(runFolderName.Replace("Run_", ""), out int num) ? num : 0;
-                // Bearbeite einzelne LapHeader.xml
                 ModifyLapHeaderFile(allLapFiles[lapIdx], lapIdxTotal, lapIdx + 1, runNumber, alias);
             }
             Console.WriteLine($"Updated {lapIdxTotal} LapHeader.xml files with Alias \"{alias}\".");
@@ -96,6 +116,11 @@ namespace ORACLE
                 var doc = new XmlDocument();
                 doc.Load(filePath);
                 var root = doc.DocumentElement;
+                if (root == null)
+                {
+                    Console.WriteLine($"LapHeader.xml has no root element: {filePath}");
+                    return;
+                }
 
                 // Setze relevante XML-Tags
                 UpdateNode(root, "Lap", lapNum.ToString());
@@ -115,14 +140,13 @@ namespace ORACLE
         /// <summary>
         /// Bearbeitet die Session.xml-Datei im angegebenen Run-Ordner.
         /// </summary>
-        /// <param name="validRuns">Array mit Pfaden zu gültigen Run-Ordnern.</param>
-        /// <param name="runIdx">Index des aktuellen Runs.</param>
+        /// <param name="runPath">Pfad zum Run-Ordner.</param>
         /// <param name="track">Track-Name.</param>
         /// <param name="trackLen">Track-Länge.</param>
-        public void EditSessionXML(string[] validRuns, int runIdx, string track, string trackLen)
+        public void EditSessionXML(string runPath, string track, string trackLen)
         {
             Console.WriteLine($"Writing track \"{track}\" and trackLength \"{trackLen}\" m in Session.xml file.");
-            string sessionFilePath = Path.Combine(validRuns[runIdx], "Session.xml");
+            string sessionFilePath = Path.Combine(runPath, "Session.xml");
             if (!File.Exists(sessionFilePath))
             {
                 Console.WriteLine("Session.xml not found in run folder. Operation aborted.");
@@ -133,6 +157,11 @@ namespace ORACLE
                 var xmlDoc = new XmlDocument();
                 xmlDoc.Load(sessionFilePath);
                 var root = xmlDoc.DocumentElement;
+                if (root == null)
+                {
+                    Console.WriteLine("Session.xml has no root element. Update aborted.");
+                    return;
+                }
 
                 // Setze Track und TrackLen
                 bool ok1 = UpdateNode(root, "Track", track);
@@ -156,14 +185,13 @@ namespace ORACLE
         /// <summary>
         /// Bearbeitet die Car.xml-Datei im angegebenen Run-Ordner.
         /// </summary>
-        /// <param name="validRuns">Array mit Pfaden zu gültigen Run-Ordnern.</param>
-        /// <param name="runIdx">Index des aktuellen Runs.</param>
+        /// <param name="runPath">Pfad zum Run-Ordner.</param>
         /// <param name="alias">Alias für Fahrer/Bike.</param>
         /// <param name="rider">Fahrername.</param>
-        public void EditCarXML(string[] validRuns, int runIdx, string alias, string rider)
+        public void EditCarXML(string runPath, string alias, string rider)
         {
             Console.WriteLine($"Writing alias \"{alias}\" and rider \"{rider}\" in Car.xml file.");
-            string xmlFilePath = Path.Combine(validRuns[runIdx], "Car.xml");
+            string xmlFilePath = Path.Combine(runPath, "Car.xml");
             if (!File.Exists(xmlFilePath))
             {
                 Console.WriteLine($"Car.xml does not exist at path: {xmlFilePath}");
@@ -174,10 +202,21 @@ namespace ORACLE
                 var xmlDoc = new XmlDocument();
                 xmlDoc.Load(xmlFilePath);
                 var root = xmlDoc.DocumentElement;
+                if (root == null)
+                {
+                    Console.WriteLine($"Car.xml has no root element: {xmlFilePath}");
+                    return;
+                }
 
                 // Setze Name und DriverName
-                UpdateNode(root, "Name", alias);
-                UpdateNode(root, "DriverName", rider);
+                bool ok1 = UpdateNode(root, "Name", alias);
+                bool ok2 = UpdateNode(root, "DriverName", rider);
+
+                if (!ok1 || !ok2)
+                {
+                    Console.WriteLine("Missing <Name> or <DriverName> tag in Car.xml. Update aborted.");
+                    return;
+                }
 
                 xmlDoc.Save(xmlFilePath);
             }
@@ -199,15 +238,8 @@ namespace ORACLE
             var node = rootElem.GetElementsByTagName(tag).Cast<XmlNode>().FirstOrDefault();
             if (node == null)
                 return false;
-            try
-            {
-                node.InnerText = val;
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            node.InnerText = val;
+            return true;
         }
     }
 }

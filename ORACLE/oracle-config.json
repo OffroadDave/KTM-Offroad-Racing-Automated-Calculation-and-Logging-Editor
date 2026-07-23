@@ -1,0 +1,18 @@
+{
+  // ORACLE Konfiguration
+  // Pfade und Mappings für die KTM Offroad Racing Telemetrie-Verarbeitung
+  //
+  // Falls diese Datei fehlt, werden die Standardwerte aus OracleConfig.cs verwendet.
+
+  "DatabaseDirectory": "C:\\KTM Tools\\KTM Offroad Racing Shared Resources\\SoftwareDB",
+  "DatabaseFileName": "KOMPASS.json",
+
+  "TeamMappings": {
+    "01_KTM-FR": "KTM Factory Racing",
+    "KTM-FR": "KTM Factory Racing",
+    "02_HQV": "Husqvarna Factory Racing",
+    "HQV": "Husqvarna Factory Racing",
+    "03_KTM-DC": "KTM De Carli Racing",
+    "KTM-DC": "KTM De Carli Racing"
+  }
+}

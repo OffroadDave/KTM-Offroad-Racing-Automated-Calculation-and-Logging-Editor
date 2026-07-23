@@ -1,0 +1,16 @@
+{
+    // Überwachte Verzeichnisse — SENTINEL durchsucht diese rekursiv nach Run_*-Ordnern
+    "watchPaths": [
+        "C:\\MXTrackData"
+    ],
+
+    // Polling-Intervall in Sekunden (Empfehlung: 30s für OneDrive-Sync)
+    "pollingIntervalSeconds": 30,
+
+    // Anzahl aufeinanderfolgender stabiler Checks bevor download.done erzeugt wird
+    // Bei 30s Intervall und 3 Checks: Run muss 90s unverändert sein
+    "stabilityThreshold": 3,
+
+    // Minimale Dateigröße in Bytes (filtert OneDrive-Platzhalter mit 0 Bytes)
+    "minimumFileSizeBytes": 1024
+}
