@@ -2,8 +2,9 @@ using Autofac;
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Utils;
 using KtmSharedUtils.DataType;
+using KtmSharedUtils.FileIO;
 
-namespace ORACLE;
+namespace Ktm.Racing.Core;
 
 /// <summary>
 /// Factory für KtmDataHandler-Objekte.
@@ -27,6 +28,9 @@ public static class KtmDataHandlerFactory
     private static IContainer GetContainer()
     {
         if (_container != null) return _container;
+
+        // KtmDataHandler-Companion-/Native-DLLs aus dem Suite-Ordner auffindbar machen.
+        KtmRuntime.EnsureInitialized();
 
         lock (_lock)
         {
@@ -54,6 +58,12 @@ public static class KtmDataHandlerFactory
                 .Where(t => t.GetConstructors().Length > 0)
                 .AsImplementedInterfaces()
                 .AsSelf();
+
+            // Offene generische Typen (RegisterAssemblyTypes erfasst keine open generics):
+            // KtmDataHandler-Typen wie MarelliDataXmlProcessingConstants benötigen IXMLFileProcessor<T>.
+            builder.RegisterGeneric(typeof(XMLFileProcessor<>)).As(typeof(IXMLFileProcessor<>));
+            builder.RegisterGeneric(typeof(BinaryFileProcessor<>)).As(typeof(IBinaryFileProcessor<>));
+            builder.RegisterGeneric(typeof(JsonFileProcessor<>)).As(typeof(IJsonFileProcessor<>));
 
             // ILocalLogHelper explizit registrieren: Der parameterlose Konstruktor von
             // LocalLogHelper hinterlässt das log4net-Feld (log) als null, während BLogEnable

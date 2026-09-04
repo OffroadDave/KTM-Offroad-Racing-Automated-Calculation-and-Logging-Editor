@@ -1,6 +1,6 @@
 using KtmDataHandler.Models.Channels;
 
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Ergebnis der Session-Zusammenführung (Merged Session Data).

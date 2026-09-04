@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Status-Datei für Idempotenz: Wird nach erfolgreicher Verarbeitung im Run-Ordner

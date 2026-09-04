@@ -1,0 +1,67 @@
+<Window x:Class="Ktm.Racing.RaceReport.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KTM Offroad Racing Report Manager" Height="580" Width="920"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Ordnerauswahl -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Session-/Track-Ordner:" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBox Grid.Column="1" VerticalAlignment="Center" Padding="4,3"
+                     Text="{Binding SelectedFolder, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="2" Content="Ordner wählen…" Margin="8,0,0,0" Padding="12,5"
+                    Command="{Binding BrowseCommand}" />
+            <Button Grid.Column="3" Content="Aktualisieren" Margin="8,0,0,0" Padding="12,5"
+                    Command="{Binding RefreshCommand}" />
+        </Grid>
+
+        <!-- Run-Liste (Mehrfachauswahl) -->
+        <DataGrid Grid.Row="1" Margin="0,10" ItemsSource="{Binding Runs}"
+                  AutoGenerateColumns="False" CanUserAddRows="False"
+                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                  SelectionUnit="FullRow" IsReadOnly="False">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Sel." Width="44"
+                                        Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn Header="Run" Width="160" IsReadOnly="True" Binding="{Binding RunName}" />
+                <DataGridTextColumn Header="Device" Width="120" IsReadOnly="True" Binding="{Binding Device}" />
+                <DataGridTextColumn Header="Session" Width="110" IsReadOnly="True" Binding="{Binding Session}" />
+                <DataGridTextColumn Header="Laps" Width="70" IsReadOnly="True" Binding="{Binding LapCount}" />
+                <DataGridTextColumn Header="Startzeit" Width="*" IsReadOnly="True" Binding="{Binding StartTime}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Aktionen -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <Button Content="Race Report" Padding="18,7" FontWeight="Bold"
+                    Command="{Binding RaceReportCommand}" />
+            <Button Content="Run ORACLE" Margin="10,0,0,0" Padding="18,7"
+                    Command="{Binding RunOracleCommand}" />
+        </StackPanel>
+
+        <!-- Status + Fortschritt -->
+        <Grid Grid.Row="3" Margin="0,10,0,0">
+            <ProgressBar Height="6" IsIndeterminate="{Binding IsBusy}"
+                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+            <TextBlock Text="{Binding StatusText}" Margin="0,10,0,0"
+                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+        </Grid>
+    </Grid>
+</Window>

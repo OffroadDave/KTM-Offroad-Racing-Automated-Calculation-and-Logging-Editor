@@ -1,7 +1,7 @@
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Zentrale Orchestrierungsklasse für ORACLE-Verarbeitungsschritte.
@@ -234,6 +234,51 @@ namespace ORACLE
             status.ExitCode = (int)OracleExitCode.DataNotFound;
             status.Save(mergeStatusPath);
             return OracleExitCode.DataNotFound;
+        }
+
+        /// <summary>
+        /// Verarbeitet ALLE Runs unterhalb eines Track-/Session-/Rider-Ordners: process je Run + merge je Rider.
+        /// Respektiert die oracle.status.json-Idempotenz (bereits verarbeitete Runs werden übersprungen, außer <paramref name="force"/>).
+        /// </summary>
+        /// <param name="folderPath">Track-, Session- oder Rider-Ordner</param>
+        /// <param name="force">True überspringt die Idempotenz-Prüfung</param>
+        /// <param name="progress">Optionaler Fortschritt für die GUI</param>
+        public async Task<OracleExitCode> ProcessFolderAsync(
+            string folderPath, bool force = false, IProgress<string>? progress = null)
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                Console.WriteLine($"[process-folder] Ordner existiert nicht: {folderPath}");
+                return OracleExitCode.DataNotFound;
+            }
+
+            var runPaths = (_browse.FindRuns(folderPath) ?? Enumerable.Empty<string>())
+                .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (runPaths.Count == 0)
+            {
+                progress?.Report("Keine Runs im Ordner gefunden.");
+                return OracleExitCode.DataNotFound;
+            }
+
+            int ok = 0, failed = 0;
+            foreach (var runPath in runPaths)
+            {
+                progress?.Report($"ORACLE process: {Path.GetFileName(runPath)}");
+                var code = await ProcessRunAsync(runPath, force);
+                if (code == OracleExitCode.Success) ok++; else failed++;
+            }
+
+            // Merge je Rider-Ordner (Parent der Runs).
+            foreach (var riderPath in runPaths.Select(p => Path.GetDirectoryName(p)!).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                progress?.Report($"ORACLE merge: {Path.GetFileName(riderPath)}");
+                MergeSession(riderPath, force);
+            }
+
+            progress?.Report($"ORACLE fertig: {ok} OK, {failed} Fehler von {runPaths.Count} Run(s).");
+            if (failed == 0) return OracleExitCode.Success;
+            return ok > 0 ? OracleExitCode.PartialSuccess : OracleExitCode.GeneralError;
         }
 
         /// <summary>

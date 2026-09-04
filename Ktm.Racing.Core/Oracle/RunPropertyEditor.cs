@@ -1,6 +1,6 @@
 using KtmDataHandler.Marelli.Wintax;
 
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Setzt Run- und Lap-Properties über die KtmDataHandler-API (MarelliDataAccess),

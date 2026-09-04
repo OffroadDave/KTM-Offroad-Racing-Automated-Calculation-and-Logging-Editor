@@ -8,22 +8,9 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
+  <!-- Domain/telemetry logic lives in Ktm.Racing.Core; DLL + package refs flow transitively. -->
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.3.0" />
-    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="KtmDataHandler">
-      <HintPath>..\..\..\..\KTM Tools\KTM Utils Software Suite\KtmDataHandler.dll</HintPath>
-    </Reference>
-    <Reference Include="KtmSharedUtils">
-      <HintPath>..\..\..\..\KTM Tools\KTM Utils Software Suite\KtmSharedUtils.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Vbe.Interop">
-      <HintPath>..\..\..\..\Program Files\Microsoft Office\root\vfs\ProgramFilesX86\Microsoft Office\Office16\DCF\Microsoft.Vbe.Interop.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Ktm.Racing.Core\Ktm.Racing.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

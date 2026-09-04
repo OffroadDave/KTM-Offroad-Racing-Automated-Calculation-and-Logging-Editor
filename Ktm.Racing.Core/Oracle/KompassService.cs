@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using KtmDataHandler.Marelli.Wintax;
 
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Service für den Zugriff auf die KOMPASS-Datenbank (JSON).

@@ -1,4 +1,4 @@
-using ORACLE;
+using Ktm.Racing.Core;
 
 /// <summary>
 /// ORACLE Entry-Point — Command-basierter Router.
@@ -53,6 +53,9 @@ class Program
         catch (Exception ex)
         {
             Console.WriteLine($"ORACLE: Schwerwiegender Fehler: {ex.Message}");
+            // Inner-Exception-Kette ausgeben: die eigentliche Ursache (z.B. fehlende Datei) steckt oft ganz innen.
+            for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
+                Console.WriteLine($"  --> {inner.GetType().Name}: {inner.Message}");
             Console.WriteLine(ex.StackTrace);
             exitCode = OracleExitCode.GeneralError;
         }

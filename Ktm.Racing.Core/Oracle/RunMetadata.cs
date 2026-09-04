@@ -1,4 +1,4 @@
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Datenmodell für alle extrahierten Metadaten eines WinTAX4-Runs.

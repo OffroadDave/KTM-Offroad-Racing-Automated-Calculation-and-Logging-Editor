@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Konfiguration für ORACLE.

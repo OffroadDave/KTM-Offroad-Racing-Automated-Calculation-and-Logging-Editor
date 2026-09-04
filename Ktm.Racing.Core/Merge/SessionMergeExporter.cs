@@ -1,7 +1,7 @@
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 
-namespace ORACLE
+namespace Ktm.Racing.Core
 {
     /// <summary>
     /// Exportiert die Ergebnisse eines Session-Merge als neuen WinTAX4-Run.
@@ -165,21 +165,16 @@ namespace ORACLE
             {
                 writer.SetDataLocation([mergedRunPath]);
 
-                var tempPath = Path.Combine(mergedRunPath, "_temp");
-                Directory.CreateDirectory(tempPath);
-
                 Console.WriteLine($"[export] Schreibe {mergedDataset.NumElements()} Channel(s) als ImportData...");
-                writer.AddImportDataToRun(mergedDataset, tempPath, true);
-
-                // Temp-Ordner aufräumen
-                if (Directory.Exists(tempPath))
-                    Directory.Delete(tempPath, recursive: true);
+                // 1-Arg-Overload wie in ImportDataCalculator.SaveResults (bewährt); die 3-Arg-Variante
+                // mit eigenem Temp-Ordner schlug beim synthetischen Merge-Run fehl.
+                writer.AddImportDataToRun(mergedDataset);
 
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[export] Fehler beim Schreiben der Merge-Daten: {ex.Message}");
+                Console.WriteLine($"[export] Fehler beim Schreiben der Merge-Daten: {ex}");
                 return false;
             }
             finally
