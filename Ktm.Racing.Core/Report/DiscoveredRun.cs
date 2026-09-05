@@ -27,9 +27,13 @@ public sealed class DiscoveredRun
     /// <summary>Anzahl Laps im Run (aus RunLapHeader.xml bzw. Lap_*-Ordnern).</summary>
     public int LapCount { get; init; }
 
-    /// <summary>Startzeit aus RunLapHeader (ModT, Unix-Zeit) – nur für Anzeige/Datum, nicht zum Sortieren.</summary>
-    public DateTime? StartTime { get; init; }
+    /// <summary>Gesamtdauer des Runs = Summe aller Lap-Zeiten (aus RunLapHeader.xml, LapTime-Feld).</summary>
+    public TimeSpan? Duration { get; init; }
 
-    /// <summary>Akquisitions-Reihenfolge = kleinster Lap-Ordner-Zähler (Lap_NNNNNNNN_...); zuverlässiger Sortierschlüssel.</summary>
+    /// <summary>Echter Aufnahmezeitpunkt = frühestes AcquireTime aus RunLapHeader.xml; kopiersicher (anders als ModT).</summary>
+    public DateTime? AcquisitionTime { get; init; }
+
+    /// <summary>Akquisitions-Reihenfolge = kleinster Lap-Ordner-Zähler (Lap_NNNNNNNN_...);
+    /// stabiler, kopiersicherer Sortier- und Anzeigeschlüssel (ersetzt die unzuverlässige Startzeit).</summary>
     public long? AcquisitionOrder { get; init; }
 }

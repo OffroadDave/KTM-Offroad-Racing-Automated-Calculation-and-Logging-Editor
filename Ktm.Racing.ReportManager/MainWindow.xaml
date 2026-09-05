@@ -10,12 +10,14 @@
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Ordnerauswahl -->
+        <!-- Folder selection -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -23,41 +25,74 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Session-/Track-Ordner:" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" ><Run Language="de-at" Text="Track / Session folder"/></TextBlock>
             <TextBox Grid.Column="1" VerticalAlignment="Center" Padding="4,3"
                      Text="{Binding SelectedFolder, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Grid.Column="2" Content="Ordner wählen…" Margin="8,0,0,0" Padding="12,5"
+            <Button Grid.Column="2" Content="Browse…" Margin="8,0,0,0" Padding="12,5"
                     Command="{Binding BrowseCommand}" />
-            <Button Grid.Column="3" Content="Aktualisieren" Margin="8,0,0,0" Padding="12,5"
+            <Button Grid.Column="3" Content="Refresh" Margin="8,0,0,0" Padding="12,5"
                     Command="{Binding RefreshCommand}" />
         </Grid>
 
-        <!-- Run-Liste (Mehrfachauswahl) -->
-        <DataGrid Grid.Row="1" Margin="0,10" ItemsSource="{Binding Runs}"
+        <!-- Selection controls -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+            <Button Content="Select all" Padding="12,4" Command="{Binding SelectAllCommand}" />
+            <Button Content="Deselect all" Margin="8,0,0,0" Padding="12,4" Command="{Binding DeselectAllCommand}" />
+        </StackPanel>
+
+        <!-- Run list (per-row checkbox selection) -->
+        <DataGrid Grid.Row="2" Margin="0,6,0,0" ItemsSource="{Binding Runs}"
                   AutoGenerateColumns="False" CanUserAddRows="False"
                   HeadersVisibility="Column" GridLinesVisibility="Horizontal"
                   SelectionUnit="FullRow" IsReadOnly="False">
             <DataGrid.Columns>
-                <DataGridCheckBoxColumn Header="Sel." Width="44"
-                                        Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTemplateColumn Header="Sel." Width="44">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Run" Width="160" IsReadOnly="True" Binding="{Binding RunName}" />
                 <DataGridTextColumn Header="Device" Width="120" IsReadOnly="True" Binding="{Binding Device}" />
                 <DataGridTextColumn Header="Session" Width="110" IsReadOnly="True" Binding="{Binding Session}" />
                 <DataGridTextColumn Header="Laps" Width="70" IsReadOnly="True" Binding="{Binding LapCount}" />
-                <DataGridTextColumn Header="Startzeit" Width="*" IsReadOnly="True" Binding="{Binding StartTime}" />
+                <DataGridTextColumn Header="Duration" Width="90" IsReadOnly="True" Binding="{Binding Duration}" />
+                <DataGridTextColumn Header="Date/Time" Width="*" IsReadOnly="True" Binding="{Binding AcquisitionTime}" />
+                <DataGridTextColumn Header="Acq. #" Width="70" IsReadOnly="True" Binding="{Binding AcquisitionOrder}" />
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Aktionen -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal">
+        <!-- Append options -->
+        <Grid Grid.Row="3" Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" Content="Append to existing report" VerticalAlignment="Center"
+                      Margin="0,0,12,0" IsChecked="{Binding AppendMode}"
+                      ToolTip="Append the calculated values as a new row to an existing .xlsx workbook instead of creating a new file." />
+            <TextBox Grid.Column="1" VerticalAlignment="Center" Padding="4,3"
+                     IsEnabled="{Binding AppendMode}"
+                     Text="{Binding AppendTargetPath, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Path to the existing Excel workbook the report is appended to." />
+            <Button Grid.Column="2" Content="Browse…" Margin="8,0,0,0" Padding="12,5"
+                    IsEnabled="{Binding AppendMode}"
+                    Command="{Binding BrowseTargetFileCommand}" />
+        </Grid>
+
+        <!-- Actions -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal">
             <Button Content="Race Report" Padding="18,7" FontWeight="Bold"
                     Command="{Binding RaceReportCommand}" />
             <Button Content="Run ORACLE" Margin="10,0,0,0" Padding="18,7"
                     Command="{Binding RunOracleCommand}" />
         </StackPanel>
 
-        <!-- Status + Fortschritt -->
-        <Grid Grid.Row="3" Margin="0,10,0,0">
+        <!-- Status + progress -->
+        <Grid Grid.Row="5" Margin="0,10,0,0">
             <ProgressBar Height="6" IsIndeterminate="{Binding IsBusy}"
                          Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
             <TextBlock Text="{Binding StatusText}" Margin="0,10,0,0"

@@ -269,12 +269,12 @@ namespace Ktm.Racing.Core
                 if (code == OracleExitCode.Success) ok++; else failed++;
             }
 
-            // Merge je Rider-Ordner (Parent der Runs).
-            foreach (var riderPath in runPaths.Select(p => Path.GetDirectoryName(p)!).Distinct(StringComparer.OrdinalIgnoreCase))
-            {
-                progress?.Report($"ORACLE merge: {Path.GetFileName(riderPath)}");
-                MergeSession(riderPath, force);
-            }
+            // Merge temporär deaktiviert – wird separat überarbeitet.
+            // foreach (var riderPath in runPaths.Select(p => Path.GetDirectoryName(p)!).Distinct(StringComparer.OrdinalIgnoreCase))
+            // {
+            //     progress?.Report($"ORACLE merge: {Path.GetFileName(riderPath)}");
+            //     MergeSession(riderPath, force);
+            // }
 
             progress?.Report($"ORACLE fertig: {ok} OK, {failed} Fehler von {runPaths.Count} Run(s).");
             if (failed == 0) return OracleExitCode.Success;

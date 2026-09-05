@@ -1,7 +1,8 @@
 namespace Ktm.Racing.Core;
 
-/// <summary>Ein berechneter Ausgabewert: Spaltenname (Alias), Einheit und Wert (null = nicht verfügbar).</summary>
-public sealed record RaceReportValue(string Alias, string Unit, double? Value);
+/// <summary>Ein berechneter Ausgabewert: Spaltenname (Alias), Einheit, Wert (null = nicht verfügbar)
+/// und optional die Nachkommastellen laut VCH-Einstellung (für die Zellformatierung).</summary>
+public sealed record RaceReportValue(string Alias, string Unit, double? Value, int? Decimals = null);
 
 /// <summary>
 /// Ergebnis eines Race Reports: Metadaten (Track/Session/Driver/Device/Datum) und die berechneten Werte.

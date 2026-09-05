@@ -45,7 +45,8 @@ class Program
             exitCode = args[0].ToLowerInvariant() switch
             {
                 "process" => await HandleProcessAsync(args, pipeline),
-                "merge" => HandleMerge(args, pipeline),
+                // "merge" temporär deaktiviert – wird separat überarbeitet.
+                // "merge" => HandleMerge(args, pipeline),
                 "validate" => HandleValidate(args, pipeline),
                 _ => await HandleLegacyAsync(args, pipeline),
             };
@@ -80,6 +81,7 @@ class Program
         return await pipeline.ProcessRunAsync(args[1], force);
     }
 
+    /* merge temporär deaktiviert – wird separat überarbeitet.
     /// <summary>
     /// Command: merge — Session-Merge über alle Runs eines Riders.
     /// </summary>
@@ -95,6 +97,7 @@ class Program
         var force = args.Any(a => a.Equals("--force", StringComparison.OrdinalIgnoreCase));
         return pipeline.MergeSession(args[1], force);
     }
+    */
 
     /// <summary>
     /// Command: validate — Datenintegritätsprüfung.
@@ -125,23 +128,23 @@ class Program
 
         // --- Process ---
         var processResult = await pipeline.ProcessRunAsync(runPath, force);
-        if (processResult != OracleExitCode.Success)
-        {
-            return processResult;
-        }
 
-        // --- Merge (Rider-Ordner = eine Ebene über Run) ---
-        var riderPath = Path.GetFullPath(Path.Combine(runPath, ".."));
-        var mergeResult = pipeline.MergeSession(riderPath, force);
+        // --- Merge temporär deaktiviert – wird separat überarbeitet. ---
+        // if (processResult != OracleExitCode.Success)
+        // {
+        //     return processResult;
+        // }
+        //
+        // var riderPath = Path.GetFullPath(Path.Combine(runPath, ".."));
+        // var mergeResult = pipeline.MergeSession(riderPath, force);
+        //
+        // if (mergeResult != OracleExitCode.Success)
+        // {
+        //     Console.WriteLine("[legacy] Session-Merge hatte Probleme, process war aber erfolgreich.");
+        //     return OracleExitCode.PartialSuccess;
+        // }
 
-        // Merge-Fehler sind nicht kritisch im Legacy-Modus
-        if (mergeResult != OracleExitCode.Success)
-        {
-            Console.WriteLine("[legacy] Session-Merge hatte Probleme, process war aber erfolgreich.");
-            return OracleExitCode.PartialSuccess;
-        }
-
-        return OracleExitCode.Success;
+        return processResult;
     }
 
     private static void PrintUsage()
@@ -150,7 +153,8 @@ class Program
         Console.WriteLine();
         Console.WriteLine("Verwendung:");
         Console.WriteLine("  ORACLE.exe process  <runPath>   [--force]  Postprocessing-Pipeline für einen Run");
-        Console.WriteLine("  ORACLE.exe merge    <riderPath> [--force]  Session-Merge (alle Runs eines Riders)");
+        // "merge" temporär deaktiviert – wird separat überarbeitet.
+        // Console.WriteLine("  ORACLE.exe merge    <riderPath> [--force]  Session-Merge (alle Runs eines Riders)");
         Console.WriteLine("  ORACLE.exe validate <runPath>              Datenintegritätsprüfung");
         Console.WriteLine("  ORACLE.exe <runPath>            [--force]  Legacy-Modus (process + merge)");
         Console.WriteLine();

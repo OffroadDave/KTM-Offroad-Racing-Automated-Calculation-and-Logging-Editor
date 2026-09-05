@@ -1,19 +1,16 @@
 using System.Diagnostics;
-using System.Globalization;
 using ClosedXML.Excel;
 
 namespace Ktm.Racing.Core;
 
 /// <summary>
-/// Schreibt einen <see cref="RaceReportResult"/> nach Excel (ClosedXML):
-/// entweder als neue Datei ({Track}_{Session}_{Device}.xlsx) oder als neue Zeile in einer bestehenden Liste.
-/// Spalten: 5 Metadaten (Track|Session|Driver|Device|Ses.Date) gefolgt von den berechneten Kanälen.
+/// Writes a <see cref="RaceReportResult"/> to a new Excel file ({Track}_{Session}_{Device}.xlsx).
+/// Columns: five metadata columns (Track | Session | Driver | Device | Ses.Date) followed by the calculated
+/// channels. Appending to an existing file is handled by <see cref="ExcelReportAppender"/>.
 /// </summary>
 public sealed class RaceReportExcelWriter
 {
-    private static readonly string[] MetaHeaders = { "Track", "Session", "Driver", "Device", "Ses.Date" };
-
-    /// <summary>Neue Datei erzeugen, optional öffnen; gibt den geschriebenen Pfad zurück.</summary>
+    /// <summary>Creates a new file, optionally opens it, and returns the written path.</summary>
     public string WriteNew(RaceReportResult result, string outputFolder, bool autoOpen = true)
     {
         Directory.CreateDirectory(outputFolder);
@@ -23,14 +20,20 @@ public sealed class RaceReportExcelWriter
         using (var workbook = new XLWorkbook())
         {
             var worksheet = workbook.AddWorksheet("RaceReport");
-            var headers = BuildHeaders(result);
+            var headers = ReportColumns.BuildHeaders(result);
             for (int c = 0; c < headers.Count; c++)
                 worksheet.Cell(1, c + 1).Value = headers[c];
             worksheet.Row(1).Style.Font.Bold = true;
 
-            var values = BuildRow(result);
+            var values = ReportColumns.BuildRow(result);
             for (int c = 0; c < values.Count; c++)
-                SetCell(worksheet.Cell(2, c + 1), values[c]);
+                ReportColumns.SetCell(worksheet.Cell(2, c + 1), values[c]);
+
+            // Number format per channel from the VCH decimals (new file only; append keeps the target's formatting).
+            for (int i = 0; i < result.Values.Count; i++)
+                if (result.Values[i] is { Value: not null, Decimals: int decimals })
+                    worksheet.Cell(2, ReportColumns.MetaHeaders.Length + i + 1).Style.NumberFormat.Format =
+                        ReportColumns.NumberFormat(decimals);
 
             worksheet.Columns().AdjustToContents();
             workbook.SaveAs(path);
@@ -38,75 +41,6 @@ public sealed class RaceReportExcelWriter
 
         if (autoOpen) TryOpen(path);
         return path;
-    }
-
-    /// <summary>Werte als neue Zeile an eine bestehende Excel anhängen (Zuordnung per Header-Name; Backup vorab).</summary>
-    public string AppendRow(RaceReportResult result, string existingPath, bool autoOpen = true)
-    {
-        if (!File.Exists(existingPath))
-            throw new FileNotFoundException($"Excel-Liste nicht gefunden: {existingPath}", existingPath);
-
-        File.Copy(existingPath, $"{existingPath}.bak_{DateTime.Now:yyyyMMdd_HHmmss}", overwrite: true);
-
-        using (var workbook = new XLWorkbook(existingPath))
-        {
-            var worksheet = workbook.Worksheets.First();
-            var headerRow = worksheet.FirstRowUsed()
-                ?? throw new InvalidDataException("Ziel-Excel hat keine Kopfzeile.");
-
-            var columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            foreach (var cell in headerRow.CellsUsed())
-                columns[cell.GetString().Trim()] = cell.Address.ColumnNumber;
-
-            int targetRow = (worksheet.LastRowUsed()?.RowNumber() ?? headerRow.RowNumber()) + 1;
-
-            var headers = BuildHeaders(result);
-            var values = BuildRow(result);
-            var missing = new List<string>();
-            for (int i = 0; i < headers.Count; i++)
-            {
-                if (columns.TryGetValue(headers[i], out var col))
-                    SetCell(worksheet.Cell(targetRow, col), values[i]);
-                else
-                    missing.Add(headers[i]);
-            }
-            if (missing.Count > 0)
-                Console.WriteLine($"[excel] Warnung: Spalten nicht in Zielliste vorhanden: {string.Join(", ", missing)}");
-
-            workbook.Save();
-        }
-
-        if (autoOpen) TryOpen(existingPath);
-        return existingPath;
-    }
-
-    private static List<string> BuildHeaders(RaceReportResult result)
-    {
-        var list = new List<string>(MetaHeaders);
-        foreach (var value in result.Values)
-            list.Add(string.IsNullOrEmpty(value.Unit) ? value.Alias : $"{value.Alias} [{value.Unit}]");
-        return list;
-    }
-
-    private static List<object?> BuildRow(RaceReportResult result)
-    {
-        var list = new List<object?>
-        {
-            result.Track, result.Session, result.Driver, result.Device,
-            result.SessionDate?.ToString("dd - MMM - yyyy", CultureInfo.InvariantCulture) ?? "",
-        };
-        foreach (var value in result.Values) list.Add(value.Value);
-        return list;
-    }
-
-    private static void SetCell(IXLCell cell, object? value)
-    {
-        switch (value)
-        {
-            case null: cell.Value = ""; break;
-            case double d: cell.Value = d; break;
-            default: cell.Value = value.ToString(); break;
-        }
     }
 
     private static string Sanitize(string name)
@@ -132,6 +66,6 @@ public sealed class RaceReportExcelWriter
     private static void TryOpen(string path)
     {
         try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); }
-        catch (Exception ex) { Console.WriteLine($"[excel] Konnte Datei nicht öffnen: {ex.Message}"); }
+        catch (Exception ex) { Console.WriteLine($"[excel] Could not open the file: {ex.Message}"); }
     }
 }

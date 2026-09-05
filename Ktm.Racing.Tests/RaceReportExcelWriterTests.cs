@@ -40,19 +40,6 @@ public class RaceReportExcelWriterTests : IDisposable
         Assert.Equal("", ws.Cell(2, 7).GetString()); // null → blank
     }
 
-    [Fact]
-    public void AppendRow_AddsAlignedRow_AndCreatesBackup()
-    {
-        var path = new RaceReportExcelWriter().WriteNew(Sample(), _dir, autoOpen: false);
-        new RaceReportExcelWriter().AppendRow(Sample(), path, autoOpen: false);
-
-        using var workbook = new XLWorkbook(path);
-        var ws = workbook.Worksheets.First();
-        Assert.Equal(3, ws.LastRowUsed()!.RowNumber()); // header + 2 data rows
-        Assert.Equal(163.0, ws.Cell(3, 6).GetDouble(), 3);
-        Assert.NotEmpty(Directory.GetFiles(_dir, "*.bak_*"));
-    }
-
     public void Dispose()
     {
         try { Directory.Delete(_dir, recursive: true); } catch { }

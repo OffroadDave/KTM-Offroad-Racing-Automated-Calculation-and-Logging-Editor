@@ -17,4 +17,34 @@
     <ProjectReference Include="..\Ktm.Racing.Core\Ktm.Racing.Core.csproj" />
   </ItemGroup>
 
+  <!-- Bundle ONLY the strictly required KTM suite DLLs into .\KtmSuite\ next to the exe
+       (KtmRuntime resolves them there). No-op when the suite is not installed on the build machine. -->
+  <PropertyGroup>
+    <KtmSuiteDir Condition="'$(KtmSuiteDir)' == ''">C:\KTM Tools\KTM Utils Software Suite</KtmSuiteDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(KtmSuiteDir)')">
+    <!-- Core data + native .ztx reader -->
+    <_KtmSuiteFile Include="KtmDataHandler.dll" />
+    <_KtmSuiteFile Include="KtmDataHandler.dll.config" />
+    <_KtmSuiteFile Include="KtmSharedUtils.dll" />
+    <_KtmSuiteFile Include="KtmSharedUtilsCpp.dll" />
+    <_KtmSuiteFile Include="TelDataZTXx64.dll" />
+    <_KtmSuiteFile Include="KtmLicenseHandler.dll" />
+    <!-- HASP license stack (x64) -->
+    <_KtmSuiteFile Include="hasp_net_windows.dll" />
+    <_KtmSuiteFile Include="haspdnert_x64.dll" />
+    <_KtmSuiteFile Include="hasp_windows_x64_109133.dll" />
+    <_KtmSuiteFile Include="haspvlib_109133.dll" />
+    <!-- Managed companions not provided by .NET 8 / the app output -->
+    <_KtmSuiteFile Include="log4net.dll" />
+    <_KtmSuiteFile Include="Newtonsoft.Json.dll" />
+    <_KtmSuiteFile Include="Microsoft.Bcl.AsyncInterfaces.dll" />
+
+    <None Include="@(_KtmSuiteFile->'$(KtmSuiteDir)\%(Identity)')"
+          Link="KtmSuite\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false" />
+  </ItemGroup>
+
 </Project>

@@ -20,12 +20,23 @@ public static class KtmRuntime
     private static bool _initialized;
 
     /// <summary>
-    /// Pfad zum KTM Utils Software Suite-Ordner. Überschreibbar via Umgebungsvariable
-    /// KTM_UTILS_SUITE oder direkt vor dem ersten KtmDataHandler-Zugriff.
+    /// Pfad zum KTM Utils Software Suite-Ordner. Auswahl-Reihenfolge: Umgebungsvariable KTM_UTILS_SUITE,
+    /// dann ein neben der App mitgeliefertes "KtmSuite"-Verzeichnis, sonst der Standard-Installationspfad.
+    /// Kann auch direkt vor dem ersten KtmDataHandler-Zugriff gesetzt werden.
     /// </summary>
-    public static string SuiteDirectory { get; set; } =
-        Environment.GetEnvironmentVariable("KTM_UTILS_SUITE")
-        ?? @"C:\KTM Tools\KTM Utils Software Suite";
+    public static string SuiteDirectory { get; set; } = ResolveDefaultSuiteDirectory();
+
+    // Priorität: KTM_UTILS_SUITE → "KtmSuite"-Ordner neben der Exe (mitgeliefert) → Standard-Installationspfad.
+    private static string ResolveDefaultSuiteDirectory()
+    {
+        var env = Environment.GetEnvironmentVariable("KTM_UTILS_SUITE");
+        if (!string.IsNullOrWhiteSpace(env)) return env;
+
+        var bundled = Path.Combine(AppContext.BaseDirectory, "KtmSuite");
+        if (Directory.Exists(bundled)) return bundled;
+
+        return @"C:\KTM Tools\KTM Utils Software Suite";
+    }
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
