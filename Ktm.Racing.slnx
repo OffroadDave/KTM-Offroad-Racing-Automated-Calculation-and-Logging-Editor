@@ -3,10 +3,6 @@
     <Project Path="Ktm.Racing.Core/Ktm.Racing.Core.csproj" />
   </Folder>
   <Folder Name="/02_Apps/">
-    <Project Path="Ktm.Racing.ReportManager/Ktm.Racing.ReportManager.csproj" />
     <Project Path="ORACLE/ORACLE.csproj" />
-  </Folder>
-  <Folder Name="/03_Tests/">
-    <Project Path="Ktm.Racing.Tests/Ktm.Racing.Tests.csproj" />
   </Folder>
 </Solution>

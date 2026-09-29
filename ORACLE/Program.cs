@@ -48,6 +48,7 @@ class Program
                 // "merge" temporär deaktiviert – wird separat überarbeitet.
                 // "merge" => HandleMerge(args, pipeline),
                 "validate" => HandleValidate(args, pipeline),
+                "detect" => HandleDetect(args, pipeline),
                 _ => await HandleLegacyAsync(args, pipeline),
             };
         }
@@ -78,7 +79,7 @@ class Program
         }
 
         var force = args.Any(a => a.Equals("--force", StringComparison.OrdinalIgnoreCase));
-        return await pipeline.ProcessRunAsync(args[1], force);
+        return await pipeline.ProcessPathAsync(args[1], force);
     }
 
     /* merge temporär deaktiviert – wird separat überarbeitet.
@@ -112,6 +113,21 @@ class Program
         }
 
         return pipeline.ValidateRun(args[1]);
+    }
+
+    /// <summary>
+    /// Command: detect — Renn-Erkennung (read-only) über alle Runs eines Ordners.
+    /// </summary>
+    private static OracleExitCode HandleDetect(string[] args, OraclePipeline pipeline)
+    {
+        if (args.Length < 2)
+        {
+            Console.WriteLine("Fehler: Pfad fehlt.");
+            Console.WriteLine("Verwendung: ORACLE.exe detect <riderPath|runPath>");
+            return OracleExitCode.InvalidArguments;
+        }
+
+        return pipeline.DetectRaces(args[1]);
     }
 
     /// <summary>
@@ -152,10 +168,11 @@ class Program
         Console.WriteLine("ORACLE — KTM Offroad Racing Postprocessing");
         Console.WriteLine();
         Console.WriteLine("Verwendung:");
-        Console.WriteLine("  ORACLE.exe process  <runPath>   [--force]  Postprocessing-Pipeline für einen Run");
+        Console.WriteLine("  ORACLE.exe process  <run|rider> [--force]  Postprocessing (Rider-Ordner: renn-bewusst, durchgehend)");
         // "merge" temporär deaktiviert – wird separat überarbeitet.
         // Console.WriteLine("  ORACLE.exe merge    <riderPath> [--force]  Session-Merge (alle Runs eines Riders)");
         Console.WriteLine("  ORACLE.exe validate <runPath>              Datenintegritätsprüfung");
+        Console.WriteLine("  ORACLE.exe detect   <riderPath>            Renn-Erkennung (read-only)");
         Console.WriteLine("  ORACLE.exe <runPath>            [--force]  Legacy-Modus (process + merge)");
         Console.WriteLine();
         Console.WriteLine("Optionen:");

@@ -122,18 +122,25 @@ namespace Ktm.Racing.Core
 
             Console.WriteLine($"{validRuns.Count} gültige(r) Run(s) gefunden.");
 
-            // --- Run/Lap-Properties setzen ---
-            var propertyEditor = new RunPropertyEditor();
+            // --- Berechnungen (sVehicle + per-Lap-Distanzen) und XML-Properties je Run ---
+            var xmlEditor = new XmlRunEditor();
+            var importCalculator = new ImportDataCalculator();
+            int calcSuccess = 0;
             foreach (var run in validRuns)
             {
-                propertyEditor.SetRunProperties(run, metadata.BikeName, metadata.TrackName,
-                    metadata.TrackLength, metadata.RiderName);
+                try
+                {
+                    var calc = importCalculator.RunCalculationPipeline(run);
+                    xmlEditor.SetRunProperties(run, metadata.BikeName, metadata.TrackName,
+                        metadata.TrackLength, metadata.RiderName, lapDistances: calc.LapDistancesMeters);
+                    calcSuccess++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[process] Fehler bei {Path.GetFileName(run)}: {ex.Message}");
+                }
             }
             status.SetStep("properties", StepStatus.Success);
-
-            // --- Berechnungspipeline für alle Runs ausführen ---
-            var importCalculator = new ImportDataCalculator();
-            int calcSuccess = importCalculator.RunCalculationPipelineForRuns(validRuns);
             var calcStatus = calcSuccess == validRuns.Count ? StepStatus.Success
                            : calcSuccess > 0 ? StepStatus.Partial
                            : StepStatus.Failed;
@@ -383,6 +390,146 @@ namespace Ktm.Racing.Core
             Console.WriteLine("[validate] Alle Prüfungen bestanden.");
             return OracleExitCode.Success;
         }
+
+        /// <summary>
+        /// Erkennt, welche Runs eines Ordners tatsächlich Rennen (Renntempo) sind — im Gegensatz
+        /// zu Motor-Blips, Standgas, langsamem Rollen, Sichtungsrunden oder Auslauf.
+        /// Read-only: verändert keine Daten. Delegiert an <see cref="RaceSegmentDetector"/>.
+        /// </summary>
+        /// <param name="folderPath">Rider-/Session-Ordner oder direkter Run-Ordner.</param>
+        public OracleExitCode DetectRaces(string folderPath)
+        {
+            Console.WriteLine($"[detect] Path: {folderPath}");
+
+            if (!Directory.Exists(folderPath))
+            {
+                Console.WriteLine($"Der angegebene Pfad existiert nicht: {folderPath}");
+                return OracleExitCode.DataNotFound;
+            }
+
+            var detector = new RaceSegmentDetector(_browse, _config.RaceDetection);
+            var result = detector.DetectRaces(folderPath);
+
+            if (result.Runs.Count == 0)
+            {
+                Console.WriteLine("[detect] Keine Runs gefunden.");
+                return OracleExitCode.DataNotFound;
+            }
+
+            foreach (var f in result.Runs)
+            {
+                string verdict = f.Verdict switch
+                {
+                    RaceRunVerdict.Race => "RENNEN",
+                    RaceRunVerdict.Error => "FEHLER",
+                    _ => "-",
+                };
+                Console.WriteLine(
+                    $"  {f.RunFolderName,-12} dist={f.GpsDistanceMeters,7:F0} m  vGPS={f.MeanGpsSpeedKph,5:F1} kph  " +
+                    $"Gas={f.MeanThrottlePercent,5:F1} %  rpm={f.MeanEngineRpm,6:F0}  " +
+                    $"=> {verdict}{(f.LowConfidence ? " (review)" : "")}  [{f.Reason}]");
+            }
+
+            var raceNames = result.RaceRunPaths.Select(Path.GetFileName);
+            Console.WriteLine($"[detect] Als Rennen erkannt: {(result.RaceCount > 0 ? string.Join(", ", raceNames) : "(keine)")}");
+            return OracleExitCode.Success;
+        }
+
+        /// <summary>
+        /// Routet einen <c>process</c>-Aufruf: einzelner Run → per-Run-Pipeline (KRAKEN-kompatibel),
+        /// Rider-/Session-Ordner → renn-bewusste, durchgehende Verarbeitung (<see cref="ProcessRiderAsync"/>).
+        /// </summary>
+        public async Task<OracleExitCode> ProcessPathAsync(string path, bool force = false)
+        {
+            if (!Directory.Exists(path))
+            {
+                Console.WriteLine($"Der angegebene Pfad existiert nicht: {path}");
+                return OracleExitCode.DataNotFound;
+            }
+
+            return _browse.IsRunLocation(path)
+                ? await ProcessRunAsync(path, force)
+                : await ProcessRiderAsync(path, force);
+        }
+
+        /// <summary>
+        /// Verarbeitet einen ganzen Rider-/Session-Ordner renn-bewusst (Option C):
+        /// Die als Rennen erkannten Runs erhalten durchgehende <c>sVehicle</c>-Distanz und
+        /// fortlaufende Lap-Nummerierung; Nicht-Renn-Runs werden eigenständig verarbeitet.
+        /// Die Original-Ordnerstruktur bleibt unverändert.
+        /// </summary>
+        public async Task<OracleExitCode> ProcessRiderAsync(string riderPath, bool force = false)
+        {
+            Console.WriteLine($"[process-rider] Rider Path: {riderPath}");
+
+            if (!force && OracleStatus.IsAlreadyProcessed(riderPath))
+            {
+                Console.WriteLine("[process-rider] Bereits verarbeitet (oracle.status.json). Überspringe. (--force zum Erzwingen)");
+                return OracleExitCode.Success;
+            }
+
+            var status = OracleStatus.Create(riderPath);
+
+            var runs = (_browse.FindRuns(riderPath) ?? Enumerable.Empty<string>())
+                .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (runs.Count == 0)
+            {
+                Console.WriteLine($"Keine gültigen Runs gefunden in: {riderPath}");
+                status.SetStep("discovery", StepStatus.Failed);
+                status.ExitCode = (int)OracleExitCode.DataNotFound;
+                status.Save(riderPath);
+                return OracleExitCode.DataNotFound;
+            }
+
+            // Metadaten einmalig über einen repräsentativen Run ermitteln.
+            var metadata = await ResolveMetadataAsync(runs[0]);
+            if (metadata == null)
+            {
+                Console.WriteLine("Metadaten konnten nicht ermittelt werden.");
+                status.SetStep("metadata", StepStatus.Failed);
+                status.ExitCode = (int)OracleExitCode.DataNotFound;
+                status.Save(riderPath);
+                return OracleExitCode.DataNotFound;
+            }
+            status.SetStep("metadata", StepStatus.Success, new Dictionary<string, object>
+            {
+                ["bikeName"] = metadata.BikeName,
+                ["riderName"] = metadata.RiderName,
+            });
+
+            double trackLength = ParseTrackLength(metadata.TrackLength);
+
+            var stintProcessor = new RaceStintProcessor(
+                new RaceSegmentDetector(_browse, _config.RaceDetection));
+            var result = stintProcessor.ProcessRider(riderPath, metadata, trackLength);
+
+            status.SetStep("raceDetection", StepStatus.Success, new Dictionary<string, object>
+            {
+                ["raceRuns"] = result.RaceRunCount,
+                ["nonRaceRuns"] = result.NonRaceRunCount,
+                ["totalRuns"] = runs.Count,
+            });
+            status.SetStep("stint", result.RaceRunCount > 0 ? StepStatus.Success : StepStatus.Partial,
+                new Dictionary<string, object>
+                {
+                    ["totalRaceLaps"] = result.TotalRaceLaps,
+                    ["totalRaceDistanceMeters"] = Math.Round(result.TotalRaceDistanceMeters, 1),
+                });
+
+            status.ExitCode = (int)OracleExitCode.Success;
+            status.Save(riderPath);
+
+            Console.WriteLine(
+                $"[process-rider] Abgeschlossen: {result.RaceRunCount} Renn-Run(s), " +
+                $"{result.TotalRaceLaps} Renn-Laps, {result.TotalRaceDistanceMeters:F0} m Gesamtdistanz.");
+            return OracleExitCode.Success;
+        }
+
+        /// <summary>Parst die Track-Länge (String aus Metadaten) zu Metern; 0 wenn unbekannt.</summary>
+        private static double ParseTrackLength(string trackLength)
+            => double.TryParse(trackLength, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out double m) ? m : 0.0;
 
         /// <summary>
         /// Ermittelt die Run-Metadaten aus einer HED-Datei oder der KOMPASS-Datenbank.

@@ -20,9 +20,14 @@ namespace Ktm.Racing.Core
         /// <param name="track">Track-Name</param>
         /// <param name="trackLength">Track-Länge in Metern</param>
         /// <param name="rider">Fahrername</param>
-        public void SetRunProperties(string runPath, string alias, string track, string trackLength, string rider)
+        /// <param name="lapOffset">Basis für fortlaufende Lap-Nummerierung über mehrere Renn-Runs (Option C).</param>
+        /// <param name="isLastInStint">True wenn dies der letzte Renn-Run ist (nur dann Box-Marker am Ende).</param>
+        /// <returns>Anzahl der gesetzten Laps in diesem Run (für die Offset-Akkumulation).</returns>
+        public int SetRunProperties(string runPath, string alias, string track, string trackLength, string rider,
+            int lapOffset = 0, bool isLastInStint = true)
         {
             var ztxAccess = KtmDataHandlerFactory.CreateAccess();
+            int numLaps = 0;
             try
             {
                 ztxAccess.SetDataLocation([runPath]);
@@ -31,8 +36,9 @@ namespace Ktm.Racing.Core
                 SetSessionProperties(ztxAccess, track, trackLength);
                 SetCarProperties(ztxAccess, alias, rider);
 
-                // Lap-Level Properties (LapHeader.xml Äquivalente)
-                SetLapProperties(ztxAccess, runPath, alias);
+                // Lap-Level Properties (LapHeader.xml Äquivalente); lapOffset ermöglicht
+                // fortlaufende Nummerierung über mehrere Renn-Runs hinweg (Option C).
+                numLaps = SetLapProperties(ztxAccess, runPath, alias, lapOffset, isLastInStint);
 
                 Console.WriteLine($"Run-Properties erfolgreich gesetzt für: {runPath}");
             }
@@ -44,6 +50,7 @@ namespace Ktm.Racing.Core
             {
                 ztxAccess.ReleaseObjects();
             }
+            return numLaps;
         }
 
         /// <summary>
@@ -69,28 +76,35 @@ namespace Ktm.Racing.Core
         /// <summary>
         /// Setzt Lap-Level Properties für alle Laps (entspricht LapHeader.xml: Lap, TrackLap, Alias, Run, Marker).
         /// </summary>
-        private static void SetLapProperties(MarelliDataAccess ztxAccess, string runPath, string alias)
+        private static int SetLapProperties(MarelliDataAccess ztxAccess, string runPath, string alias,
+            int lapOffset, bool isLastInStint)
         {
             // Run-Nummer aus Ordnername extrahieren
             string runFolderName = new DirectoryInfo(runPath).Name;
             int runNumber = int.TryParse(runFolderName.Replace("Run_", ""), out int num) ? num : 0;
 
-            // Anzahl Laps ermitteln über GetLapMarks
-            // GetLapMarks gibt die Zeitstempel der Lap-Markierungen zurück
-            // Die Anzahl der Laps = LapMarks.Length + 1 (oder mindestens 1)
-            var lapMarks = ztxAccess.GetLapMarks();
-            int numLaps = (lapMarks != null && lapMarks.Length > 0) ? lapMarks.Length + 1 : 1;
+            // Anzahl Laps = Anzahl der Lap_*-Ordner (jede Lap ist eine eigene Akquisition).
+            // Deterministisch und ohne LoadRun; GetLapMarks warf hier NRE (Daten nicht geladen).
+            int numLaps = Math.Max(1,
+                Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly).Length);
 
-            Console.WriteLine($"Setting Lap-Properties for {numLaps} laps, Alias=\"{alias}\", Run={runNumber}.");
+            Console.WriteLine($"Setting Lap-Properties for {numLaps} laps (offset {lapOffset}), Alias=\"{alias}\", Run={runNumber}.");
 
             for (int lap = 1; lap <= numLaps; lap++)
             {
-                ztxAccess.AddLapProperty(lap, "Lap", lap);
-                ztxAccess.AddLapProperty(lap, "TrackLap", lap);
+                // Lap/TrackLap erhalten die fortlaufende Nummer über den Stint (Offset + lokaler Lap).
+                int continuousLap = lapOffset + lap;
+                ztxAccess.AddLapProperty(lap, "Lap", continuousLap);
+                ztxAccess.AddLapProperty(lap, "TrackLap", continuousLap);
                 ztxAccess.AddLapProperty(lap, "Alias", alias);
                 ztxAccess.AddLapProperty(lap, "Run", runNumber);
-                ztxAccess.AddLapProperty(lap, "Marker", (lap < numLaps) ? "Lap" : "Box");
+
+                // Box-Marker nur am tatsächlichen Stint-Ende; Zwischen-Runs enden mit "Lap".
+                bool lastLapOfStint = isLastInStint && lap == numLaps;
+                ztxAccess.AddLapProperty(lap, "Marker", lastLapOfStint ? "Box" : "Lap");
             }
+
+            return numLaps;
         }
     }
 }

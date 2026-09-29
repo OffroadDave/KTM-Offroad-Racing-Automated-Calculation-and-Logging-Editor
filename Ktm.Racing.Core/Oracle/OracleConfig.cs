@@ -31,6 +31,9 @@ namespace Ktm.Racing.Core
             ["KTM-DC"] = "KTM De Carli Racing",
         };
 
+        /// <summary>Schwellenwerte für die Renn-Erkennung (<see cref="RaceSegmentDetector"/>).</summary>
+        public RaceDetectionThresholds RaceDetection { get; set; } = new();
+
         /// <summary>Vollständiger Pfad zur KOMPASS-Datenbankdatei</summary>
         public string DatabaseFilePath => Path.Combine(DatabaseDirectory, DatabaseFileName);
 

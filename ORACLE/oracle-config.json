@@ -14,5 +14,19 @@
     "HQV": "Husqvarna Factory Racing",
     "03_KTM-DC": "KTM De Carli Racing",
     "KTM-DC": "KTM De Carli Racing"
+  },
+
+  // Schwellen für die Renn-Erkennung (RaceSegmentDetector).
+  // Rein GPS-basiert (Lat/Lon-Distanz + abgeleitete Geschwindigkeit) + Gasstellung;
+  // Drehzahl und GPS-Qualität nur als Guards. vRearnEng wird bewusst NICHT verwendet.
+  "RaceDetection": {
+    "EngineOnMinRpm": 2000,
+    "DistanceMinMeters": 1000,
+    "TrackLengthFactor": 0.5,
+    "SpeedMinKph": 25,
+    "ThrottleMinPercent": 15,
+    "ThrottleFallbackPercent": 20,
+    "RpmRaceMin": 5000,
+    "MinValidGpsSamples": 10
   }
 }

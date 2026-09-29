@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Ktm.Racing.Domain\src\Ktm.Racing.Domain\Ktm.Racing.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="Ktm.Racing.Tests" />
   </ItemGroup>
 

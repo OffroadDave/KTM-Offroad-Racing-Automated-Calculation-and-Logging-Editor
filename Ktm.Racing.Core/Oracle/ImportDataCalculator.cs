@@ -31,7 +31,9 @@ namespace Ktm.Racing.Core
         /// sicher mehrfach hintereinander aufgerufen werden kann.
         /// </summary>
         /// <param name="runPath">Pfad zum Run-Ordner (Basis für das Laden der Daten)</param>
-        public void RunCalculationPipeline(string runPath)
+        /// <param name="distanceOffsetMeters">Start-Offset für sVehicle (Continuity über Renn-Runs).</param>
+        /// <returns>Run-Distanz (ohne Offset) und die GPS-Distanz je Lap.</returns>
+        public RunCalcResult RunCalculationPipeline(string runPath, double distanceOffsetMeters = 0)
         {
             currentRunPath = runPath;
             resultDataset = new Dataset();
@@ -41,19 +43,24 @@ namespace Ktm.Racing.Core
             ztxAccessRead = KtmDataHandlerFactory.CreateReader();
             ztxAccessWrite = KtmDataHandlerFactory.CreateWriter();
 
+            double runDistance = 0.0;
+            double[] lapDistances = [];
             try
             {
                 // 1. Datensatz laden
                 if (!LoadDataSet(runPath))
                 {
                     Console.WriteLine("Datensatz konnte nicht geladen werden.");
-                    return;
+                    return new RunCalcResult();
                 }
 
                 // 2. Berechnungsfunktionen der Reihe nach ausführen
-                SVehicleCalc();
+                runDistance = SVehicleCalc(distanceOffsetMeters);
 
-                // 3. Ergebnisse speichern (nur wenn Berechnungen Ergebnisse erzeugt haben)
+                // 3. Distanz je Lap (aus derselben geladenen Datenquelle) für LapDistance
+                lapDistances = ComputeLapDistances(runPath);
+
+                // 4. Ergebnisse speichern (nur wenn Berechnungen Ergebnisse erzeugt haben)
                 if (resultDataset.NumElements() > 0)
                 {
                     SaveResults(resultDataset);
@@ -69,6 +76,7 @@ namespace Ktm.Racing.Core
                 ztxAccessRead.ReleaseObjects();
                 ztxAccessWrite.ReleaseObjects();
             }
+            return new RunCalcResult { RunDistanceMeters = runDistance, LapDistancesMeters = lapDistances };
         }
 
         /// <summary>
@@ -140,7 +148,9 @@ namespace Ktm.Racing.Core
         /// <summary>
         /// Berechnung der kumulierten Distanz aus GPS-Koordinaten und Hinzufügen als neuen Channel.
         /// </summary>
-        private void SVehicleCalc()
+        /// <param name="distanceOffset">Offset [m], der auf jede sVehicle-Stützstelle addiert wird.</param>
+        /// <returns>Die in diesem Run zurückgelegte Distanz [m] (ohne Offset).</returns>
+        private double SVehicleCalc(double distanceOffset)
         {
             Console.WriteLine("Kumulierte Distanz aus GPS wird berechnet...");
 
@@ -154,7 +164,7 @@ namespace Ktm.Racing.Core
             if (missingChannels.Any())
             {
                 Console.WriteLine($"Fehlende Kanäle: {string.Join(", ", missingChannels)}. Berechnung wird abgebrochen.");
-                return;
+                return 0.0;
             }
             // Daten vom Datensatz abrufen 
             IDataset processingDataset = ztxAccessRead.GetChannels(necessaryChannels.ToArray());
@@ -167,7 +177,7 @@ namespace Ktm.Racing.Core
             if (latitudeSignal == null || longitudeSignal == null)
             {
                 Console.WriteLine("Latitude oder Longitude Channel haben ungültige Werte.");
-                return;
+                return 0.0;
             }
 
             // Extract data arrays
@@ -178,7 +188,7 @@ namespace Ktm.Racing.Core
             if (latitudes == null || longitudes == null || time == null)
             {
                 Console.WriteLine("Channel-Daten sind nicht im erwarteten Format.");
-                return;
+                return 0.0;
             }
 
             // Interpolieren von Nullen mit Math.NET Numerics
@@ -189,7 +199,7 @@ namespace Ktm.Racing.Core
             if (latitudes.Length != longitudes.Length || latitudes.Length != time.Length || latitudes.Length < 2)
             {
                 Console.WriteLine("Latitude, Longitude und Zeit-Arrays müssen gleiche Länge und mindestens 2 Punkte haben.");
-                return;
+                return 0.0;
             }
 
             // Convert to radians
@@ -215,9 +225,12 @@ namespace Ktm.Racing.Core
             for (int i = 1; i < distance.Length; i++)
                 distance[i] = distance[i - 1] + segmentDistances[i - 1];
 
-            // Runde erst am Ende auf 2 Dezimalstellen, um Fehlerakkumulation zu vermeiden
+            // Eigene Renndistanz dieses Runs (vor Offset) für die stint-übergreifende Akkumulation.
+            double runDistance = distance[^1];
+
+            // Offset addieren (Continuity über Renn-Runs), dann erst runden (vermeidet Fehlerakkumulation).
             for (int i = 0; i < distance.Length; i++)
-                distance[i] = Math.Round(distance[i], 2);
+                distance[i] = Math.Round(distance[i] + distanceOffset, 2);
 
             // Create new timeseries for sVehicle
             var sVehicle = new KtmDataHandler.Models.Channels.Timeseries();
@@ -228,7 +241,8 @@ namespace Ktm.Racing.Core
             // Add to calculation dataset
             resultDataset.Add(sVehicle);
 
-            Console.WriteLine("Berechnung von sVehicle erfolgreich abgeschlossen.");
+            Console.WriteLine($"Berechnung von sVehicle abgeschlossen (Offset {distanceOffset:F0} m, +{runDistance:F0} m).");
+            return runDistance;
         }
 
         /// <summary>
@@ -245,6 +259,54 @@ namespace Ktm.Racing.Core
             }
             ztxAccessWrite.SetDataLocation([currentRunPath]);
             ztxAccessWrite.AddImportDataToRun(dataSet);
+        }
+
+        /// <summary>
+        /// Berechnet die GPS-Distanz [m] je Lap (1-basiert) über die per-Lap-Kanalabfrage
+        /// <c>GetChannels(channels, NLaps, ...)</c> auf dem bereits geladenen Reader.
+        /// </summary>
+        private double[] ComputeLapDistances(string runPath)
+        {
+            int lapCount = Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly).Length;
+            var distances = new double[lapCount];
+
+            for (uint n = 1; n <= lapCount; n++)
+            {
+                try
+                {
+                    // Der NLaps-Overload liefert ein Tuple (per-Lap-Array, kombiniert).
+                    var (perLap, combined) = ztxAccessRead.GetChannels(
+                        new[] { "Lat_dez", "Lon_dez" }, new uint[] { n }, null, false);
+                    var ds = combined ?? (perLap is { Length: > 0 } ? perLap[0] : null);
+                    var lat = ds?.GetElement("Lat_dez")?.SignalData?.Data as double[];
+                    var lon = ds?.GetElement("Lon_dez")?.SignalData?.Data as double[];
+                    distances[n - 1] = LapHaversine(lat, lon);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Lap-Distanz für Lap {n} fehlgeschlagen: {ex.Message}");
+                    distances[n - 1] = 0.0;
+                }
+            }
+            return distances;
+        }
+
+        /// <summary>Kumulierte Haversine-Distanz über gültige GPS-Punkte (Nullpunkte werden übersprungen).</summary>
+        private static double LapHaversine(double[]? lat, double[]? lon)
+        {
+            if (lat is null || lon is null) return 0.0;
+            int n = Math.Min(lat.Length, lon.Length);
+            double dist = 0.0;
+            for (int i = 1; i < n; i++)
+            {
+                if (lat[i] == 0 || lon[i] == 0 || lat[i - 1] == 0 || lon[i - 1] == 0) continue;
+                double la1 = lat[i - 1] * Math.PI / 180.0, la2 = lat[i] * Math.PI / 180.0;
+                double dLat = la2 - la1, dLon = (lon[i] - lon[i - 1]) * Math.PI / 180.0;
+                double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                         + Math.Cos(la1) * Math.Cos(la2) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+                dist += EarthRadiusMeters * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            }
+            return dist;
         }
 
         /// <summary>

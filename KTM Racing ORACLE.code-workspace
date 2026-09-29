@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "../KTM Offroad Scripts"
+		},
+		{
+			"path": "../02_Python Scripts/markitdown"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../../KTM Tools/KTM MotoDB"
+		},
+		{
+			"path": "../../MXTrackData/Testdata/01_KTM-FR/Wintax/2026/450/05_RT/RT22_GER-Teutschenthal"
+		},
+		{
+			"path": "../KTM Offroad Racing Shared Resources/Source"
+		},
+		{
+			"name": "_ChannelProbe",
+			"path": "../_ChannelProbe"
+		}
+	],
+	"settings": {
+		"stm32cube-ide-clangd.path": "cube"
+	}
+}

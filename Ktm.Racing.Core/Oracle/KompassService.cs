@@ -1,23 +1,17 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using KtmDataHandler.Marelli.Wintax;
+using Ktm.Racing.Domain.Kompass;
 
 namespace Ktm.Racing.Core
 {
     /// <summary>
-    /// Service für den Zugriff auf die KOMPASS-Datenbank (JSON).
-    /// Enthält Disziplinen mit zugehörigen Track- und Rider-Informationen.
-    /// 
-    /// Die KOMPASS-Datenbank hat folgende Struktur:
-    /// {
-    ///   "MX": { "Tracks": [...], "Riders": [...] },
-    ///   "EN": { "Tracks": [...], "Riders": [...] }
-    /// }
+    /// Service für den Zugriff auf die KOMPASS-Datenbank (JSON) über die geteilte
+    /// Ktm.Racing.Domain-Bibliothek. Löst Track- und Rider-Metadaten für die Telemetrie auf.
     /// </summary>
     public class KompassService
     {
-        private readonly Dictionary<string, DisciplineData> _disciplines
-            = new(StringComparer.OrdinalIgnoreCase);
+        private readonly IKompassRepository _repository = new KompassRepository();
+        private KompassDatabase _database = new();
+        private IKompassLookup _lookup = new KompassLookup(new KompassDatabase());
 
         /// <summary>
         /// Lädt die KOMPASS-Datenbank aus der angegebenen JSON-Datei.
@@ -34,28 +28,8 @@ namespace Ktm.Racing.Core
 
             try
             {
-                using var fs = File.OpenRead(databaseFile);
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    AllowTrailingCommas = true,
-                };
-
-                using var doc = await JsonDocument.ParseAsync(fs);
-                _disciplines.Clear();
-
-                foreach (var prop in doc.RootElement.EnumerateObject())
-                {
-                    try
-                    {
-                        var data = prop.Value.Deserialize<DisciplineData>(options) ?? new DisciplineData();
-                        _disciplines[prop.Name] = data;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Warnung: Disziplin '{prop.Name}' konnte nicht geladen werden: {ex.Message}");
-                    }
-                }
+                _database = await _repository.LoadAsync(databaseFile).ConfigureAwait(false);
+                _lookup = new KompassLookup(_database);
             }
             catch (Exception ex)
             {
@@ -63,13 +37,13 @@ namespace Ktm.Racing.Core
                 return false;
             }
 
-            if (_disciplines.Count == 0)
+            if (_database.DisciplineKeys.Count == 0)
             {
                 Console.WriteLine("Keine Disziplinen in der Datenbank gefunden oder alle Disziplinen fehlerhaft.");
                 return false;
             }
 
-            Console.WriteLine($"KOMPASS geladen: {_disciplines.Count} Disziplin(en).");
+            Console.WriteLine($"KOMPASS geladen: {_database.DisciplineKeys.Count} Disziplin(en).");
             return true;
         }
 
@@ -93,7 +67,7 @@ namespace Ktm.Racing.Core
             // Die API parst die WinTAX4-Ordnerstruktur: Event/Session/Device/Run_xxx
             metadata.EventName = ztxBrowse.GetEventName(runPath) ?? "";
             metadata.SessionName = ztxBrowse.GetSessionName(runPath) ?? "";
-            metadata.BikeName = ztxBrowse.GetDeviceName(runPath) ?? "";
+            metadata.BikeName = NormalizeBikeName(ztxBrowse.GetDeviceName(runPath) ?? "");
             metadata.RunNumber = ztxBrowse.GetRunName(runPath) ?? "";
 
             // --- KTM-spezifische Pfadteile extrahieren ---
@@ -171,29 +145,12 @@ namespace Ktm.Racing.Core
         /// </summary>
         private void LookupTrackAndRider(RunMetadata metadata)
         {
-            // Disziplin auflösen (Fallback auf "MX")
-            var disciplineKey = _disciplines.ContainsKey(metadata.DisciplineName)
-                ? metadata.DisciplineName : "MX";
-            var discipline = _disciplines.GetValueOrDefault(disciplineKey);
-
-            if (discipline == null)
-                return;
-
-            // Track nachschlagen über Ländercode + Track-Name
-            var track = discipline.Tracks.FirstOrDefault(t =>
-                string.Equals(t.Countrycode, metadata.CountryCode, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(t.Track, metadata.TrackName, StringComparison.OrdinalIgnoreCase));
-
+            var track = _lookup.FindTrack(metadata.DisciplineName, metadata.CountryCode, metadata.TrackName);
             metadata.TrackLength = track?.TrackLength ?? "";
             metadata.CountryName = track?.Country ?? "";
 
-            // Rider nachschlagen über Abkürzung + Season + Team
-            var rider = discipline.Riders.FirstOrDefault(r =>
-                string.Equals(r.Riderabbreviation, metadata.RiderAbbreviation, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(r.Season, metadata.SeasonName, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(r.Team, metadata.TeamName, StringComparison.OrdinalIgnoreCase));
-
-            metadata.RiderName = rider?.Rider ?? "";
+            var rider = _lookup.FindRider(metadata.DisciplineName, metadata.RiderAbbreviation, metadata.SeasonName, metadata.TeamName);
+            metadata.RiderName = rider?.Name ?? "";
         }
 
         /// <summary>
@@ -205,6 +162,20 @@ namespace Ktm.Racing.Core
         private static string GetPathPart(string[] parts, int fromEnd, string fallback)
         {
             return parts.Length >= fromEnd ? parts[^fromEnd] : fallback;
+        }
+
+        /// <summary>
+        /// Normalisiert den Device-/Bike-Namen (z.B. "AA 01" → "AA01") und warnt bei nicht-kanonischer Form.
+        /// Verhindert eine fehlerhafte RiderAbbreviation und Leerzeichen in den Name-/Alias-Properties.
+        /// </summary>
+        private static string NormalizeBikeName(string rawDeviceName)
+        {
+            if (BikeAlias.IsCanonical(rawDeviceName))
+                return rawDeviceName;
+
+            var normalized = BikeAlias.Normalize(rawDeviceName);
+            Console.WriteLine($"Warnung: Device-/Bike-Name \"{rawDeviceName}\" enthält Leerzeichen — normalisiere zu \"{normalized}\".");
+            return normalized;
         }
 
         private static void LogPathParts(string[] pathParts)
@@ -232,44 +203,5 @@ namespace Ktm.Racing.Core
             Console.WriteLine($"session: {m.SessionName}");
             Console.WriteLine($"country: {m.CountryName}");
         }
-    }
-
-    // --- Datenmodelle für die KOMPASS-Datenbank ---
-
-    /// <summary>
-    /// Disziplin mit zugehörigen Tracks und Riders.
-    /// Entspricht einem Top-Level-Eintrag in KOMPASS.json (z.B. "MX", "EN").
-    /// </summary>
-    public class DisciplineData
-    {
-        public List<TrackInfo> Tracks { get; set; } = [];
-        public List<RiderInfo> Riders { get; set; } = [];
-    }
-
-    /// <summary>
-    /// Track-Informationen aus der KOMPASS-Datenbank.
-    /// </summary>
-    public class TrackInfo
-    {
-        public string? Country { get; set; }
-        public string? Countrycode { get; set; }
-        public string? Track { get; set; }
-
-        [JsonPropertyName("Tracklength")]
-        public string? TrackLength { get; set; }
-
-        public string? Latitude { get; set; }
-        public string? Longitude { get; set; }
-    }
-
-    /// <summary>
-    /// Rider-Informationen aus der KOMPASS-Datenbank.
-    /// </summary>
-    public class RiderInfo
-    {
-        public string? Rider { get; set; }
-        public string? Riderabbreviation { get; set; }
-        public string? Season { get; set; }
-        public string? Team { get; set; }
     }
 }

@@ -51,9 +51,13 @@ namespace Ktm.Racing.Core
         {
             var values = ParseHedFile(hedFilePath);
 
+            var rawBikeName = values.GetValueOrDefault("bikeName", "");
+            if (!BikeAlias.IsCanonical(rawBikeName))
+                Console.WriteLine($"Warnung: bikeName \"{rawBikeName}\" aus .HED enthält Leerzeichen — normalisiere zu \"{BikeAlias.Normalize(rawBikeName)}\".");
+
             return new RunMetadata
             {
-                BikeName = values.GetValueOrDefault("bikeName", ""),
+                BikeName = BikeAlias.Normalize(rawBikeName),
                 TrackName = values.GetValueOrDefault("trackName", ""),
                 TrackLength = values.GetValueOrDefault("trackLength", ""),
                 RiderName = values.GetValueOrDefault("riderName", ""),
