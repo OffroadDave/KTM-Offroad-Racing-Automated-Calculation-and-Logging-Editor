@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Leichtgewichtiges Dual-Output-Logging: Schreibt gleichzeitig auf Console UND in eine Log-Datei.

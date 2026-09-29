@@ -1,7 +1,7 @@
 using KtmDataHandler.Marelli.Wintax;
 using Ktm.Racing.Domain.Kompass;
 
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Service für den Zugriff auf die KOMPASS-Datenbank (JSON) über die geteilte

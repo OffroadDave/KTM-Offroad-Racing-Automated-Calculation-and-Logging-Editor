@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Schwellenwerte für die Renn-Erkennung (<see cref="RaceSegmentDetector"/>).
@@ -11,7 +11,7 @@ namespace Ktm.Racing.Core
     public sealed class RaceDetectionThresholds
     {
         /// <summary>Motor gilt als "an" ab dieser mittleren Drehzahl [rpm]. Darunter: kein Rennen.</summary>
-        public double EngineOnMinRpm { get; set; } = 800.0;
+        public double EngineOnMinRpm { get; set; } = 2000.0;
 
         /// <summary>Absolute Mindest-GPS-Distanz [m], damit ein Run als Rennen zählt.</summary>
         public double DistanceMinMeters { get; set; } = 1000.0;
@@ -35,6 +35,6 @@ namespace Ktm.Racing.Core
         public double RpmRaceMin { get; set; } = 5000.0;
 
         /// <summary>Mindestanzahl gültiger GPS-Punkte, damit GPS als nutzbar gilt.</summary>
-        public int MinValidGpsSamples { get; set; } = 10;
+        public int MinValidGpsSamples { get; set; } = 100;
     }
 }

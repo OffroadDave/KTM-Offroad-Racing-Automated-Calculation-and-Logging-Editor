@@ -1,7 +1,7 @@
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Statische Validierungsmethoden für den Session-Merge-Prozess.

@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Ktm.Racing.Core;
+namespace Ktm.Racing.Oracle;
 
 /// <summary>
 /// Macht die KtmDataHandler-Laufzeitabhängigkeiten auffindbar, ohne dass die vielen

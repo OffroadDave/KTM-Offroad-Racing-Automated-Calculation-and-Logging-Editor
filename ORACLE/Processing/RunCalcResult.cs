@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Ergebnis der Berechnungspipeline eines Runs: Gesamtdistanz (für die stint-übergreifende

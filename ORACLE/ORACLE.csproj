@@ -6,11 +6,35 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
+    <RootNamespace>Ktm.Racing.Oracle</RootNamespace>
   </PropertyGroup>
 
-  <!-- Domain/telemetry logic lives in Ktm.Racing.Core; DLL + package refs flow transitively. -->
+  <!-- Shared domain models (KOMPASS/Rider/Track); separate repo, referenced directly. -->
   <ItemGroup>
-    <ProjectReference Include="..\Ktm.Racing.Core\Ktm.Racing.Core.csproj" />
+    <ProjectReference Include="..\..\Ktm.Racing.Domain\src\Ktm.Racing.Domain\Ktm.Racing.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.3.0" />
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9" />
+  </ItemGroup>
+
+  <!-- KTM telemetry DLLs are AMD64 native and load from the suite folder at runtime (see KtmRuntime);
+       do NOT copy them to output so their companion/native files resolve next to them. -->
+  <ItemGroup>
+    <Reference Include="KtmDataHandler">
+      <HintPath>..\..\..\..\KTM Tools\KTM Utils Software Suite\KtmDataHandler.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="KtmSharedUtils">
+      <HintPath>..\..\..\..\KTM Tools\KTM Utils Software Suite\KtmSharedUtils.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Vbe.Interop">
+      <HintPath>..\..\..\..\Program Files\Microsoft Office\root\vfs\ProgramFilesX86\Microsoft Office\Office16\DCF\Microsoft.Vbe.Interop.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

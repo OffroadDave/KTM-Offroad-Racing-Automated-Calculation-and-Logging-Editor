@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/01_Core/">
-    <Project Path="Ktm.Racing.Core/Ktm.Racing.Core.csproj" />
-  </Folder>
   <Folder Name="/02_Apps/">
     <Project Path="ORACLE/ORACLE.csproj" />
   </Folder>

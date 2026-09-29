@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Xml.Linq;
 
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Schreibt Run-/Lap-Properties DIREKT in die WinTAX4-XML-Dateien.
     ///
-    /// <para>Ersetzt <see cref="RunPropertyEditor"/>: Die KtmDataHandler-Property-API
+    /// <para>Ersetzt die frühere, API-basierte Variante: Die KtmDataHandler-Property-API
     /// (<c>AddRunProperty</c>/<c>AddLapProperty</c>) persistiert in dieser Umgebung nicht in die
     /// XML-Dateien, die WinTAX4/downstream tatsächlich lesen. Der XmlRunEditor bearbeitet daher:</para>
     /// <list type="bullet">

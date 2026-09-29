@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Normalisiert Bike-/Rider-Aliasse auf die kanonische Form ohne Leerzeichen

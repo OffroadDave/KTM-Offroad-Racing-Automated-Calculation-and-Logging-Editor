@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Datenmodell für alle extrahierten Metadaten eines WinTAX4-Runs.
@@ -9,7 +9,7 @@ namespace Ktm.Racing.Core
     /// </summary>
     public class RunMetadata
     {
-        // --- Kern-Metadaten (für RunPropertyEditor benötigt) ---
+        // --- Kern-Metadaten (für den XmlRunEditor benötigt) ---
 
         /// <summary>Bike/Fahrer-Alias, z.B. "JP01"</summary>
         public string BikeName { get; set; } = "";

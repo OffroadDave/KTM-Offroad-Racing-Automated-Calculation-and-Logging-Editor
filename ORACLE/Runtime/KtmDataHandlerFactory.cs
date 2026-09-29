@@ -4,7 +4,7 @@ using KtmDataHandler.Utils;
 using KtmSharedUtils.DataType;
 using KtmSharedUtils.FileIO;
 
-namespace Ktm.Racing.Core;
+namespace Ktm.Racing.Oracle;
 
 /// <summary>
 /// Factory für KtmDataHandler-Objekte.

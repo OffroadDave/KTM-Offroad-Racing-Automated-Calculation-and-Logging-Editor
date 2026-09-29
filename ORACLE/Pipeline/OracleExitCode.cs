@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Exit-Codes für ORACLE, kompatibel mit KRAKEN EXE-Job-Auswertung.

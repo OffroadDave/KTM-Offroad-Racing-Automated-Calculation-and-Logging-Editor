@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Service für .HED-Datei-Operationen: Suchen, Kopieren, Lesen und Schreiben.

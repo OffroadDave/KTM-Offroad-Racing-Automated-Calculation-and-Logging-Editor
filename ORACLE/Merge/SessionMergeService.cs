@@ -1,7 +1,7 @@
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Service für das Zusammenführen aller Runs einer Session zu einem konsolidierten Dataset.

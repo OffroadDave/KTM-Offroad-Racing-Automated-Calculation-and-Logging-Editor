@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>Zusammenfassung der renn-bewussten Verarbeitung eines Rider-Ordners (Option C).</summary>
     public sealed class RaceStintResult

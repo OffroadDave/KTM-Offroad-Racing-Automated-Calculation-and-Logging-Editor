@@ -7,7 +7,7 @@ using KtmDataHandler.Models.Symbols;
 using KtmSharedUtils.ObjectUtils;
 using MathNet.Numerics.Interpolation;
 
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     public class ImportDataCalculator
     {

@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Core
+namespace Ktm.Racing.Oracle
 {
     /// <summary>Verdikt der Renn-Erkennung für einen einzelnen Run.</summary>
     public enum RaceRunVerdict
