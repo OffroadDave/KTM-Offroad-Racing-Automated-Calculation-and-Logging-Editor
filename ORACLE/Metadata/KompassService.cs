@@ -86,6 +86,9 @@ namespace Ktm.Racing.Oracle
             metadata.SeasonName = GetPathPart(pathParts, 8, "UnknownSeason");
             metadata.DisciplineName = GetPathPart(pathParts, 7, "UnknownDiscipline");
 
+            // Motorklasse (250/450) robust als eigenes Pfadsegment suchen (index-unabhängig).
+            metadata.EngineClass = ExtractEngineClass(pathParts);
+
             // --- Bike-/Rider-Abkürzung aus BikeName ableiten ---
             // Format: "JP01" → RiderAbbreviation="JP", BikeNumber="01"
             metadata.RiderAbbreviation = metadata.BikeName.Length > 2
@@ -163,6 +166,13 @@ namespace Ktm.Racing.Oracle
         {
             return parts.Length >= fromEnd ? parts[^fromEnd] : fallback;
         }
+
+        /// <summary>Bekannte Motorklassen (Hubraum) als Pfadsegment.</summary>
+        private static readonly string[] KnownEngineClasses = { "125", "150", "250", "300", "350", "450", "500" };
+
+        /// <summary>Sucht die Motorklasse (z.B. "250"/"450") als eigenes Pfadsegment; leer wenn nicht gefunden.</summary>
+        private static string ExtractEngineClass(string[] parts)
+            => parts.FirstOrDefault(p => KnownEngineClasses.Contains(p)) ?? "";
 
         /// <summary>
         /// Normalisiert den Device-/Bike-Namen (z.B. "AA 01" → "AA01") und warnt bei nicht-kanonischer Form.

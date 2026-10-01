@@ -122,6 +122,9 @@ namespace Ktm.Racing.Oracle
 
             Console.WriteLine($"{validRuns.Count} gültige(r) Run(s) gefunden.");
 
+            // .HED in jedem Run-Ordner sicherstellen (kanonischer Name, normalisierter Inhalt).
+            new HedFileService().EnsureHedInAllRuns(validRuns, Path.GetDirectoryName(runPath)!, metadata);
+
             // --- Berechnungen (sVehicle + per-Lap-Distanzen) und XML-Properties je Run ---
             var xmlEditor = new XmlRunEditor();
             var importCalculator = new ImportDataCalculator();
@@ -447,6 +450,12 @@ namespace Ktm.Racing.Oracle
                 return OracleExitCode.DataNotFound;
             }
 
+            // Geräteordner-Namen normalisieren, BEVOR KtmDataHandler den Pfad anfasst:
+            // dessen native Verzeichnis-Handles (IsRunLocation/FindRuns) würden ein späteres
+            // Directory.Move sonst mit "Access denied" blockieren.
+            if (_config.NormalizeDeviceFolderName)
+                path = NormalizeDeviceFolders(path);
+
             return _browse.IsRunLocation(path)
                 ? await ProcessRunAsync(path, force)
                 : await ProcessRiderAsync(path, force);
@@ -462,13 +471,10 @@ namespace Ktm.Racing.Oracle
         {
             Console.WriteLine($"[process-rider] Rider Path: {riderPath}");
 
-            if (!force && OracleStatus.IsAlreadyProcessed(riderPath))
-            {
-                Console.WriteLine("[process-rider] Bereits verarbeitet (oracle.status.json). Überspringe. (--force zum Erzwingen)");
-                return OracleExitCode.Success;
-            }
-
-            var status = OracleStatus.Create(riderPath);
+            // Geräteordner mit Leerzeichen kanonisch umbenennen ("AA 01" → "AA01"), damit der
+            // bikeName in Ordnern und XML durchgängig ohne Leerzeichen ist. Non-fatal + guarded.
+            if (_config.NormalizeDeviceFolderName)
+                riderPath = NormalizeDeviceFolders(riderPath);
 
             var runs = (_browse.FindRuns(riderPath) ?? Enumerable.Empty<string>())
                 .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
@@ -476,11 +482,24 @@ namespace Ktm.Racing.Oracle
             if (runs.Count == 0)
             {
                 Console.WriteLine($"Keine gültigen Runs gefunden in: {riderPath}");
-                status.SetStep("discovery", StepStatus.Failed);
-                status.ExitCode = (int)OracleExitCode.DataNotFound;
-                status.Save(riderPath);
+                var s = OracleStatus.Create(riderPath);
+                s.SetStep("discovery", StepStatus.Failed);
+                s.ExitCode = (int)OracleExitCode.DataNotFound;
+                s.Save(riderPath);
                 return OracleExitCode.DataNotFound;
             }
+
+            // Status/Idempotenz gehören in den Geräteordner (Elternordner der Runs, z.B. "…\AA01"),
+            // nicht in einen ggf. übergeordneten Session-Ordner (z.B. "…\R1").
+            var statusFolder = DetermineStatusFolder(riderPath, runs);
+
+            if (!force && OracleStatus.IsAlreadyProcessed(statusFolder))
+            {
+                Console.WriteLine("[process-rider] Bereits verarbeitet (oracle.status.json). Überspringe. (--force zum Erzwingen)");
+                return OracleExitCode.Success;
+            }
+
+            var status = OracleStatus.Create(statusFolder);
 
             // Metadaten einmalig über einen repräsentativen Run ermitteln.
             var metadata = await ResolveMetadataAsync(runs[0]);
@@ -489,7 +508,7 @@ namespace Ktm.Racing.Oracle
                 Console.WriteLine("Metadaten konnten nicht ermittelt werden.");
                 status.SetStep("metadata", StepStatus.Failed);
                 status.ExitCode = (int)OracleExitCode.DataNotFound;
-                status.Save(riderPath);
+                status.Save(statusFolder);
                 return OracleExitCode.DataNotFound;
             }
             status.SetStep("metadata", StepStatus.Success, new Dictionary<string, object>
@@ -497,6 +516,9 @@ namespace Ktm.Racing.Oracle
                 ["bikeName"] = metadata.BikeName,
                 ["riderName"] = metadata.RiderName,
             });
+
+            // .HED in jedem Run-Ordner sicherstellen (kanonischer Name, normalisierter Inhalt).
+            new HedFileService().EnsureHedInAllRuns(runs, statusFolder, metadata);
 
             double trackLength = ParseTrackLength(metadata.TrackLength);
 
@@ -518,7 +540,7 @@ namespace Ktm.Racing.Oracle
                 });
 
             status.ExitCode = (int)OracleExitCode.Success;
-            status.Save(riderPath);
+            status.Save(statusFolder);
 
             Console.WriteLine(
                 $"[process-rider] Abgeschlossen: {result.RaceRunCount} Renn-Run(s), " +
@@ -526,10 +548,131 @@ namespace Ktm.Racing.Oracle
             return OracleExitCode.Success;
         }
 
+        /// <summary>
+        /// Bestimmt den Ordner für die <c>oracle.status.json</c>: den Geräteordner (gemeinsamer
+        /// Elternordner der Runs, z.B. "…\AA01"). Nur wenn die Runs über mehrere Geräteordner
+        /// verteilt sind, wird auf <paramref name="riderPath"/> zurückgefallen.
+        /// </summary>
+        private static string DetermineStatusFolder(string riderPath, IReadOnlyList<string> runs)
+        {
+            var deviceFolders = runs
+                .Select(Path.GetDirectoryName)
+                .Where(d => !string.IsNullOrEmpty(d))
+                .Select(d => d!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            return deviceFolders.Count == 1 ? deviceFolders[0] : riderPath;
+        }
+
         /// <summary>Parst die Track-Länge (String aus Metadaten) zu Metern; 0 wenn unbekannt.</summary>
         private static double ParseTrackLength(string trackLength)
             => double.TryParse(trackLength, System.Globalization.NumberStyles.Any,
                 System.Globalization.CultureInfo.InvariantCulture, out double m) ? m : 0.0;
+
+        /// <summary>
+        /// Benennt Geräteordner mit Leerzeichen im Namen kanonisch um (z.B. <c>"AA 01"</c> → <c>"AA01"</c>),
+        /// damit der bikeName in Ordnern und XML durchgängig ohne Leerzeichen ist.
+        /// Erkennt Geräteordner als die direkten Eltern der gefundenen <c>Run_*</c>-Ordner und arbeitet
+        /// damit sowohl auf Rider- als auch auf Session-/Track-Ebene. Non-fatal und guarded.
+        /// </summary>
+        /// <returns>Den ggf. aktualisierten <paramref name="root"/>-Pfad (falls dieser selbst umbenannt wurde).</returns>
+        private string NormalizeDeviceFolders(string root)
+        {
+            try
+            {
+                // Geräteordner (direkte Eltern von Run_*-Ordnern) rein per System.IO ermitteln –
+                // NICHT über KtmDataHandler, dessen native Verzeichnis-Handles die Umbenennung
+                // sonst mit "Access denied" blockieren. Tiefste zuerst, damit verschachtelte
+                // Umbenennungen die Pfade nicht invalidieren.
+                var deviceFolders = FindDeviceFolders(root)
+                    .OrderByDescending(d => d.Length)
+                    .ToList();
+
+                string rootFull = Path.GetFullPath(root)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string result = root;
+
+                foreach (var dir in deviceFolders)
+                {
+                    string? renamed = TryRenameDeviceFolder(dir);
+                    if (renamed is not null
+                        && string.Equals(
+                            Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                            rootFull, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result = renamed; // root war selbst der Geräteordner
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[normalize] ⚠️ Geräteordner-Normalisierung übersprungen: {ex.Message}");
+                return root;
+            }
+        }
+
+        /// <summary>
+        /// Ermittelt alle Geräteordner unter <paramref name="root"/> rein per System.IO:
+        /// Ordner, die direkt einen <c>Run_*</c>-Unterordner enthalten. Steigt nicht in Run-/Lap-Ordner ab,
+        /// sodass ein per-Run-Aufruf (KRAKEN) den Elternordner nicht umbenennt.
+        /// </summary>
+        private static List<string> FindDeviceFolders(string root)
+        {
+            var found = new List<string>();
+            var queue = new Queue<string>();
+            queue.Enqueue(root);
+            while (queue.Count > 0)
+            {
+                var dir = queue.Dequeue();
+                string[] subDirs;
+                try { subDirs = Directory.GetDirectories(dir); }
+                catch { continue; }
+
+                if (subDirs.Any(s => Path.GetFileName(s).StartsWith("Run_", StringComparison.OrdinalIgnoreCase)))
+                    found.Add(dir); // Geräteordner – nicht weiter absteigen
+                else
+                    foreach (var s in subDirs) queue.Enqueue(s);
+            }
+            return found;
+        }
+
+        /// <summary>
+        /// Benennt einen einzelnen Geräteordner kanonisch um (<c>"AA 01"</c> → <c>"AA01"</c>).
+        /// Non-fatal und guarded: nur bei nicht-kanonischem Namen und wenn der Zielordner frei ist.
+        /// </summary>
+        /// <returns>Den neuen Pfad bei erfolgreicher Umbenennung, sonst <c>null</c>.</returns>
+        private static string? TryRenameDeviceFolder(string deviceFolder)
+        {
+            string name = new DirectoryInfo(deviceFolder).Name;
+            if (BikeAlias.IsCanonical(name)) return null;
+
+            string canonical = BikeAlias.Normalize(name);
+            if (string.IsNullOrEmpty(canonical) || string.Equals(canonical, name, StringComparison.Ordinal))
+                return null;
+
+            string? parent = Path.GetDirectoryName(deviceFolder);
+            if (string.IsNullOrEmpty(parent)) return null;
+            string target = Path.Combine(parent, canonical);
+
+            if (Directory.Exists(target) || File.Exists(target))
+            {
+                Console.WriteLine($"[normalize] Zielordner existiert bereits – überspringe Umbenennung \"{name}\" → \"{canonical}\".");
+                return null;
+            }
+
+            try
+            {
+                Directory.Move(deviceFolder, target);
+                Console.WriteLine($"[normalize] Geräteordner umbenannt: \"{name}\" → \"{canonical}\".");
+                return target;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[normalize] ⚠️ Umbenennung fehlgeschlagen für \"{name}\": {ex.Message}. Verarbeitung mit Originalnamen.");
+                return null;
+            }
+        }
 
         /// <summary>
         /// Ermittelt die Run-Metadaten aus einer HED-Datei oder der KOMPASS-Datenbank.
@@ -545,36 +688,63 @@ namespace Ktm.Racing.Oracle
                 return null;
             }
 
-            // --- Versuch 1: .HED-Datei suchen ---
+            RunMetadata metadata;
             var hedService = new HedFileService();
-            var hedFilePath = hedService.FindAndPrepareHedFile(runPath, riderPath);
 
+            // --- Versuch 1: .HED-Datei suchen ---
+            var hedFilePath = hedService.FindAndPrepareHedFile(runPath, riderPath);
             if (hedFilePath != null)
             {
                 Console.WriteLine("Metadaten werden aus .HED-Datei geladen.");
-                return hedService.ReadMetadata(hedFilePath);
+                metadata = hedService.ReadMetadata(hedFilePath);
             }
-
-            // --- Versuch 2: KOMPASS-Datenbank ---
-            Console.WriteLine("Kein .HED-File im Rider- oder Runordner gefunden.");
-            Console.WriteLine("Lade KOMPASS...");
-
-            if (!Directory.Exists(_config.DatabaseDirectory))
+            else
             {
-                Console.WriteLine($"Datenbankverzeichnis nicht gefunden: {_config.DatabaseDirectory}");
-                return null;
+                // --- Versuch 2: KOMPASS-Datenbank ---
+                Console.WriteLine("Kein .HED-File im Rider- oder Runordner gefunden.");
+                Console.WriteLine("Lade KOMPASS...");
+
+                if (!Directory.Exists(_config.DatabaseDirectory))
+                {
+                    Console.WriteLine($"Datenbankverzeichnis nicht gefunden: {_config.DatabaseDirectory}");
+                    return null;
+                }
+
+                var kompass = new KompassService();
+                if (!await kompass.LoadAsync(_config.DatabaseFilePath))
+                    return null;
+
+                metadata = kompass.BuildMetadata(runPath, _browse, _config.TeamMappings);
+                hedService.WriteHedFile(runPath, metadata);
             }
 
-            var kompass = new KompassService();
-            if (!await kompass.LoadAsync(_config.DatabaseFilePath))
-            {
-                return null;
-            }
-
-            var metadata = kompass.BuildMetadata(runPath, _browse, _config.TeamMappings);
-            hedService.WriteHedFile(runPath, metadata);
+            // Für den kanonischen .HED-Dateinamen benötigte Pfad-Felder sicherstellen
+            // (die minimale .HED enthält Season/Event/Session nicht).
+            EnrichPathMetadata(metadata, runPath);
             return metadata;
         }
+
+        /// <summary>
+        /// Füllt fehlende, für den .HED-Dateinamen benötigte Pfad-Metadaten
+        /// (SeasonName, EventName, SessionName, BikeName) aus dem Run-Pfad.
+        /// </summary>
+        private void EnrichPathMetadata(RunMetadata metadata, string runPath)
+        {
+            if (string.IsNullOrEmpty(metadata.EventName))
+                metadata.EventName = _browse.GetEventName(runPath) ?? "";
+            if (string.IsNullOrEmpty(metadata.SessionName))
+                metadata.SessionName = _browse.GetSessionName(runPath) ?? "";
+            if (string.IsNullOrEmpty(metadata.BikeName))
+                metadata.BikeName = BikeAlias.Normalize(_browse.GetDeviceName(runPath) ?? "");
+            if (string.IsNullOrEmpty(metadata.SeasonName))
+                metadata.SeasonName = ExtractSeason(runPath);
+        }
+
+        /// <summary>Extrahiert die Saison (4-stelliges Jahr, z.B. "2026") als Pfadsegment.</summary>
+        private static string ExtractSeason(string runPath)
+            => runPath.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+                    StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault(p => p.Length == 4 && p.StartsWith("20", StringComparison.Ordinal) && p.All(char.IsDigit)) ?? "";
 
         /// <summary>
         /// Findet gültige WinTAX4-Runs über die IMarelliDataBrowse API.

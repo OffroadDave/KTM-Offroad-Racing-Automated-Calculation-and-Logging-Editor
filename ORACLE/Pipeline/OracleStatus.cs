@@ -87,13 +87,23 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Speichert die Status-Datei im angegebenen Verzeichnis.
+        /// Speichert die Status-Datei im angegebenen Verzeichnis. Non-fatal: Ist die Datei gesperrt
+        /// (z.B. durch einen Editor/Watcher), wird eine Warnung geloggt statt zu werfen — eine
+        /// erfolgreiche Verarbeitung soll nicht wegen eines Schreibfehlers als Fehler erscheinen.
+        /// Ohne Status-Datei wird der Pfad beim nächsten Lauf erneut verarbeitet.
         /// </summary>
         public void Save(string directoryPath)
         {
             var filePath = System.IO.Path.Combine(directoryPath, FileName);
-            var json = JsonSerializer.Serialize(this, JsonOptions);
-            File.WriteAllText(filePath, json);
+            try
+            {
+                var json = JsonSerializer.Serialize(this, JsonOptions);
+                File.WriteAllText(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warnung: Status-Datei konnte nicht gespeichert werden ({filePath}): {ex.Message}");
+            }
         }
 
         /// <summary>

@@ -154,25 +154,27 @@ namespace Ktm.Racing.Oracle
         {
             Console.WriteLine("Kumulierte Distanz aus GPS wird berechnet...");
 
-            // Setze die für diese Berechnung notwendigen Kanäle
-            string LatChannelName = "Lat_dez";
-            string LonChannelName = "Lon_dez";
-            var necessaryChannels = new List<string> { LatChannelName, LonChannelName };  
-
-            // Prüfe, ob alle notwendigen Kanäle vorhanden sind
-            var missingChannels = necessaryChannels.Except(channelNames).ToList();
-            if (missingChannels.Any())
+            // Kanalnamen case-insensitiv aus der tatsächlichen Kanalliste auflösen: die Rohdaten
+            // liefern die GPS-Kanäle je nach Quelle unterschiedlich groß-/kleingeschrieben.
+            string? latChannelName = ResolveChannelName("Lat_dez");
+            string? lonChannelName = ResolveChannelName("Lon_dez");
+            if (latChannelName is null || lonChannelName is null)
             {
-                Console.WriteLine($"Fehlende Kanäle: {string.Join(", ", missingChannels)}. Berechnung wird abgebrochen.");
+                var missing = new List<string>();
+                if (latChannelName is null) missing.Add("Lat_dez");
+                if (lonChannelName is null) missing.Add("Lon_dez");
+                Console.WriteLine($"Fehlende Kanäle: {string.Join(", ", missing)}. Berechnung wird abgebrochen.");
                 return 0.0;
             }
+            var necessaryChannels = new[] { latChannelName, lonChannelName };
+
             // Daten vom Datensatz abrufen 
-            IDataset processingDataset = ztxAccessRead.GetChannels(necessaryChannels.ToArray());
+            IDataset processingDataset = ztxAccessRead.GetChannels(necessaryChannels);
             Console.WriteLine($"Notwendige Kanäle: {string.Join(", ", necessaryChannels)} wurden erfolgreich geladen.");
 
             // Extract latitude and longitude signals
-            ITimeseries latitudeSignal = processingDataset.GetElement(LatChannelName);
-            ITimeseries longitudeSignal = processingDataset.GetElement(LonChannelName);
+            ITimeseries latitudeSignal = processingDataset.GetElement(latChannelName);
+            ITimeseries longitudeSignal = processingDataset.GetElement(lonChannelName);
 
             if (latitudeSignal == null || longitudeSignal == null)
             {
@@ -262,6 +264,14 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
+        /// Löst einen Kanalnamen aus der geladenen Kanalliste auf: exakter Treffer zuerst, sonst
+        /// case-insensitiv. Gibt <c>null</c> zurück, wenn kein passender Kanal existiert.
+        /// </summary>
+        private string? ResolveChannelName(string canonical)
+            => channelNames.FirstOrDefault(n => n.Equals(canonical, StringComparison.Ordinal))
+            ?? channelNames.FirstOrDefault(n => n.Equals(canonical, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>
         /// Berechnet die GPS-Distanz [m] je Lap (1-basiert) über die per-Lap-Kanalabfrage
         /// <c>GetChannels(channels, NLaps, ...)</c> auf dem bereits geladenen Reader.
         /// </summary>
@@ -270,16 +280,24 @@ namespace Ktm.Racing.Oracle
             int lapCount = Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly).Length;
             var distances = new double[lapCount];
 
+            string? latName = ResolveChannelName("Lat_dez");
+            string? lonName = ResolveChannelName("Lon_dez");
+            if (latName is null || lonName is null)
+            {
+                Console.WriteLine("Lap-Distanz übersprungen: GPS-Kanäle (Lat_dez/Lon_dez) nicht verfügbar.");
+                return distances;
+            }
+
             for (uint n = 1; n <= lapCount; n++)
             {
                 try
                 {
                     // Der NLaps-Overload liefert ein Tuple (per-Lap-Array, kombiniert).
                     var (perLap, combined) = ztxAccessRead.GetChannels(
-                        new[] { "Lat_dez", "Lon_dez" }, new uint[] { n }, null, false);
+                        new[] { latName, lonName }, new uint[] { n }, null, false);
                     var ds = combined ?? (perLap is { Length: > 0 } ? perLap[0] : null);
-                    var lat = ds?.GetElement("Lat_dez")?.SignalData?.Data as double[];
-                    var lon = ds?.GetElement("Lon_dez")?.SignalData?.Data as double[];
+                    var lat = ds?.GetElement(latName)?.SignalData?.Data as double[];
+                    var lon = ds?.GetElement(lonName)?.SignalData?.Data as double[];
                     distances[n - 1] = LapHaversine(lat, lon);
                 }
                 catch (Exception ex)

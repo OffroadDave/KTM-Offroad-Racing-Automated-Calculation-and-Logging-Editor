@@ -198,7 +198,7 @@ namespace Ktm.Racing.Oracle
         /// <summary>Kanalname per exaktem Namen, sonst per Keyword (case-insensitive) auflösen.</summary>
         private static string? Resolve(string[] names, string exact, string keyword)
             => names.FirstOrDefault(n => n.Equals(exact, StringComparison.OrdinalIgnoreCase))
-            ?? names.FirstOrDefault(n => n.ToLowerInvariant().Contains(keyword));
+            ?? names.FirstOrDefault(n => n.Contains(keyword, StringComparison.OrdinalIgnoreCase));
 
         private static double[]? GetData(IDataset? ds, string? name)
         {

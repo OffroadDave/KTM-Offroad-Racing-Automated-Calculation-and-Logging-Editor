@@ -28,6 +28,9 @@ namespace Ktm.Racing.Oracle
         public int SetRunProperties(string runPath, string alias, string track, string trackLength, string rider,
             int lapOffset = 0, bool isLastInStint = true, IReadOnlyList<double>? lapDistances = null)
         {
+            // Alias defensiv normalisieren: garantiert keine Leerzeichen in XML/HED (z.B. "AA 01" -> "AA01").
+            alias = BikeAlias.Normalize(alias);
+
             string runFolderName = new DirectoryInfo(runPath).Name;
             int runNumber = int.TryParse(runFolderName.Replace("Run_", ""), out int num) ? num : 0;
 
@@ -111,6 +114,11 @@ namespace Ktm.Racing.Oracle
             SetChild(lh, "Marker", marker);
             if (!double.IsNaN(lapDistance))
                 SetChild(lh, "LapDistance", Math.Round(lapDistance, 2));
+
+            // Alias-Segment in etwaigen <Path>-Feldern normalisieren ("\AA 01\" → "\AA01\").
+            foreach (var pathEl in lh.Descendants("Path"))
+                pathEl.Value = NormalizeAliasInPath(pathEl.Value, alias);
+
             doc.Save(file);
         }
 
@@ -145,11 +153,18 @@ namespace Ktm.Racing.Oracle
                 SetInfo(infos, "Lap", info.Lap);
                 SetInfo(infos, "TrackLap", info.Lap);
                 SetInfo(infos, "Alias", alias);
+                SetInfo(infos, "CarName", alias);
                 SetInfo(infos, "Run", runNumber);
                 SetInfo(infos, "Marker", info.Marker);
                 if (!double.IsNaN(info.Dist))
                     SetInfo(infos, "LapDistance", Math.Round(info.Dist, 2));
             }
+
+            // Alias-Segment in ALLEN <Path>-Feldern normalisieren (v.a. Inf/Path als absoluter
+            // Run-Pfad: "…\AA 01\Run_1083\" → "…\AA01\Run_1083\"). Relative Lap-Pfade bleiben unberührt.
+            foreach (var pathEl in doc.Descendants("Path"))
+                pathEl.Value = NormalizeAliasInPath(pathEl.Value, alias);
+
             doc.Save(file);
         }
 
@@ -189,5 +204,27 @@ namespace Ktm.Racing.Oracle
 
         private static string ToInvariant(object value)
             => value is IFormattable f ? f.ToString(null, CultureInfo.InvariantCulture) : value?.ToString() ?? "";
+
+        /// <summary>
+        /// Normalisiert das Alias-Segment in einem Pfad-String: Ein Pfadsegment, das (ohne Leerraum)
+        /// dem kanonischen Alias entspricht, wird durch den kanonischen Alias ersetzt
+        /// (z.B. <c>"…\AA 01\Run_1083\"</c> → <c>"…\AA01\Run_1083\"</c>). Andere Segmente bleiben unberührt.
+        /// </summary>
+        private static string NormalizeAliasInPath(string path, string canonicalAlias)
+        {
+            if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(canonicalAlias)) return path;
+            var segments = path.Split('\\');
+            bool changed = false;
+            for (int i = 0; i < segments.Length; i++)
+            {
+                if (!string.Equals(segments[i], canonicalAlias, StringComparison.Ordinal)
+                    && string.Equals(BikeAlias.Normalize(segments[i]), canonicalAlias, StringComparison.Ordinal))
+                {
+                    segments[i] = canonicalAlias;
+                    changed = true;
+                }
+            }
+            return changed ? string.Join("\\", segments) : path;
+        }
     }
 }

@@ -16,6 +16,11 @@
     "KTM-DC": "KTM De Carli Racing"
   },
 
+  // Benennt Geräteordner mit Leerzeichen kanonisch um ("AA 01" -> "AA01"), damit der
+  // bikeName in Ordnern und XML durchgängig ohne Leerzeichen ist. Non-fatal + guarded.
+  // Auf false setzen, falls nachgelagerte Tools (z.B. KRAKEN) die Originalordnernamen erwarten.
+  "NormalizeDeviceFolderName": true,
+
   // Schwellen für die Renn-Erkennung (RaceSegmentDetector).
   // Rein GPS-basiert (Lat/Lon-Distanz + abgeleitete Geschwindigkeit) + Gasstellung;
   // Drehzahl und GPS-Qualität nur als Guards. vRearnEng wird bewusst NICHT verwendet.

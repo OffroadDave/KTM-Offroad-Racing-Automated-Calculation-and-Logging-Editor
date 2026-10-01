@@ -102,6 +102,27 @@ Die KtmDataHandler-Property-API (`AddRunProperty`/`AddLapProperty`) persistiert 
 `LapDistance` wird pro Lap aus den GPS-Koordinaten berechnet (`GetChannels` mit Lap-Filter → Haversine).
 Der berechnete Kanal `sVehicle` wird als `importData.ztx` über `AddImportDataToRun` gespeichert.
 
+### bikeName-Konsistenz (keine Leerzeichen)
+
+Ein Geräteordner mit Leerzeichen (z. B. `AA 01`) ist ein bekannter Datenfehler und führt downstream
+(MotoDB/Tableau, KOMPASS-Fahrersuche) zu Problemen. ORACLE stellt `bikeName` durchgängig ohne
+Leerzeichen sicher (`AA 01` → `AA01`, siehe `BikeAlias`):
+
+- **Werte:** `Alias`/`CarName`/`Name` in `LapHeader.xml`, `Car.xml`, `RunLapHeader.xml` werden im
+  `XmlRunEditor` defensiv normalisiert; `RunMetadata.BikeName` wird bereits beim Einlesen (`HED`/KOMPASS) normalisiert.
+- **Pfade:** Das Alias-Segment in `<Path>`-Feldern (v. a. `RunLapHeader > Inf > Path`) wird normalisiert.
+- **Ordner:** Ist `NormalizeDeviceFolderName` aktiv (Default), benennt ORACLE nicht-kanonische
+  Geräteordner **vor** der Verarbeitung um (`Directory.Move`). Guarded (nur nicht-kanonisch, nur wenn
+  Ziel frei) und **non-fatal** – schlägt die Umbenennung fehl (z. B. Ordner in einem Editor/Watcher
+  gesperrt), läuft die Verarbeitung mit dem Originalnamen weiter. Bei per-Run-Aufrufen (KRAKEN) wird
+  der Elternordner **nicht** umbenannt.
+
+### engineClass
+
+`RunMetadata.EngineClass` wird beim KOMPASS-Fallback aus dem Pfad extrahiert (bekannte Klassen
+`125/150/250/300/350/450/500`) und als `engineClass = …` in die generierte `.HED` geschrieben
+(bzw. beim HED-Einlesen zurückgelesen).
+
 ## Externe Abhängigkeiten
 
 | Bibliothek                 | Verwendung                                                     |
@@ -155,6 +176,7 @@ Der berechnete Kanal `sVehicle` wird als `importData.ztx` über `AddImportDataTo
   "DatabaseDirectory": "C:\\KTM Tools\\...",
   "DatabaseFileName": "KOMPASS.json",
   "TeamMappings": { "01_KTM-FR": "KTM Factory Racing" },
+  "NormalizeDeviceFolderName": true,
   "RaceDetection": {
     "EngineOnMinRpm": 2000,
     "DistanceMinMeters": 1000,

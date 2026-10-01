@@ -17,7 +17,8 @@ namespace Ktm.Racing.Oracle;
 public static class KtmRuntime
 {
     private static readonly object _lock = new();
-    private static bool _initialized;
+    // volatile: garantiert, dass der Double-Checked-Lock-Read außerhalb des Locks die Schreibung sieht.
+    private static volatile bool _initialized;
 
     /// <summary>
     /// Pfad zum KTM Utils Software Suite-Ordner. Auswahl-Reihenfolge: Umgebungsvariable KTM_UTILS_SUITE,

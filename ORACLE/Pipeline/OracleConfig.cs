@@ -34,6 +34,15 @@ namespace Ktm.Racing.Oracle
         /// <summary>Schwellenwerte für die Renn-Erkennung (<see cref="RaceSegmentDetector"/>).</summary>
         public RaceDetectionThresholds RaceDetection { get; set; } = new();
 
+        /// <summary>
+        /// Wenn true, benennt ORACLE Geräteordner mit Leerzeichen im Namen kanonisch um
+        /// (z.B. <c>"AA 01"</c> → <c>"AA01"</c>), bevor ein Rider-/Session-Ordner verarbeitet wird.
+        /// So ist der bikeName in Ordnern und XML durchgängig ohne Leerzeichen.
+        /// Non-fatal und guarded (nur nicht-kanonische Namen, nur wenn der Zielordner frei ist).
+        /// Auf false setzen, falls nachgelagerte Tools (z.B. KRAKEN) die Originalordnernamen erwarten.
+        /// </summary>
+        public bool NormalizeDeviceFolderName { get; set; } = true;
+
         /// <summary>Vollständiger Pfad zur KOMPASS-Datenbankdatei</summary>
         public string DatabaseFilePath => Path.Combine(DatabaseDirectory, DatabaseFileName);
 

@@ -21,9 +21,19 @@
 		{
 			"name": "_ChannelProbe",
 			"path": "../_ChannelProbe"
+		},
+		{
+			"path": "../KTM Offroad Database Editor"
+		},
+		{
+			"path": "../../KTM Tools/Kraken"
+		},
+		{
+			"path": "../../KTM Tools/KrakenCfg"
 		}
 	],
 	"settings": {
-		"stm32cube-ide-clangd.path": "cube"
+		"stm32cube-ide-clangd.path": "cube",
+		"dotnet.preferCSharpExtension": true
 	}
 }

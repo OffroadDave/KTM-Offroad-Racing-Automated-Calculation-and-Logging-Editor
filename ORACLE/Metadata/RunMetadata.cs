@@ -43,6 +43,9 @@ namespace Ktm.Racing.Oracle
         /// <summary>Event-Typ, z.B. "Racetrack", "Testtrack"</summary>
         public string TypeName { get; set; } = "";
 
+        /// <summary>Motorklasse/Hubraum aus dem Pfad, z.B. "250" oder "450"</summary>
+        public string EngineClass { get; set; } = "";
+
         /// <summary>ISO-Ländercode, z.B. "AT", "IT"</summary>
         public string CountryCode { get; set; } = "";
 

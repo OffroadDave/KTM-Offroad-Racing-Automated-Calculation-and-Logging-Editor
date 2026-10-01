@@ -18,7 +18,8 @@ namespace Ktm.Racing.Oracle;
 /// </summary>
 public static class KtmDataHandlerFactory
 {
-    private static IContainer? _container;
+    // volatile: garantiert, dass der Double-Checked-Lock-Read außerhalb des Locks die Schreibung sieht.
+    private static volatile IContainer? _container;
     private static readonly object _lock = new();
 
     /// <summary>
