@@ -43,5 +43,11 @@ namespace Ktm.Racing.Oracle
         /// KRAKEN-Reaktion: Warnung loggen, ggf. weitermachen.
         /// </summary>
         PartialSuccess = 4,
+
+        /// <summary>
+        /// Benötigte Ressource gesperrt (z.B. loadChannels.xlsx offen in Excel).
+        /// KRAKEN-Reaktion: Retry — die Sperre ist i.d.R. transient; NICHT mit veralteten Inputs weiterlaufen.
+        /// </summary>
+        ResourceLocked = 5,
     }
 }

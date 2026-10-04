@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Ktm.Racing.Domain.Telemetry;
 
 namespace Ktm.Racing.Oracle
 {
@@ -17,6 +18,9 @@ namespace Ktm.Racing.Oracle
         /// <summary>Dateiname der KOMPASS-Datenbank</summary>
         public string DatabaseFileName { get; set; } = "KOMPASS.json";
 
+        /// <summary>Pfad zur MotoDB loadChannels.xlsx; dessen CIRCUITS/HED-Sheets werden aus KOMPASS synchronisiert (<c>sync-motodb</c>).</summary>
+        public string MotoDbLoadChannelsPath { get; set; } = @"C:\KTM Tools\KTM MotoDB\loadChannels.xlsx";
+
         /// <summary>
         /// Mapping von Team-Ordner-Abkürzungen zu vollständigen Teamnamen.
         /// Wird beim KOMPASS-Fallback verwendet, wenn kein .HED-File vorhanden ist.
@@ -33,6 +37,9 @@ namespace Ktm.Racing.Oracle
 
         /// <summary>Schwellenwerte für die Renn-Erkennung (<see cref="RaceSegmentDetector"/>).</summary>
         public RaceDetectionThresholds RaceDetection { get; set; } = new();
+
+        /// <summary>Schwellenwerte für den GPS-Lap-Split (<c>--gps-split</c>).</summary>
+        public GpsLapSplitSettings GpsLapSplit { get; set; } = new();
 
         /// <summary>
         /// Wenn true, benennt ORACLE Geräteordner mit Leerzeichen im Namen kanonisch um
@@ -87,5 +94,29 @@ namespace Ktm.Racing.Oracle
                 return new OracleConfig();
             }
         }
+    }
+
+    /// <summary>
+    /// Konfigurierbare Schwellenwerte für den GPS-Lap-Split (<c>--gps-split</c>).
+    /// Wird aus oracle-config.json (Abschnitt <c>GpsLapSplit</c>) geladen; sonst Defaults.
+    /// </summary>
+    public sealed class GpsLapSplitSettings
+    {
+        /// <summary>Korridor-Radius [m] um den Ziellinien-Punkt, der als Durchfahrt zählt.</summary>
+        public double RadiusMeters { get; set; } = 25.0;
+
+        /// <summary>Mindestzeit [s] zwischen zwei Lap-Grenzen (unterdrückt Doppel-Trigger).</summary>
+        public double MinLapSeconds { get; set; } = 20.0;
+
+        /// <summary>Wenn die Daten nach der letzten Durchfahrt um mind. eine Rundenzeit weiterlaufen, als Teil-Lap behalten.</summary>
+        public bool IncludeTrailingPartialLap { get; set; } = true;
+
+        /// <summary>Konvertiert die Einstellungen in die Domänen-Optionen des Splitters.</summary>
+        public GpsLapSplitOptions ToOptions() => new()
+        {
+            RadiusMeters = RadiusMeters,
+            MinLapSeconds = MinLapSeconds,
+            IncludeTrailingPartialLap = IncludeTrailingPartialLap,
+        };
     }
 }

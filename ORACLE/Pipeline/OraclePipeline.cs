@@ -1,5 +1,6 @@
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
+using Ktm.Racing.Domain.Geo;
 
 namespace Ktm.Racing.Oracle
 {
@@ -68,7 +69,7 @@ namespace Ktm.Racing.Oracle
         /// <param name="runPath">Pfad zum Run_xxx-Ordner</param>
         /// <param name="force">True um Idempotenz-Prüfung zu überspringen</param>
         /// <returns>Exit-Code für KRAKEN</returns>
-        public async Task<OracleExitCode> ProcessRunAsync(string runPath, bool force = false)
+        public async Task<OracleExitCode> ProcessRunAsync(string runPath, bool force = false, bool gpsSplit = false)
         {
             Console.WriteLine($"[process] Run Path: {runPath}");
 
@@ -124,6 +125,10 @@ namespace Ktm.Racing.Oracle
 
             // .HED in jedem Run-Ordner sicherstellen (kanonischer Name, normalisierter Inhalt).
             new HedFileService().EnsureHedInAllRuns(validRuns, Path.GetDirectoryName(runPath)!, metadata);
+
+            // Optional: Runs per GPS-Ziellinie in Laps aufteilen (Flag --gps-split) vor den Berechnungen.
+            if (gpsSplit)
+                await RunGpsLapSplitAsync(validRuns, metadata, status);
 
             // --- Berechnungen (sVehicle + per-Lap-Distanzen) und XML-Properties je Run ---
             var xmlEditor = new XmlRunEditor();
@@ -442,7 +447,7 @@ namespace Ktm.Racing.Oracle
         /// Routet einen <c>process</c>-Aufruf: einzelner Run → per-Run-Pipeline (KRAKEN-kompatibel),
         /// Rider-/Session-Ordner → renn-bewusste, durchgehende Verarbeitung (<see cref="ProcessRiderAsync"/>).
         /// </summary>
-        public async Task<OracleExitCode> ProcessPathAsync(string path, bool force = false)
+        public async Task<OracleExitCode> ProcessPathAsync(string path, bool force = false, bool gpsSplit = false)
         {
             if (!Directory.Exists(path))
             {
@@ -457,8 +462,8 @@ namespace Ktm.Racing.Oracle
                 path = NormalizeDeviceFolders(path);
 
             return _browse.IsRunLocation(path)
-                ? await ProcessRunAsync(path, force)
-                : await ProcessRiderAsync(path, force);
+                ? await ProcessRunAsync(path, force, gpsSplit)
+                : await ProcessRiderAsync(path, force, gpsSplit);
         }
 
         /// <summary>
@@ -467,7 +472,7 @@ namespace Ktm.Racing.Oracle
         /// fortlaufende Lap-Nummerierung; Nicht-Renn-Runs werden eigenständig verarbeitet.
         /// Die Original-Ordnerstruktur bleibt unverändert.
         /// </summary>
-        public async Task<OracleExitCode> ProcessRiderAsync(string riderPath, bool force = false)
+        public async Task<OracleExitCode> ProcessRiderAsync(string riderPath, bool force = false, bool gpsSplit = false)
         {
             Console.WriteLine($"[process-rider] Rider Path: {riderPath}");
 
@@ -520,6 +525,10 @@ namespace Ktm.Racing.Oracle
             // .HED in jedem Run-Ordner sicherstellen (kanonischer Name, normalisierter Inhalt).
             new HedFileService().EnsureHedInAllRuns(runs, statusFolder, metadata);
 
+            // Optional: Runs per GPS-Ziellinie in Laps aufteilen (Flag --gps-split), vor der Stint-Verarbeitung.
+            if (gpsSplit)
+                await RunGpsLapSplitAsync(runs, metadata, status);
+
             double trackLength = ParseTrackLength(metadata.TrackLength);
 
             var stintProcessor = new RaceStintProcessor(
@@ -568,6 +577,85 @@ namespace Ktm.Racing.Oracle
         private static double ParseTrackLength(string trackLength)
             => double.TryParse(trackLength, System.Globalization.NumberStyles.Any,
                 System.Globalization.CultureInfo.InvariantCulture, out double m) ? m : 0.0;
+
+        /// <summary>
+        /// Teilt die angegebenen Runs per GPS-Ziellinie in Laps: ermittelt die Ziellinie aus KOMPASS
+        /// (Track-Koordinate) und schreibt die Lap-Grenzen headless über <see cref="GpsLapSplitService"/>.
+        /// Non-fatal: ohne Ziellinie oder GPS wird übersprungen, ein Fehler stoppt die Pipeline nicht.
+        /// </summary>
+        private async Task RunGpsLapSplitAsync(IReadOnlyList<string> runs, RunMetadata metadata, OracleStatus status)
+        {
+            var finishLine = await ResolveFinishLineAsync(metadata);
+            if (finishLine is not { } line)
+            {
+                Console.WriteLine($"[gps-split] Übersprungen: keine Ziellinie in KOMPASS für Track \"{metadata.TrackName}\" (Lat/Lon leer?).");
+                status.SetStep("gpsSplit", StepStatus.Skipped, new Dictionary<string, object> { ["reason"] = "no finish line" });
+                return;
+            }
+
+            var service = new GpsLapSplitService();
+            var options = _config.GpsLapSplit.ToOptions();
+            int split = 0, skipped = 0, failed = 0;
+            foreach (var run in runs)
+            {
+                var outcome = service.SplitRun(run, line, options);
+                Console.WriteLine($"[gps-split] {Path.GetFileName(run)}: {outcome.Message}");
+                switch (outcome.Status)
+                {
+                    case GpsLapSplitOutcomeStatus.Split: split++; break;
+                    case GpsLapSplitOutcomeStatus.Failed: failed++; break;
+                    default: skipped++; break;
+                }
+            }
+
+            Console.WriteLine($"[gps-split] Abgeschlossen: {split} gesplittet, {skipped} übersprungen, {failed} Fehler.");
+            status.SetStep("gpsSplit", failed == 0 ? StepStatus.Success : StepStatus.Partial, new Dictionary<string, object>
+            {
+                ["split"] = split,
+                ["skipped"] = skipped,
+                ["failed"] = failed,
+            });
+        }
+
+        /// <summary>
+        /// Ermittelt die Ziellinien-Koordinate für den Track der Metadaten aus KOMPASS.
+        /// Gibt <c>null</c> zurück, wenn KOMPASS fehlt oder der Track keine Lat/Lon-Werte hat.
+        /// </summary>
+        private async Task<GeoCoordinate?> ResolveFinishLineAsync(RunMetadata metadata)
+        {
+            if (string.IsNullOrWhiteSpace(metadata.TrackName))
+                return null;
+
+            if (!Directory.Exists(_config.DatabaseDirectory))
+            {
+                Console.WriteLine($"[gps-split] KOMPASS-Verzeichnis nicht gefunden: {_config.DatabaseDirectory}");
+                return null;
+            }
+
+            var kompass = new KompassService();
+            if (!await kompass.LoadAsync(_config.DatabaseFilePath))
+                return null;
+
+            return kompass.FindFinishLineByTrack(metadata.TrackName);
+        }
+
+        /// <summary>
+        /// Ergänzt fehlende Track-Metadaten (aktuell: Untergrund/Surface) aus KOMPASS, falls im .HED nicht
+        /// vorhanden. Lädt KOMPASS nur bei Bedarf (Surface leer und Trackname bekannt). Non-fatal.
+        /// </summary>
+        private async Task EnrichTrackMetadataAsync(RunMetadata metadata)
+        {
+            if (!string.IsNullOrWhiteSpace(metadata.Surface) || string.IsNullOrWhiteSpace(metadata.TrackName))
+                return;
+            if (!Directory.Exists(_config.DatabaseDirectory))
+                return;
+
+            var kompass = new KompassService();
+            if (!await kompass.LoadAsync(_config.DatabaseFilePath))
+                return;
+
+            metadata.Surface = kompass.FindTrackSurface(metadata.TrackName) ?? "";
+        }
 
         /// <summary>
         /// Benennt Geräteordner mit Leerzeichen im Namen kanonisch um (z.B. <c>"AA 01"</c> → <c>"AA01"</c>),
@@ -721,6 +809,7 @@ namespace Ktm.Racing.Oracle
             // Für den kanonischen .HED-Dateinamen benötigte Pfad-Felder sicherstellen
             // (die minimale .HED enthält Season/Event/Session nicht).
             EnrichPathMetadata(metadata, runPath);
+            await EnrichTrackMetadataAsync(metadata);
             return metadata;
         }
 

@@ -7,6 +7,9 @@
   "DatabaseDirectory": "C:\\KTM Tools\\KTM Offroad Racing Shared Resources\\SoftwareDB",
   "DatabaseFileName": "KOMPASS.json",
 
+  // MotoDB loadChannels.xlsx: dessen CIRCUITS/HED-Sheets werden aus KOMPASS synchronisiert (ORACLE.exe sync-motodb).
+  "MotoDbLoadChannelsPath": "C:\\KTM Tools\\KTM MotoDB\\loadChannels.xlsx",
+
   "TeamMappings": {
     "01_KTM-FR": "KTM Factory Racing",
     "KTM-FR": "KTM Factory Racing",
@@ -33,5 +36,14 @@
     "ThrottleFallbackPercent": 20,
     "RpmRaceMin": 5000,
     "MinValidGpsSamples": 10
+  },
+
+  // Schwellen für den GPS-Lap-Split (ORACLE process <pfad> --gps-split).
+  // Ziellinie = KOMPASS-Track-Koordinate (Lat/Lon). RadiusMeters = Korridor um die Ziellinie,
+  // MinLapSeconds = Mindest-Rundenzeit (unterdrückt Doppel-Trigger).
+  "GpsLapSplit": {
+    "RadiusMeters": 25,
+    "MinLapSeconds": 20,
+    "IncludeTrailingPartialLap": true
   }
 }

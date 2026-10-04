@@ -20,6 +20,9 @@ namespace Ktm.Racing.Oracle
         /// <summary>Track-Länge in Metern</summary>
         public string TrackLength { get; set; } = "";
 
+        /// <summary>Track-Untergrund (z.B. Hardpack, Sand); wird in die HED-Sektion [TRACK] geschrieben.</summary>
+        public string Surface { get; set; } = "";
+
         /// <summary>Vollständiger Fahrername, z.B. "Jorge Prado"</summary>
         public string RiderName { get; set; } = "";
 

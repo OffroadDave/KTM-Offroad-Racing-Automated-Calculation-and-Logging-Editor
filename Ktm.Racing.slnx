@@ -2,4 +2,7 @@
   <Folder Name="/02_Apps/">
     <Project Path="ORACLE/ORACLE.csproj" />
   </Folder>
+  <Folder Name="/03_Tests/">
+    <Project Path="ORACLE.Tests/ORACLE.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -35,6 +35,9 @@ namespace Ktm.Racing.Oracle
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
+        // Assembly-Version einmal per Reflection ermitteln und cachen (konstant zur Laufzeit).
+        private static readonly string CachedVersion = GetAssemblyVersion();
+
         /// <summary>Schema-Version der Status-Datei</summary>
         public string Version { get; set; } = "1.0";
 
@@ -45,7 +48,7 @@ namespace Ktm.Racing.Oracle
         public DateTime ProcessedAtUtc { get; set; } = DateTime.UtcNow;
 
         /// <summary>ORACLE-Version (aus Assembly)</summary>
-        public string OracleVersion { get; set; } = GetAssemblyVersion();
+        public string OracleVersion { get; set; } = CachedVersion;
 
         /// <summary>Status der einzelnen Verarbeitungsschritte</summary>
         public Dictionary<string, StepStatus> Steps { get; set; } = [];

@@ -60,6 +60,7 @@ namespace Ktm.Racing.Oracle
                 TrackLength = values.GetValueOrDefault("trackLength", ""),
                 RiderName = values.GetValueOrDefault("riderName", ""),
                 EngineClass = values.GetValueOrDefault("engineClass", ""),
+                Surface = values.GetValueOrDefault("surface", ""),
             };
         }
 
@@ -87,6 +88,8 @@ namespace Ktm.Racing.Oracle
             var lines = source != null && File.Exists(source)
                 ? NormalizeBikeNameInLines(File.ReadAllLines(source), metadata.BikeName)
                 : BuildHedContent(metadata).Split('\n').Select(l => l.TrimEnd('\r')).ToArray();
+
+            lines = EnsureTrackSurfaceLine(lines, metadata.Surface);
 
             int count = 0;
             foreach (var runPath in runPaths)
@@ -118,6 +121,29 @@ namespace Ktm.Racing.Oracle
                     lines[i] = $"{lines[i][..eq].TrimEnd()} = {canonicalBikeName}";
             }
             return lines;
+        }
+
+        /// <summary>
+        /// Stellt sicher, dass der Track-Untergrund als <c>surface</c>-Zeile (unter einer <c>[TRACK]</c>-Sektion)
+        /// im .HED-Inhalt vorhanden ist: aktualisiert eine vorhandene Zeile, sonst wird die Sektion angehängt.
+        /// Leerer Untergrund lässt den Inhalt unverändert.
+        /// </summary>
+        private static string[] EnsureTrackSurfaceLine(string[] lines, string surface)
+        {
+            if (string.IsNullOrWhiteSpace(surface))
+                return lines;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var eq = lines[i].IndexOf('=');
+                if (eq > 0 && lines[i][..eq].Trim().Equals("surface", StringComparison.OrdinalIgnoreCase))
+                {
+                    lines[i] = $"surface = {surface}";
+                    return lines;
+                }
+            }
+
+            return [.. lines, "[TRACK]", $"surface = {surface}"];
         }
 
         /// <summary>
@@ -184,7 +210,9 @@ trackName = {metadata.TrackName}
 trackLength = {metadata.TrackLength}
 eventName = {metadata.EventName}
 sessionName = {metadata.SessionName}
-runNumber = {metadata.RunNumber}";
+runNumber = {metadata.RunNumber}
+[TRACK]
+surface = {metadata.Surface}";
 
         // --- Private Hilfsmethoden ---
 

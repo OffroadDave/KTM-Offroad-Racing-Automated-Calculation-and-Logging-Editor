@@ -1,5 +1,6 @@
 using KtmDataHandler.Marelli.Wintax;
 using Ktm.Racing.Domain.Kompass;
+using Ktm.Racing.Domain.Geo;
 
 namespace Ktm.Racing.Oracle
 {
@@ -109,6 +110,44 @@ namespace Ktm.Racing.Oracle
             return metadata;
         }
 
+        /// <summary>
+        /// Sucht die Ziellinien-Koordinate (Finish-Punkt) eines Tracks über alle Disziplinen hinweg
+        /// anhand des Tracknamens. Gibt <c>null</c> zurück, wenn der Track fehlt oder keine gültigen
+        /// Lat/Lon-Werte hat (in KOMPASS häufig leer). Erfordert vorheriges <see cref="LoadAsync"/>.
+        /// </summary>
+        public GeoCoordinate? FindFinishLineByTrack(string trackName)
+        {
+            if (string.IsNullOrWhiteSpace(trackName))
+                return null;
+
+            foreach (var discipline in _database.DisciplineKeys)
+                foreach (var track in _database.Tracks(discipline))
+                    if (string.Equals(track.Name, trackName, StringComparison.OrdinalIgnoreCase)
+                        && track.Coordinate is { } coordinate)
+                        return coordinate;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Sucht den Untergrund (Surface) eines Tracks über alle Disziplinen hinweg anhand des Tracknamens.
+        /// Gibt <c>null</c> zurück, wenn der Track fehlt oder keinen Untergrund gesetzt hat.
+        /// Erfordert vorheriges <see cref="LoadAsync"/>.
+        /// </summary>
+        public string? FindTrackSurface(string trackName)
+        {
+            if (string.IsNullOrWhiteSpace(trackName))
+                return null;
+
+            foreach (var discipline in _database.DisciplineKeys)
+                foreach (var track in _database.Tracks(discipline))
+                    if (string.Equals(track.Name, trackName, StringComparison.OrdinalIgnoreCase)
+                        && !string.IsNullOrWhiteSpace(track.Surface))
+                        return track.Surface;
+
+            return null;
+        }
+
         // --- Private Hilfsmethoden ---
 
         /// <summary>
@@ -151,6 +190,7 @@ namespace Ktm.Racing.Oracle
             var track = _lookup.FindTrack(metadata.DisciplineName, metadata.CountryCode, metadata.TrackName);
             metadata.TrackLength = track?.TrackLength ?? "";
             metadata.CountryName = track?.Country ?? "";
+            metadata.Surface = track?.Surface ?? "";
 
             var rider = _lookup.FindRider(metadata.DisciplineName, metadata.RiderAbbreviation, metadata.SeasonName, metadata.TeamName);
             metadata.RiderName = rider?.Name ?? "";

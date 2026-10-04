@@ -37,6 +37,14 @@ class Program
             return (int)OracleExitCode.InvalidArguments;
         }
 
+        // sync-motodb braucht KEIN KtmDataHandler/native (kein HASP-Dongle) → vor der Pipeline-Erzeugung behandeln.
+        if (args[0].Equals("sync-motodb", StringComparison.OrdinalIgnoreCase))
+        {
+            var syncCode = MotoDbInputSync.Run(OracleConfig.Load(), GetOption(args, "--kompass"), GetOption(args, "--workbook"));
+            Console.WriteLine($"ORACLE beendet. Exit-Code: {(int)syncCode} ({syncCode})");
+            return (int)syncCode;
+        }
+
         var pipeline = OraclePipeline.Create();
         OracleExitCode exitCode;
 
@@ -74,12 +82,13 @@ class Program
         if (args.Length < 2)
         {
             Console.WriteLine("Fehler: Pfad fehlt.");
-            Console.WriteLine("Verwendung: ORACLE.exe process <runPath> [--force]");
+            Console.WriteLine("Verwendung: ORACLE.exe process <runPath> [--force] [--gps-split]");
             return OracleExitCode.InvalidArguments;
         }
 
         var force = args.Any(a => a.Equals("--force", StringComparison.OrdinalIgnoreCase));
-        return await pipeline.ProcessPathAsync(args[1], force);
+        var gpsSplit = args.Any(a => a.Equals("--gps-split", StringComparison.OrdinalIgnoreCase));
+        return await pipeline.ProcessPathAsync(args[1], force, gpsSplit);
     }
 
     /* merge temporär deaktiviert – wird separat überarbeitet.
@@ -130,6 +139,15 @@ class Program
         return pipeline.DetectRaces(args[1]);
     }
 
+    /// <summary>Liest den Wert eines <c>--name value</c>-Arguments; <c>null</c> wenn nicht vorhanden.</summary>
+    private static string? GetOption(string[] args, string name)
+    {
+        for (int i = 0; i < args.Length - 1; i++)
+            if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
+                return args[i + 1];
+        return null;
+    }
+
     /// <summary>
     /// Legacy-Modus: Wenn kein bekannter Command übergeben wird, wird args[0] als
     /// runPath interpretiert und process + merge nacheinander ausgeführt.
@@ -140,10 +158,11 @@ class Program
     {
         var runPath = args[0];
         var force = args.Any(a => a.Equals("--force", StringComparison.OrdinalIgnoreCase));
+        var gpsSplit = args.Any(a => a.Equals("--gps-split", StringComparison.OrdinalIgnoreCase));
         Console.WriteLine($"[legacy] Kein Command erkannt — verwende Legacy-Modus für: {runPath}");
 
         // --- Process ---
-        var processResult = await pipeline.ProcessRunAsync(runPath, force);
+        var processResult = await pipeline.ProcessRunAsync(runPath, force, gpsSplit);
 
         // --- Merge temporär deaktiviert – wird separat überarbeitet. ---
         // if (processResult != OracleExitCode.Success)
@@ -168,15 +187,17 @@ class Program
         Console.WriteLine("ORACLE — KTM Offroad Racing Postprocessing");
         Console.WriteLine();
         Console.WriteLine("Verwendung:");
-        Console.WriteLine("  ORACLE.exe process  <run|rider> [--force]  Postprocessing (Rider-Ordner: renn-bewusst, durchgehend)");
+        Console.WriteLine("  ORACLE.exe process  <run|rider> [--force] [--gps-split]  Postprocessing (Rider-Ordner: renn-bewusst, durchgehend)");
         // "merge" temporär deaktiviert – wird separat überarbeitet.
         // Console.WriteLine("  ORACLE.exe merge    <riderPath> [--force]  Session-Merge (alle Runs eines Riders)");
-        Console.WriteLine("  ORACLE.exe validate <runPath>              Datenintegritätsprüfung");
-        Console.WriteLine("  ORACLE.exe detect   <riderPath>            Renn-Erkennung (read-only)");
-        Console.WriteLine("  ORACLE.exe <runPath>            [--force]  Legacy-Modus (process + merge)");
+        Console.WriteLine("  ORACLE.exe validate <runPath>                            Datenintegritätsprüfung");
+        Console.WriteLine("  ORACLE.exe detect   <riderPath>                          Renn-Erkennung (read-only)");
+        Console.WriteLine("  ORACLE.exe sync-motodb [--kompass <KOMPASS.json>] [--workbook <loadChannels.xlsx>]  MotoDB-Inputs (CIRCUITS+HED) aus KOMPASS");
+        Console.WriteLine("  ORACLE.exe <runPath>            [--force] [--gps-split]  Legacy-Modus (process)");
         Console.WriteLine();
         Console.WriteLine("Optionen:");
-        Console.WriteLine("  --force  Idempotenz-Prüfung ignorieren, erneut verarbeiten");
+        Console.WriteLine("  --force      Idempotenz-Prüfung ignorieren, erneut verarbeiten");
+        Console.WriteLine("  --gps-split  Runs anhand der KOMPASS-GPS-Ziellinie headless in Laps aufteilen");
         Console.WriteLine();
         Console.WriteLine("Exit-Codes:");
         Console.WriteLine("  0  Erfolg");
