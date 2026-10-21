@@ -557,7 +557,7 @@ unverändert ist (0 = aus).
 
 Danach muss der Snapshot `StabilityThreshold`-mal unverändert bleiben. `download.done` wird über eine `.tmp`-Datei geschrieben
 und dann umbenannt, damit KRAKEN nie ein halbes XML liest. Das Konsolenlog nennt bei ungültigen Runs den Grund (z.B.
-„1 fehlende Datei(en) laut RunLapHeader.xml“, „Cloud-Platzhalter“).
+`1 missing file(s) according to RunLapHeader.xml`, `cloud placeholders`).
 
 ### Tests
 

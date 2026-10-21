@@ -6,7 +6,11 @@ erkennt Rennen, berechnet abgeleitete Kanäle (`sVehicle`, Lap-Distanz) und schr
 direkt in die WinTAX4-XML-Dateien — damit MotoDB sie anschließend sauber in die SQLite-DB einlesen kann.
 
 > Architektur-Interna: siehe [`ORACLE/ARCHITECTURE.md`](ORACLE/ARCHITECTURE.md).
-> Begleittool `SENTINEL` erzeugt `download.done`, wenn ein Run fertig synchronisiert ist (Trigger für KRAKEN).
+> Schritt-für-Schritt-Ablauf vor/während/nach dem Rennen: [`docs/ORACLE-workflow.md`](docs/ORACLE-workflow.md) ·
+> Funktionsübersicht aller Klassen und Methoden: [`docs/ORACLE-function-reference.md`](docs/ORACLE-function-reference.md) ·
+> Externe Bibliotheken/APIs und Doku-Abgleich: [`docs/external-tools-notes.md`](docs/external-tools-notes.md).
+> Begleittool `SENTINEL` erzeugt `download.done`, wenn ein Run fertig synchronisiert ist (Trigger für KRAKEN);
+> Konfiguration und Prüfkriterien siehe [`docs/DEBUG_GUIDE.md`](docs/DEBUG_GUIDE.md#11-sentinel-debugging).
 
 ---
 
