@@ -15,7 +15,7 @@ namespace Ktm.Racing.Oracle
     ///
     /// <para><b>Signale (rein antriebsstrang-unabhängig):</b></para>
     /// <list type="bullet">
-    ///   <item><c>Lat_dez</c>/<c>Lon_dez</c> → GPS-Distanz (Haversine) und daraus abgeleitete Geschwindigkeit</item>
+    ///   <item><c>Lat_dez</c>/<c>Lon_dez</c> → GPS-Distanz (aufbereitet durch GpsCleaner) und daraus abgeleitete Geschwindigkeit</item>
     ///   <item><c>rThrottle1</c> → mittlere Gasstellung (Fahr-Intensität, schließt Touring/Sichtung aus)</item>
     ///   <item><c>ValidSat</c> → GPS-Qualitäts-Guard</item>
     ///   <item><c>nEngine720</c> → Motor-an-Guard (fängt tote Blips ab)</item>
@@ -45,15 +45,6 @@ namespace Ktm.Racing.Oracle
         public GpsSettings Gps => _gps;
 
         /// <summary>
-        /// Factory: Detektor mit Standard-Abhängigkeiten (Config aus <c>oracle-config.json</c>).
-        /// </summary>
-        public static RaceSegmentDetector Create()
-        {
-            var config = OracleConfig.Load();
-            return new(new MarelliDataBrowse(), config.RaceDetection, config.Gps);
-        }
-
-        /// <summary>
         /// Klassifiziert alle Runs unterhalb eines Rider-/Session-Ordners (oder einen einzelnen Run).
         /// </summary>
         /// <param name="folderPath">Rider-/Session-Ordner oder direkter Run-Ordner.</param>
@@ -67,9 +58,7 @@ namespace Ktm.Racing.Oracle
 
             List<string> runPaths = _browse.IsRunLocation(folderPath)
                 ? [folderPath]
-                : (_browse.FindRuns(folderPath) ?? Enumerable.Empty<string>())
-                    .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                : RunFolders.InOrder(_browse.FindRuns(folderPath) ?? Enumerable.Empty<string>());
 
             var features = new List<RunRaceFeatures>(runPaths.Count);
             foreach (var runPath in runPaths)
@@ -112,9 +101,9 @@ namespace Ktm.Racing.Oracle
 
                 string? latName = GpsSettings.Resolve(names, _gps.LatitudeChannel);
                 string? lonName = GpsSettings.Resolve(names, _gps.LongitudeChannel);
-                string? thrName = Resolve(names, "rThrottle1", "throttle");
-                string? rpmName = Resolve(names, "nEngine720", "nengine");
-                string? satName = Resolve(names, "ValidSat", "validsat");
+                string? thrName = ChannelResolver.Find(names, "rThrottle1", "rThrottle");
+                string? rpmName = ChannelResolver.Find(names, "nEngine720", "nEngine");
+                string? satName = ChannelResolver.Find(names, "ValidSat");
 
                 var request = new[] { latName, lonName, thrName, rpmName, satName }
                     .Where(n => n is not null).Cast<string>().Distinct().ToArray();
@@ -237,11 +226,6 @@ namespace Ktm.Racing.Oracle
 
             return (RaceRunVerdict.NoRace, "GPS ungültig, kein Renn-Profil", false);
         }
-
-        /// <summary>Kanalname per exaktem Namen, sonst per Keyword (case-insensitive) auflösen.</summary>
-        private static string? Resolve(string[] names, string exact, string keyword)
-            => names.FirstOrDefault(n => n.Equals(exact, StringComparison.OrdinalIgnoreCase))
-            ?? names.FirstOrDefault(n => n.Contains(keyword, StringComparison.OrdinalIgnoreCase));
 
         private static double[]? GetData(IDataset? ds, string? name)
         {

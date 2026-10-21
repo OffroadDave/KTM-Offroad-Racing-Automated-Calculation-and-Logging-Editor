@@ -9,7 +9,7 @@ namespace Ktm.Racing.Oracle
         /// <summary>In diesem Run zurückgelegte Distanz [m] (ohne Offset).</summary>
         public double RunDistanceMeters { get; init; }
 
-        /// <summary>GPS-Distanz [m] je Lap (Index 0 = Lap 1), aus Lat_dez/Lon_dez (Haversine).</summary>
+        /// <summary>GPS-Distanz [m] je Lap (Index 0 = Lap 1), aus sVehicle an den Lap-Grenzen; NaN = unbekannt (kein GPS-Fix).</summary>
         public IReadOnlyList<double> LapDistancesMeters { get; init; } = [];
     }
 }

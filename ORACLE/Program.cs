@@ -6,9 +6,8 @@ using Ktm.Racing.Oracle;
 /// <para><b>Verwendung:</b></para>
 /// <code>
 /// ORACLE.exe process  &lt;runPath&gt;   [--force]  → Metadata + Properties + Berechnungen
-/// ORACLE.exe merge    &lt;riderPath&gt; [--force]  → Session-Merge über alle Runs
 /// ORACLE.exe validate &lt;runPath&gt;              → Dateistruktur + Ladbarkeit + Channels
-/// ORACLE.exe &lt;runPath&gt;            [--force]  → Legacy (= process + merge, rückwärtskompatibel)
+/// ORACLE.exe &lt;runPath&gt;            [--force]  → Legacy (= process, rückwärtskompatibel)
 /// </code>
 /// 
 /// <para><b>Idempotenz:</b> ORACLE erstellt <c>oracle.status.json</c> nach erfolgreicher
@@ -19,7 +18,6 @@ using Ktm.Racing.Oracle;
 /// <code>
 /// &lt;Arguments&gt;validate %RUN_PATH%&lt;/Arguments&gt;
 /// &lt;Arguments&gt;process %RUN_PATH%&lt;/Arguments&gt;
-/// &lt;Arguments&gt;merge %RIDER_PATH%&lt;/Arguments&gt;
 /// </code>
 /// </summary>
 class Program
@@ -61,8 +59,6 @@ class Program
                 exitCode = args[0].ToLowerInvariant() switch
                 {
                     "process" => await HandleProcessAsync(args, pipeline),
-                    // "merge" temporär deaktiviert – wird separat überarbeitet.
-                    // "merge" => HandleMerge(args, pipeline),
                     "validate" => HandleValidate(args, pipeline),
                     "detect" => HandleDetect(args, pipeline),
                     "detect-start" => args.Length < 2 ? MissingPath("detect-start <riderPath|runPath>") : pipeline.DetectStarts(args[1]),
@@ -108,24 +104,6 @@ class Program
         var gpsSplit = args.Any(a => a.Equals("--gps-split", StringComparison.OrdinalIgnoreCase));
         return await pipeline.ProcessPathAsync(args[1], force, gpsSplit);
     }
-
-    /* merge temporär deaktiviert – wird separat überarbeitet.
-    /// <summary>
-    /// Command: merge — Session-Merge über alle Runs eines Riders.
-    /// </summary>
-    private static OracleExitCode HandleMerge(string[] args, OraclePipeline pipeline)
-    {
-        if (args.Length < 2)
-        {
-            Console.WriteLine("Fehler: Pfad fehlt.");
-            Console.WriteLine("Verwendung: ORACLE.exe merge <riderPath> [--force]");
-            return OracleExitCode.InvalidArguments;
-        }
-
-        var force = args.Any(a => a.Equals("--force", StringComparison.OrdinalIgnoreCase));
-        return pipeline.MergeSession(args[1], force);
-    }
-    */
 
     /// <summary>
     /// Command: validate — Datenintegritätsprüfung.
@@ -178,7 +156,7 @@ class Program
 
     /// <summary>
     /// Legacy-Modus: Wenn kein bekannter Command übergeben wird, wird args[0] als
-    /// runPath interpretiert und process + merge nacheinander ausgeführt.
+    /// runPath interpretiert und process ausgeführt.
     /// Gewährleistet Rückwärtskompatibilität mit bestehender KRAKEN-Konfiguration:
     /// <c>ORACLE.exe %RUN_PATH%</c>
     /// </summary>
@@ -192,20 +170,6 @@ class Program
         // --- Process (wie "process": inkl. Geräteordner-Normalisierung und Run-Reparatur) ---
         var processResult = await pipeline.ProcessPathAsync(runPath, force, gpsSplit);
 
-        // --- Merge temporär deaktiviert – wird separat überarbeitet. ---
-        // if (processResult != OracleExitCode.Success)
-        // {
-        //     return processResult;
-        // }
-        //
-        // var riderPath = Path.GetFullPath(Path.Combine(runPath, ".."));
-        // var mergeResult = pipeline.MergeSession(riderPath, force);
-        //
-        // if (mergeResult != OracleExitCode.Success)
-        // {
-        //     Console.WriteLine("[legacy] Session-Merge hatte Probleme, process war aber erfolgreich.");
-        //     return OracleExitCode.PartialSuccess;
-        // }
 
         return processResult;
     }
@@ -216,8 +180,6 @@ class Program
         Console.WriteLine();
         Console.WriteLine("Verwendung:");
         Console.WriteLine("  ORACLE.exe process  <run|rider> [--force] [--gps-split]  Postprocessing (Rider-Ordner: renn-bewusst, durchgehend)");
-        // "merge" temporär deaktiviert – wird separat überarbeitet.
-        // Console.WriteLine("  ORACLE.exe merge    <riderPath> [--force]  Session-Merge (alle Runs eines Riders)");
         Console.WriteLine("  ORACLE.exe validate <runPath>                            Datenintegritätsprüfung");
         Console.WriteLine("  ORACLE.exe detect   <riderPath>                          Renn-Erkennung (read-only)");
         Console.WriteLine("  ORACLE.exe detect-start <riderPath|runPath>              Gültige Starts erkennen (read-only)");

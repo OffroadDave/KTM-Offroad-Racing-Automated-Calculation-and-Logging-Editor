@@ -69,7 +69,6 @@ Alles liegt im **ORACLE**-Projekt (`Ktm.Racing.Oracle`), thematisch gegliedert:
 | `Metadata/`   | `RunMetadata`, `HedFileService`, `KompassService`, `BikeAlias` (Alias-Normalisierung)    |
 | `Processing/` | `ImportDataCalculator` (sVehicle + Lap-Distanz), `RunCalcResult`, `XmlRunEditor`         |
 | `Detection/`  | `RaceSegmentDetector`, `RaceClassification`, `RaceDetectionThresholds`, `RaceStintProcessor` |
-| `Merge/`      | `SessionMergeService`, `SessionMergeExporter`, `SessionMergeValidator`, `MergedSessionData` (derzeit inaktiv) |
 
 ## Renn-Erkennung & Continuity (Option C)
 

@@ -55,8 +55,9 @@ namespace Ktm.Racing.Oracle
     /// <summary>
     /// Erkennt <b>gültige</b> Starts (Gatterstart) statt nur „erstes Mal Gas ≥ Kupplung“:
     /// <list type="number">
-    ///   <item>Bereit am Gatter: Stillstand, Gang eingelegt, Drehzahl hoch – ununterbrochen ≥ 2 s.</item>
-    ///   <item>Start: innerhalb 1 s danach Gas ≥ 50 % und Gas ≥ Kupplungsweg, nicht im Begrenzer-Modus.</item>
+    ///   <item>Bereit am Gatter: Stillstand, Gang eingelegt, Drehzahl hoch – ununterbrochen ≥ 1,5 s (<see cref="StartDetectionOptions.StagedMinSeconds"/>).</item>
+    ///   <item>Start: spätestens 1 s danach (<see cref="StartDetectionOptions.StagedHoldSeconds"/>), innerhalb 0,5 s Gas ≥ 50 % und
+    ///   Gas ≥ Kupplungsweg, nicht im Begrenzer-Modus.</item>
     ///   <item>Bestätigung: innerhalb 3 s ≥ 30 km/h und innerhalb 5 s ≥ 20 m.</item>
     /// </list>
     /// Abgelehnte Kandidaten (z.B. Anfahren aus der Box) werden mit Grund gemeldet.

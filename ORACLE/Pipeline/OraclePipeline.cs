@@ -9,9 +9,10 @@ namespace Ktm.Racing.Oracle
     /// 
     /// <para><b>Commands:</b></para>
     /// <list type="bullet">
-    ///   <item><see cref="ProcessRunAsync"/> — Komplette Postprocessing-Pipeline für einen Run</item>
-    ///   <item><see cref="MergeSession"/> — Session-Merge über alle Runs eines Riders</item>
+    ///   <item><see cref="ProcessPathAsync"/> — Postprocessing eines Runs oder Rider-/Session-Ordners</item>
     ///   <item><see cref="ValidateRun"/> — Datenintegritätsprüfung eines Runs</item>
+    ///   <item><see cref="DetectRaces"/>, <see cref="DetectStarts"/> — Renn- und Start-Erkennung (read-only)</item>
+    ///   <item><see cref="SplitLapsAsync"/> — Runs per GPS-Ziellinie in Laps teilen</item>
     /// </list>
     /// 
     /// <para>Wird von <c>Program.Main()</c> über Command-Routing aufgerufen.
@@ -215,136 +216,6 @@ namespace Ktm.Racing.Oracle
 
             Console.WriteLine("[process] Abgeschlossen.");
             return processExit;
-        }
-
-        /// <summary>
-        /// Session-Merge: Alle Runs eines Riders zusammenführen und als WinTAX4-Run exportieren.
-        /// 
-        /// <para><b>Schritte:</b></para>
-        /// <list type="number">
-        ///   <item>Rider-Ordner validieren</item>
-        ///   <item>Alle Runs im Ordner entdecken</item>
-        ///   <item>Channels über Runs zusammenführen (Concat)</item>
-        ///   <item>MergedSessionData erzeugen</item>
-        ///   <item>Ergebnis als neuen WinTAX4-Run exportieren via <see cref="SessionMergeExporter"/></item>
-        /// </list>
-        /// </summary>
-        /// <param name="riderPath">Pfad zum Rider-/Device-Ordner (enthält Run_*-Unterordner)</param>
-        /// <param name="force">True um Idempotenz-Prüfung zu überspringen</param>
-        /// <returns>Exit-Code für KRAKEN</returns>
-        public OracleExitCode MergeSession(string riderPath, bool force = false)
-        {
-            Console.WriteLine($"[merge] Rider Path: {riderPath}");
-
-            if (!Directory.Exists(riderPath))
-            {
-                Console.WriteLine($"Der angegebene Rider Path existiert nicht: {riderPath}");
-                return OracleExitCode.DataNotFound;
-            }
-
-            // --- Idempotenz-Prüfung (merge-spezifische Status-Datei) ---
-            var mergeStatusPath = Path.Combine(riderPath, ".oracle-merge");
-            if (!Directory.Exists(mergeStatusPath))
-                Directory.CreateDirectory(mergeStatusPath);
-
-            if (!force && OracleStatus.IsAlreadyProcessed(mergeStatusPath))
-            {
-                Console.WriteLine("[merge] Session bereits erfolgreich gemergt (oracle.status.json). Überspringe.");
-                Console.WriteLine("[merge] Verwende --force um erneut zu mergen.");
-                return OracleExitCode.Success;
-            }
-
-            var status = OracleStatus.Create(riderPath);
-
-            var mergeService = new SessionMergeService(_browse);
-            var mergedSession = mergeService.MergeSession(riderPath);
-
-            if (mergedSession.HasData)
-            {
-                Console.WriteLine($"[merge] Session-Merge abgeschlossen: " +
-                    $"Session=\"{mergedSession.SessionName}\", Rider=\"{mergedSession.RiderName}\", " +
-                    $"{mergedSession.MergedRunCount}/{mergedSession.TotalRunsDiscovered} Run(s) zusammengeführt, " +
-                    $"{mergedSession.ChannelNames.Count} Channel(s).");
-
-                status.SetStep("merge", StepStatus.Success, new Dictionary<string, object>
-                {
-                    ["mergedRuns"] = mergedSession.MergedRunCount,
-                    ["totalRuns"] = mergedSession.TotalRunsDiscovered,
-                    ["channels"] = mergedSession.ChannelNames.Count,
-                });
-
-                // --- Export: Merge-Ergebnis als neuen WinTAX4-Run persistieren ---
-                var exporter = new SessionMergeExporter();
-                var exportedPath = exporter.Export(mergedSession, riderPath);
-
-                if (exportedPath is not null)
-                {
-                    status.SetStep("export", StepStatus.Success, new Dictionary<string, object>
-                    {
-                        ["outputPath"] = exportedPath,
-                    });
-                }
-                else
-                {
-                    status.SetStep("export", StepStatus.Failed);
-                    Console.WriteLine("[merge] ⚠️ Export fehlgeschlagen, Merge-Daten nur im Speicher vorhanden.");
-                }
-
-                status.ExitCode = (int)OracleExitCode.Success;
-                status.Save(mergeStatusPath);
-                return OracleExitCode.Success;
-            }
-
-            Console.WriteLine("[merge] Keine Daten zum Zusammenführen gefunden.");
-            status.SetStep("merge", StepStatus.Failed);
-            status.ExitCode = (int)OracleExitCode.DataNotFound;
-            status.Save(mergeStatusPath);
-            return OracleExitCode.DataNotFound;
-        }
-
-        /// <summary>
-        /// Verarbeitet ALLE Runs unterhalb eines Track-/Session-/Rider-Ordners: process je Run + merge je Rider.
-        /// Respektiert die oracle.status.json-Idempotenz (bereits verarbeitete Runs werden übersprungen, außer <paramref name="force"/>).
-        /// </summary>
-        /// <param name="folderPath">Track-, Session- oder Rider-Ordner</param>
-        /// <param name="force">True überspringt die Idempotenz-Prüfung</param>
-        /// <param name="progress">Optionaler Fortschritt für die GUI</param>
-        public async Task<OracleExitCode> ProcessFolderAsync(
-            string folderPath, bool force = false, IProgress<string>? progress = null)
-        {
-            if (!Directory.Exists(folderPath))
-            {
-                Console.WriteLine($"[process-folder] Ordner existiert nicht: {folderPath}");
-                return OracleExitCode.DataNotFound;
-            }
-
-            var runPaths = (_browse.FindRuns(folderPath) ?? Enumerable.Empty<string>())
-                .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            if (runPaths.Count == 0)
-            {
-                progress?.Report("Keine Runs im Ordner gefunden.");
-                return OracleExitCode.DataNotFound;
-            }
-
-            int ok = 0, failed = 0;
-            foreach (var runPath in runPaths)
-            {
-                progress?.Report($"ORACLE process: {Path.GetFileName(runPath)}");
-                var code = await ProcessRunAsync(runPath, force);
-                if (code == OracleExitCode.Success) ok++; else failed++;
-            }
-
-            // Merge temporär deaktiviert – wird separat überarbeitet.
-            // foreach (var riderPath in runPaths.Select(p => Path.GetDirectoryName(p)!).Distinct(StringComparer.OrdinalIgnoreCase))
-            // {
-            //     progress?.Report($"ORACLE merge: {Path.GetFileName(riderPath)}");
-            //     MergeSession(riderPath, force);
-            // }
-
-            progress?.Report($"ORACLE fertig: {ok} OK, {failed} Fehler von {runPaths.Count} Run(s).");
-            if (failed == 0) return OracleExitCode.Success;
-            return ok > 0 ? OracleExitCode.PartialSuccess : OracleExitCode.GeneralError;
         }
 
         /// <summary>

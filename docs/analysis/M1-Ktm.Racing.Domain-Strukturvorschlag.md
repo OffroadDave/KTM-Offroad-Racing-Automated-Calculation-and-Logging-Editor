@@ -1,5 +1,7 @@
 # M1 – Strukturvorschlag: `Ktm.Racing.Domain` (eigenständiges Repo)
 
+> **Historisches Dokument.** Beschreibt den Stand vor Oktober 2026. Der Session-Merge wurde entfernt, und der Race Report Manager ist nicht mehr Teil dieses Repositorys. Aktuelle Beschreibung: [README](../../README.md), [ORACLE-workflow](../ORACLE-workflow.md).
+
 > Vorschlag zur **Freigabe**, Stand 2026-09-05. **Noch kein Code** – erst nach Bestätigung wird gescaffolded.
 > Umsetzt Entscheidung **E2** (eigenständige, unabhängig baubare Bibliothek; KtmSharedUtils nur als DLL).
 > Gehört zu Meilenstein **M1** der Roadmap (`00_Gesamtanalyse-und-Roadmap.md`).

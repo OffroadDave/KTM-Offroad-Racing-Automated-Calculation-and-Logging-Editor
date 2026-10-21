@@ -13,10 +13,6 @@ namespace Ktm.Racing.Oracle
 
         private List<string> channelNames = new();
 
-        // Expose channel names read-only for other classes
-
-        public IReadOnlyList<string> ChannelNames => channelNames.AsReadOnly();
-
         private readonly GpsSettings _gps;
         private GpsCleanResult? runGps; // aufbereitetes GPS des aktuellen Runs (sVehicle → Lap-Distanzen)
         private string? currentRunPath; // Aktueller Run-Pfad
@@ -79,43 +75,6 @@ namespace Ktm.Racing.Oracle
                 ztxAccessWrite.ReleaseObjects();
             }
             return new RunCalcResult { RunDistanceMeters = runDistance, LapDistancesMeters = lapDistances };
-        }
-
-        /// <summary>
-        /// Führt die Berechnungspipeline für mehrere Runs sequentiell aus.
-        /// Jeder Run wird mit frischen Reader/Writer-Instanzen verarbeitet,
-        /// um State-Leaks zwischen Runs zu vermeiden.
-        /// </summary>
-        /// <param name="runPaths">Liste der Run-Pfade</param>
-        /// <returns>Anzahl erfolgreich verarbeiteter Runs</returns>
-        public int RunCalculationPipelineForRuns(IReadOnlyList<string> runPaths)
-        {
-            if (runPaths == null || runPaths.Count == 0)
-            {
-                Console.WriteLine("[calc] Keine Runs für Berechnungen angegeben.");
-                return 0;
-            }
-
-            Console.WriteLine($"[calc] Starte Berechnungspipeline für {runPaths.Count} Run(s)...");
-            int successCount = 0;
-
-            for (int idx = 0; idx < runPaths.Count; idx++)
-            {
-                var runPath = runPaths[idx];
-                Console.WriteLine($"[calc] ── Run {idx + 1}/{runPaths.Count}: {Path.GetFileName(runPath)}");
-                try
-                {
-                    RunCalculationPipeline(runPath);
-                    successCount++;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[calc] ❌ Fehler bei {Path.GetFileName(runPath)}: {ex.Message}");
-                }
-            }
-
-            Console.WriteLine($"[calc] Abgeschlossen: {successCount}/{runPaths.Count} Run(s) erfolgreich.");
-            return successCount;
         }
 
         /// <summary>

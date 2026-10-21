@@ -64,13 +64,20 @@ public static class KtmRuntime
             if (Directory.Exists(dir))
             {
                 // Native DLLs (KtmSharedUtilsCpp, TelDataZTXx64, HASP-Stack) über OS-Loader auffindbar machen.
-                SetDllDirectory(dir);
+                if (!SetDllDirectory(dir))
+                    Console.Error.WriteLine($"Warning: SetDllDirectory failed for {dir} (error {Marshal.GetLastWin32Error()}).");
                 var path = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
                 if (!path.Split(';').Any(p => string.Equals(p.TrimEnd('\\'), dir.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)))
                     Environment.SetEnvironmentVariable("PATH", dir + ";" + path);
 
                 // Verwaltete Companion-Assemblies bei Bedarf aus dem Suite-Ordner nachladen.
                 AppDomain.CurrentDomain.AssemblyResolve += ResolveFromSuite;
+            }
+            else
+            {
+                // Früh und deutlich melden: sonst folgt später nur eine schwer deutbare FileNotFoundException.
+                Console.Error.WriteLine($"Warning: KTM Utils Software Suite not found at {dir} (set KTM_UTILS_SUITE). " +
+                                        "Commands that read WinTAX data will fail.");
             }
 
             _initialized = true;
