@@ -1,3 +1,4 @@
+﻿using Ktm.Racing.Domain.Telemetry;
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 
@@ -26,25 +27,31 @@ namespace Ktm.Racing.Oracle
     {
         private readonly IMarelliDataBrowse _browse;
         private readonly RaceDetectionThresholds _thresholds;
-
-        private const double EarthRadiusMeters = 6371000.0;
+        private readonly GpsSettings _gps;
 
         /// <summary>
         /// Erstellt einen Detektor mit expliziten Abhängigkeiten (für Unit-Tests).
         /// </summary>
-        public RaceSegmentDetector(IMarelliDataBrowse browse, RaceDetectionThresholds thresholds)
+        public RaceSegmentDetector(IMarelliDataBrowse browse, RaceDetectionThresholds thresholds, GpsSettings? gps = null)
         {
             ArgumentNullException.ThrowIfNull(browse);
             ArgumentNullException.ThrowIfNull(thresholds);
             _browse = browse;
             _thresholds = thresholds;
+            _gps = gps ?? new GpsSettings();
         }
+
+        /// <summary>GPS-Kanäle und Aufbereitung, die auch für die Berechnungen der Renn-Runs gelten.</summary>
+        public GpsSettings Gps => _gps;
 
         /// <summary>
         /// Factory: Detektor mit Standard-Abhängigkeiten (Config aus <c>oracle-config.json</c>).
         /// </summary>
         public static RaceSegmentDetector Create()
-            => new(new MarelliDataBrowse(), OracleConfig.Load().RaceDetection);
+        {
+            var config = OracleConfig.Load();
+            return new(new MarelliDataBrowse(), config.RaceDetection, config.Gps);
+        }
 
         /// <summary>
         /// Klassifiziert alle Runs unterhalb eines Rider-/Session-Ordners (oder einen einzelnen Run).
@@ -103,8 +110,8 @@ namespace Ktm.Racing.Oracle
 
                 var names = reader.GetChannelsNames() ?? Array.Empty<string>();
 
-                string? latName = Resolve(names, "Lat_dez", "lat");
-                string? lonName = Resolve(names, "Lon_dez", "lon");
+                string? latName = GpsSettings.Resolve(names, _gps.LatitudeChannel);
+                string? lonName = GpsSettings.Resolve(names, _gps.LongitudeChannel);
                 string? thrName = Resolve(names, "rThrottle1", "throttle");
                 string? rpmName = Resolve(names, "nEngine720", "nengine");
                 string? satName = Resolve(names, "ValidSat", "validsat");
@@ -115,13 +122,13 @@ namespace Ktm.Racing.Oracle
                 double duration = reader.GetLastSampleTime();
                 IDataset? ds = request.Length > 0 ? reader.GetChannels(request) : null;
 
-                var lat = GetData(ds, latName);
-                var lon = GetData(ds, lonName);
+
+
                 var thr = GetData(ds, thrName);
                 var rpm = GetData(ds, rpmName);
                 var sat = GetData(ds, satName);
 
-                double distance = GpsDistance(lat, lon, out int validGps);
+                double distance = GpsDistance(ds, latName, lonName, out int validGps);
                 double meanSpeedKph = duration > 1.0 ? distance / duration * 3.6 : 0.0;
                 double meanThrottle = Mean(thr);
                 double meanRpm = Mean(rpm);
@@ -216,31 +223,22 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Kumulierte Distanz über gültige aufeinanderfolgende GPS-Punkte (Haversine).
-        /// Nullpunkte (Dropouts) werden übersprungen, nicht interpoliert.
+        /// GPS-Distanz über die aufbereiteten Fixes (<see cref="GpsCleaner"/>: Aussetzer überbrückt wie Lat_Valid,
+        /// Sprünge nicht mitgezählt). <paramref name="validSamples"/> = Samples mit gültigem Fix.
         /// </summary>
-        private static double GpsDistance(double[]? lat, double[]? lon, out int validSamples)
+        private double GpsDistance(IDataset? ds, string? latName, string? lonName, out int validSamples)
         {
             validSamples = 0;
-            if (lat is null || lon is null) return 0.0;
+            if (ds is null || latName is null || lonName is null) return 0.0;
+            var latSignal = ds.GetElement(latName)?.SignalData;
+            var lonSignal = ds.GetElement(lonName)?.SignalData;
+            if (latSignal?.Data is not double[] lat || lonSignal?.Data is not double[] lon || latSignal.Time is not double[] time)
+                return 0.0;
 
-            int n = Math.Min(lat.Length, lon.Length);
-            double distance = 0.0;
-            for (int i = 1; i < n; i++)
-            {
-                if (lat[i] == 0 || lon[i] == 0 || lat[i - 1] == 0 || lon[i - 1] == 0) continue;
-
-                double la1 = lat[i - 1] * Math.PI / 180.0, la2 = lat[i] * Math.PI / 180.0;
-                double dLat = la2 - la1;
-                double dLon = (lon[i] - lon[i - 1]) * Math.PI / 180.0;
-                double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
-                         + Math.Cos(la1) * Math.Cos(la2) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-                distance += EarthRadiusMeters * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-                validSamples++;
-            }
-            return distance;
+            var cleaned = GpsCleaner.Clean(new GpsTrace(time, lat, lon), _gps.ToCleanOptions());
+            validSamples = cleaned.ValidSamples;
+            return cleaned.TotalMeters;
         }
-
         private static RunRaceFeatures ErrorResult(string runPath, string folder, string reason)
             => new()
             {

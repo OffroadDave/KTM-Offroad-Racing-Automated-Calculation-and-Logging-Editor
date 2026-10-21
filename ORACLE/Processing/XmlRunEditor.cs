@@ -98,6 +98,28 @@ namespace Ktm.Racing.Oracle
             doc.Save(file);
         }
 
+        /// <summary>
+        /// Setzt nur <c>TrackLen</c> in der <c>Session.xml</c> eines Runs (nach der Track-Längen-Prüfung,
+        /// wenn die Länge erst aus den Rundendistanzen ermittelt wurde). Non-fatal.
+        /// </summary>
+        public void SetTrackLength(string runPath, string trackLength)
+        {
+            try
+            {
+                var file = Path.Combine(runPath, "Session.xml");
+                if (!File.Exists(file)) return;
+
+                var doc = XDocument.Load(file);
+                if (doc.Root is not { } session) return;
+                SetChild(session, "TrackLen", trackLength);
+                doc.Save(file);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Fehler beim Setzen von TrackLen für {Path.GetFileName(runPath)}: {ex.Message}");
+            }
+        }
+
         private static void UpdateLapHeaderXml(string lapDir, int lapNumber, string alias, int runNumber,
             string marker, double lapDistance)
         {

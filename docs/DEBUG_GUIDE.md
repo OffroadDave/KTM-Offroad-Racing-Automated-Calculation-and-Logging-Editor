@@ -426,6 +426,9 @@ Remove-Item "C:\MXTrackData\...\AA01\.oracle-merge\oracle.status.json"
 | `2` | `InvalidArguments` | Argumente ungültig | Pfad fehlt, falscher Command |
 | `3` | `DataNotFound` | Daten nicht gefunden | Pfad existiert nicht, kein WinTAX4-Run, keine Metadaten |
 | `4` | `PartialSuccess` | Teilweise erfolgreich | Legacy: process OK aber merge fehlgeschlagen |
+| `5` | `ResourceLocked` | Ressource gesperrt | `loadChannels.xlsx` in Excel geöffnet → Retry |
+| `6` | `TrackLengthMissing` | Keine eindeutige Track-Länge | KOMPASS/CIRCUITS leer oder Länge doppelt belegt und zu wenige GPS-Runden (auch im Event) → später erneut bzw. in KODE pflegen |
+| `7` | `InvalidData` | Ungültige Daten | Beschädigter Run-Ordner oder ungültige `KOMPASS.json` → reparieren, kein Retry |
 
 ### Fehlertabelle
 

@@ -86,10 +86,11 @@ namespace Ktm.Racing.Oracle
             var source = runPaths.Select(FindFirstHedFile).FirstOrDefault(p => p != null)
                          ?? FindFirstHedFile(riderPath);
             var lines = source != null && File.Exists(source)
-                ? NormalizeBikeNameInLines(File.ReadAllLines(source), metadata.BikeName)
+                ? ApplyMetadataToLines(File.ReadAllLines(source), metadata)
                 : BuildHedContent(metadata).Split('\n').Select(l => l.TrimEnd('\r')).ToArray();
 
             lines = EnsureTrackSurfaceLine(lines, metadata.Surface);
+            lines = EnsureTrackLengthLine(lines, metadata.TrackLength);
 
             int count = 0;
             foreach (var runPath in runPaths)
@@ -111,16 +112,56 @@ namespace Ktm.Racing.Oracle
             Console.WriteLine($"[hed] .HED in {count}/{runPaths.Count} Run-Ordner(n) sichergestellt: \"{canonicalName}\".");
         }
 
-        /// <summary>Setzt die <c>bikeName</c>-Zeile im .HED-Inhalt auf den kanonischen Wert.</summary>
-        private static string[] NormalizeBikeNameInLines(string[] lines, string canonicalBikeName)
+        /// <summary>
+        /// Übernimmt die bekannten (nicht leeren) Metadaten in vorhandene .HED-Zeilen, z.B. den kanonischen
+        /// <c>bikeName</c> oder einen aus KOMPASS ermittelten <c>riderName</c>. Werte, die in den Metadaten leer sind,
+        /// bleiben unverändert; fehlende Schlüssel werden nicht ergänzt (außer über die Track-Helfer).
+        /// </summary>
+        public static string[] ApplyMetadataToLines(string[] lines, RunMetadata metadata)
         {
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["bikeName"] = metadata.BikeName,
+                ["riderName"] = metadata.RiderName,
+                ["riderabbreviationName"] = metadata.RiderAbbreviation,
+                ["teamName"] = metadata.TeamName,
+                ["seasonName"] = metadata.SeasonName,
+                ["disciplineName"] = metadata.DisciplineName,
+                ["engineClass"] = metadata.EngineClass,
+                ["countrycode"] = metadata.CountryCode,
+                ["countryName"] = metadata.CountryName,
+                ["trackName"] = metadata.TrackName,
+            };
+
             for (int i = 0; i < lines.Length; i++)
             {
                 var eq = lines[i].IndexOf('=');
-                if (eq > 0 && lines[i][..eq].Trim().Equals("bikeName", StringComparison.OrdinalIgnoreCase))
-                    lines[i] = $"{lines[i][..eq].TrimEnd()} = {canonicalBikeName}";
+                if (eq <= 0) continue;
+                var key = lines[i][..eq].Trim();
+                if (values.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
+                    lines[i] = $"{lines[i][..eq].TrimEnd()} = {value.Trim()}";
             }
             return lines;
+        }
+
+        /// <summary>
+        /// Setzt <c>surface</c> in allen .HED-Dateien eines Run-Ordners (siehe <see cref="EnsureTrackSurfaceLine"/>). Non-fatal.
+        /// </summary>
+        public void SetTrackSurface(string runPath, string surface)
+        {
+            if (!Directory.Exists(runPath) || string.IsNullOrWhiteSpace(surface))
+                return;
+            foreach (var file in Directory.EnumerateFiles(runPath, "*.HED", SearchOption.TopDirectoryOnly).ToList())
+            {
+                try
+                {
+                    File.WriteAllLines(file, EnsureTrackSurfaceLine(File.ReadAllLines(file), surface));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[hed] ⚠️ surface in {Path.GetFileName(file)} nicht gesetzt: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -144,6 +185,66 @@ namespace Ktm.Racing.Oracle
             }
 
             return [.. lines, "[TRACK]", $"surface = {surface}"];
+        }
+
+        /// <summary>
+        /// Setzt <c>trackLength</c> in allen .HED-Dateien eines Run-Ordners (siehe <see cref="EnsureTrackLengthLine"/>).
+        /// Non-fatal.
+        /// </summary>
+        public void SetTrackLength(string runPath, string trackLength)
+        {
+            if (!Directory.Exists(runPath))
+                return;
+            foreach (var file in Directory.EnumerateFiles(runPath, "*.HED", SearchOption.TopDirectoryOnly).ToList())
+            {
+                try
+                {
+                    File.WriteAllLines(file, EnsureTrackLengthLine(File.ReadAllLines(file), trackLength));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[hed] ⚠️ trackLength in {Path.GetFileName(file)} nicht gesetzt: {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Setzt die <c>trackLength</c>-Zeile im .HED-Inhalt auf die geprüfte Länge (MotoDB vergleicht sie exakt mit
+        /// CIRCUITS): aktualisiert eine vorhandene Zeile, sonst wird sie nach <c>trackName</c> eingefügt.
+        /// Leere Länge lässt den Inhalt unverändert.
+        /// </summary>
+        public static string[] EnsureTrackLengthLine(string[] lines, string trackLength)
+        {
+            if (string.IsNullOrWhiteSpace(trackLength))
+                return lines;
+
+            int trackNameIndex = -1;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var eq = lines[i].IndexOf('=');
+                if (eq <= 0) continue;
+                var key = lines[i][..eq].Trim();
+                if (key.Equals("trackLength", StringComparison.OrdinalIgnoreCase))
+                {
+                    lines[i] = $"{lines[i][..eq].TrimEnd()} = {trackLength.Trim()}";
+                    return lines;
+                }
+                if (key.Equals("trackName", StringComparison.OrdinalIgnoreCase))
+                    trackNameIndex = i;
+            }
+
+            var list = lines.ToList();
+            var insertAt = trackNameIndex + 1;
+            if (trackNameIndex < 0)
+            {
+                // Ans Ende der ersten Sektion ([KTM_NAMING]), d.h. vor die nächste Sektionsüberschrift.
+                var nextSection = list.FindIndex(l => l.TrimStart().StartsWith('['));
+                if (nextSection >= 0)
+                    nextSection = list.FindIndex(nextSection + 1, l => l.TrimStart().StartsWith('['));
+                insertAt = nextSection >= 0 ? nextSection : list.Count;
+            }
+            list.Insert(insertAt, $"trackLength = {trackLength.Trim()}");
+            return [.. list];
         }
 
         /// <summary>

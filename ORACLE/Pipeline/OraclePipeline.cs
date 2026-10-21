@@ -1,4 +1,4 @@
-using KtmDataHandler.Marelli.Wintax;
+﻿using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 using Ktm.Racing.Domain.Geo;
 
@@ -26,6 +26,12 @@ namespace Ktm.Racing.Oracle
     {
         private readonly IMarelliDataBrowse _browse;
         private readonly OracleConfig _config;
+
+        // true, wenn die letzte Metadaten-Ermittlung an einer vorhandenen, aber ungültigen KOMPASS.json scheiterte.
+        private bool _kompassInvalid;
+
+        // In diesem Aufruf reparierte Runs (für Status/Log).
+        private readonly List<RunRepairResult> _repairs = [];
 
         /// <summary>
         /// Erstellt eine neue OraclePipeline mit expliziten Abhängigkeiten.
@@ -79,12 +85,24 @@ namespace Ktm.Racing.Oracle
                 return OracleExitCode.DataNotFound;
             }
 
+            // Parallele ORACLE-Jobs dürfen nicht gleichzeitig denselben Run bearbeiten.
+            using var processingLock = ProcessingLock.TryAcquire(runPath);
+            if (processingLock is null)
+            {
+                Console.WriteLine($"[process] {runPath} wird gerade von einem anderen ORACLE-Prozess verarbeitet – später erneut versuchen.");
+                return OracleExitCode.ResourceLocked;
+            }
+
             // --- Idempotenz-Prüfung ---
             if (!force && OracleStatus.IsAlreadyProcessed(runPath))
             {
-                Console.WriteLine("[process] Run bereits erfolgreich verarbeitet (oracle.status.json). Überspringe.");
-                Console.WriteLine("[process] Verwende --force um erneut zu verarbeiten.");
-                return OracleExitCode.Success;
+                var lengthCheck = CheckProcessedTrackLength([runPath], runPath);
+                if (lengthCheck is { } code)
+                {
+                    Console.WriteLine("[process] Run bereits erfolgreich verarbeitet (oracle.status.json). Überspringe.");
+                    Console.WriteLine("[process] Verwende --force um erneut zu verarbeiten.");
+                    return code;
+                }
             }
 
             var status = OracleStatus.Create(runPath);
@@ -95,20 +113,18 @@ namespace Ktm.Racing.Oracle
             }
 
             // --- Metadaten ermitteln ---
+            RecordInputs(status);
             var metadata = await ResolveMetadataAsync(runPath);
             if (metadata == null)
             {
+                var code = _kompassInvalid ? OracleExitCode.InvalidData : OracleExitCode.DataNotFound;
                 Console.WriteLine("Metadaten konnten nicht ermittelt werden.");
                 status.SetStep("metadata", StepStatus.Failed);
-                status.ExitCode = (int)OracleExitCode.DataNotFound;
+                status.ExitCode = (int)code;
                 status.Save(runPath);
-                return OracleExitCode.DataNotFound;
+                return code;
             }
-            status.SetStep("metadata", StepStatus.Success, new Dictionary<string, object>
-            {
-                ["bikeName"] = metadata.BikeName,
-                ["riderName"] = metadata.RiderName,
-            });
+            SetMetadataStep(status, metadata);
 
             // --- Gültige Runs finden ---
             var validRuns = DiscoverRuns(runPath);
@@ -123,6 +139,10 @@ namespace Ktm.Racing.Oracle
 
             Console.WriteLine($"{validRuns.Count} gültige(r) Run(s) gefunden.");
 
+            // Track-Länge vorab aus KOMPASS/CIRCUITS/.HED/Vorschlägen bestimmen (MotoDB vergleicht exakt).
+            var lengthGate = TrackLengthGate.FromConfig(_config);
+            var knownLength = ResolveKnownTrackLength(lengthGate, metadata);
+
             // .HED in jedem Run-Ordner sicherstellen (kanonischer Name, normalisierter Inhalt).
             new HedFileService().EnsureHedInAllRuns(validRuns, Path.GetDirectoryName(runPath)!, metadata);
 
@@ -132,13 +152,15 @@ namespace Ktm.Racing.Oracle
 
             // --- Berechnungen (sVehicle + per-Lap-Distanzen) und XML-Properties je Run ---
             var xmlEditor = new XmlRunEditor();
-            var importCalculator = new ImportDataCalculator();
+            var importCalculator = new ImportDataCalculator(_config.Gps);
+            var lapDistances = new List<IReadOnlyList<double>>();
             int calcSuccess = 0;
             foreach (var run in validRuns)
             {
                 try
                 {
                     var calc = importCalculator.RunCalculationPipeline(run);
+                    lapDistances.Add(calc.LapDistancesMeters);
                     xmlEditor.SetRunProperties(run, metadata.BikeName, metadata.TrackName,
                         metadata.TrackLength, metadata.RiderName, lapDistances: calc.LapDistancesMeters);
                     calcSuccess++;
@@ -157,6 +179,16 @@ namespace Ktm.Racing.Oracle
                 ["processedRuns"] = calcSuccess,
                 ["totalRuns"] = validRuns.Count,
             });
+
+            // --- Track-Länge prüfen/schätzen: ohne eindeutige Länge darf MotoDB nicht laufen ---
+            var lengthExit = FinishTrackLength(lengthGate, knownLength, metadata, validRuns,
+                Path.GetDirectoryName(runPath)!, lapDistances, runPath, status);
+            if (lengthExit != OracleExitCode.Success)
+            {
+                status.ExitCode = (int)lengthExit;
+                status.Save(runPath);
+                return lengthExit;
+            }
 
             // --- Status-Datei schreiben ---
             status.ExitCode = (int)OracleExitCode.Success;
@@ -405,6 +437,17 @@ namespace Ktm.Racing.Oracle
         /// Read-only: verändert keine Daten. Delegiert an <see cref="RaceSegmentDetector"/>.
         /// </summary>
         /// <param name="folderPath">Rider-/Session-Ordner oder direkter Run-Ordner.</param>
+        /// <summary>Erkennt gültige Starts (Gatterstart) in allen Runs eines Pfads (read-only, siehe <see cref="StartDetector"/>).</summary>
+        public OracleExitCode DetectStarts(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                Console.WriteLine($"Der angegebene Pfad existiert nicht: {path}");
+                return OracleExitCode.DataNotFound;
+            }
+            return new StartAnalyzer(_browse).Run(path);
+        }
+
         public OracleExitCode DetectRaces(string folderPath)
         {
             Console.WriteLine($"[detect] Path: {folderPath}");
@@ -415,7 +458,7 @@ namespace Ktm.Racing.Oracle
                 return OracleExitCode.DataNotFound;
             }
 
-            var detector = new RaceSegmentDetector(_browse, _config.RaceDetection);
+            var detector = new RaceSegmentDetector(_browse, _config.RaceDetection, _config.Gps);
             var result = detector.DetectRaces(folderPath);
 
             if (result.Runs.Count == 0)
@@ -461,6 +504,11 @@ namespace Ktm.Racing.Oracle
             if (_config.NormalizeDeviceFolderName)
                 path = NormalizeDeviceFolders(path);
 
+            // Aus demselben Grund vor der WinTAX-API: verwaiste Lap-Ordner (Split-/Append-Reste ohne Daten) aus den
+            // Runs räumen, damit WinTAX die Runs wieder erkennt und sie verarbeitet werden.
+            if (_config.RepairOrphanLapFolders)
+                _repairs.AddRange(RunRepair.RepairAll(path));
+
             return _browse.IsRunLocation(path)
                 ? await ProcessRunAsync(path, force, gpsSplit)
                 : await ProcessRiderAsync(path, force, gpsSplit);
@@ -484,46 +532,125 @@ namespace Ktm.Racing.Oracle
             var runs = (_browse.FindRuns(riderPath) ?? Enumerable.Empty<string>())
                 .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
                 .ToList();
+
+            // Run-Ordner, die die WinTAX-API nicht erkennt (beschädigt), nie stillschweigend übergehen.
+            var skipped = RunFolderInspector.FindSkipped(riderPath, runs);
+
+            // Mehrere Geräteordner (z.B. Session-Ordner "BC" mit AA01 + AA02): jeden Geräteordner eigenständig
+            // verarbeiten – mit eigenen Metadaten (Bike/Rider), eigener .HED und eigenem Status.
+            var devices = runs.Concat(skipped.Select(s => s.RunPath))
+                .Select(Path.GetDirectoryName)
+                .Where(d => !string.IsNullOrEmpty(d))
+                .Select(d => d!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(d => d, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (devices.Count > 1)
+            {
+                Console.WriteLine($"[process-rider] {devices.Count} Geräteordner gefunden – jeder wird einzeln verarbeitet: " +
+                                  string.Join(", ", devices.Select(Path.GetFileName)));
+                var codes = new List<OracleExitCode>();
+                foreach (var device in devices)
+                {
+                    var code = await ProcessRiderAsync(device, force, gpsSplit);
+                    Console.WriteLine($"[process-rider] {Path.GetFileName(device)}: Exit-Code {(int)code} ({code})");
+                    codes.Add(code);
+                }
+                return OracleExitCodes.Combine(codes);
+            }
+
+            var corrupt = skipped.Where(s => !s.IsEmpty).ToList();
+            var empty = skipped.Where(s => s.IsEmpty).ToList();
+            foreach (var s in corrupt)
+                Console.WriteLine($"[discovery] ⚠️ Run übersprungen (kein gültiger WinTAX4-Run): {s.RunPath} – {s.Reason}");
+            foreach (var s in empty)
+                Console.WriteLine($"[discovery] Leerer Run (keine Lap-Daten aufgezeichnet): {Path.GetFileName(s.RunPath)} – es werden nur die Metadaten gesetzt.");
+            var skippedDetails = corrupt.Select(s => $"{Path.GetFileName(s.RunPath)}: {s.Reason}").ToList();
+            var emptyRuns = empty.Select(s => s.RunPath).ToList();
+            var deviceFolder = devices.FirstOrDefault() ?? riderPath;
+            var repairedDetails = _repairs
+                .Where(r => string.Equals(Path.GetDirectoryName(r.RunPath), deviceFolder, StringComparison.OrdinalIgnoreCase))
+                .Select(r => $"{Path.GetFileName(r.RunPath)}: {r.MovedLaps.Count} orphaned lap folder(s) moved to {RunRepair.RemovedFolderName}")
+                .ToList();
+
             if (runs.Count == 0)
             {
-                Console.WriteLine($"Keine gültigen Runs gefunden in: {riderPath}");
                 var s = OracleStatus.Create(riderPath);
-                s.SetStep("discovery", StepStatus.Failed);
-                s.ExitCode = (int)OracleExitCode.DataNotFound;
+                if (corrupt.Count == 0 && empty.Count > 0)
+                {
+                    // Nur leere Runs: keine Messdaten, kein Fehler.
+                    Console.WriteLine($"[process-rider] {riderPath}: nur leere Runs (keine Lap-Daten) – nichts zu berechnen.");
+                    s.SetStep("discovery", StepStatus.Skipped, new Dictionary<string, object> { ["emptyRuns"] = emptyRuns.Select(Path.GetFileName).ToList() });
+                    s.ExitCode = (int)OracleExitCode.Success;
+                    s.Save(riderPath);
+                    return OracleExitCode.Success;
+                }
+
+                var code = corrupt.Count > 0 ? OracleExitCode.InvalidData : OracleExitCode.DataNotFound;
+                Console.WriteLine(corrupt.Count > 0
+                    ? $"Keine verarbeitbaren Runs in: {riderPath} – {corrupt.Count} beschädigte(r) Run-Ordner (siehe oben). In WinTAX reparieren, dann mit --force erneut ausführen."
+                    : $"Keine gültigen Runs gefunden in: {riderPath}");
+                s.SetStep("discovery", StepStatus.Failed, corrupt.Count > 0
+                    ? new Dictionary<string, object> { ["skippedRuns"] = skippedDetails }
+                    : null);
+                s.ExitCode = (int)code;
                 s.Save(riderPath);
-                return OracleExitCode.DataNotFound;
+                return code;
             }
 
             // Status/Idempotenz gehören in den Geräteordner (Elternordner der Runs, z.B. "…\AA01"),
             // nicht in einen ggf. übergeordneten Session-Ordner (z.B. "…\R1").
             var statusFolder = DetermineStatusFolder(riderPath, runs);
 
+            // Parallele ORACLE-Jobs (KRAKEN) dürfen nicht gleichzeitig in denselben Geräteordner schreiben.
+            using var processingLock = ProcessingLock.TryAcquire(statusFolder);
+            if (processingLock is null)
+            {
+                Console.WriteLine($"[process-rider] {statusFolder} wird gerade von einem anderen ORACLE-Prozess verarbeitet – später erneut versuchen.");
+                return OracleExitCode.ResourceLocked;
+            }
+
             if (!force && OracleStatus.IsAlreadyProcessed(statusFolder))
             {
-                Console.WriteLine("[process-rider] Bereits verarbeitet (oracle.status.json). Überspringe. (--force zum Erzwingen)");
-                return OracleExitCode.Success;
+                var lengthCheck = CheckProcessedTrackLength(runs, statusFolder);
+                if (lengthCheck is { } code)
+                {
+                    Console.WriteLine("[process-rider] Bereits verarbeitet (oracle.status.json). Überspringe. (--force zum Erzwingen)");
+                    return code == OracleExitCode.Success && corrupt.Count > 0 ? OracleExitCode.PartialSuccess : code;
+                }
             }
 
             var status = OracleStatus.Create(statusFolder);
+            status.SetStep("discovery", corrupt.Count > 0 ? StepStatus.Partial : StepStatus.Success, new Dictionary<string, object>
+            {
+                ["validRuns"] = runs.Count,
+                ["skippedRuns"] = skippedDetails,
+                ["emptyRuns"] = emptyRuns.Select(Path.GetFileName).ToList(),
+                ["repairedRuns"] = repairedDetails,
+            });
+            RecordInputs(status);
 
-            // Metadaten einmalig über einen repräsentativen Run ermitteln.
+            // Metadaten einmalig über einen repräsentativen Run ermitteln (alle Runs gehören zu genau einem Gerät).
             var metadata = await ResolveMetadataAsync(runs[0]);
             if (metadata == null)
             {
+                var code = _kompassInvalid ? OracleExitCode.InvalidData : OracleExitCode.DataNotFound;
                 Console.WriteLine("Metadaten konnten nicht ermittelt werden.");
                 status.SetStep("metadata", StepStatus.Failed);
-                status.ExitCode = (int)OracleExitCode.DataNotFound;
+                status.ExitCode = (int)code;
                 status.Save(statusFolder);
-                return OracleExitCode.DataNotFound;
+                return code;
             }
-            status.SetStep("metadata", StepStatus.Success, new Dictionary<string, object>
-            {
-                ["bikeName"] = metadata.BikeName,
-                ["riderName"] = metadata.RiderName,
-            });
+            SetMetadataStep(status, metadata);
 
-            // .HED in jedem Run-Ordner sicherstellen (kanonischer Name, normalisierter Inhalt).
-            new HedFileService().EnsureHedInAllRuns(runs, statusFolder, metadata);
+            // Track-Länge vorab bestimmen (auch für die relative Distanzschwelle der Renn-Erkennung).
+            var lengthGate = TrackLengthGate.FromConfig(_config);
+            var knownLength = ResolveKnownTrackLength(lengthGate, metadata);
+
+            // .HED in jedem Run-Ordner sicherstellen (kanonischer Name, normalisierter Inhalt) – auch in leeren Runs.
+            var allRuns = runs.Concat(emptyRuns).ToList();
+            new HedFileService().EnsureHedInAllRuns(allRuns, statusFolder, metadata);
+            SetEmptyRunProperties(emptyRuns, metadata);
 
             // Optional: Runs per GPS-Ziellinie in Laps aufteilen (Flag --gps-split), vor der Stint-Verarbeitung.
             if (gpsSplit)
@@ -532,7 +659,7 @@ namespace Ktm.Racing.Oracle
             double trackLength = ParseTrackLength(metadata.TrackLength);
 
             var stintProcessor = new RaceStintProcessor(
-                new RaceSegmentDetector(_browse, _config.RaceDetection));
+                new RaceSegmentDetector(_browse, _config.RaceDetection, _config.Gps));
             var result = stintProcessor.ProcessRider(riderPath, metadata, trackLength);
 
             status.SetStep("raceDetection", StepStatus.Success, new Dictionary<string, object>
@@ -541,20 +668,76 @@ namespace Ktm.Racing.Oracle
                 ["nonRaceRuns"] = result.NonRaceRunCount,
                 ["totalRuns"] = runs.Count,
             });
-            status.SetStep("stint", result.RaceRunCount > 0 ? StepStatus.Success : StepStatus.Partial,
+            status.SetStep("stint", result.FailedRuns.Count > 0 || result.RaceRunCount == 0 ? StepStatus.Partial : StepStatus.Success,
                 new Dictionary<string, object>
                 {
                     ["totalRaceLaps"] = result.TotalRaceLaps,
                     ["totalRaceDistanceMeters"] = Math.Round(result.TotalRaceDistanceMeters, 1),
+                    ["failedRuns"] = result.FailedRuns,
                 });
 
-            status.ExitCode = (int)OracleExitCode.Success;
+            // --- Track-Länge prüfen/schätzen: ohne eindeutige Länge darf MotoDB nicht laufen ---
+            var lengthExit = FinishTrackLength(lengthGate, knownLength, metadata, allRuns, statusFolder,
+                result.LapDistancesPerRun, statusFolder, status);
+            if (lengthExit != OracleExitCode.Success)
+            {
+                status.ExitCode = (int)lengthExit;
+                status.Save(statusFolder);
+                return lengthExit;
+            }
+
+            var exit = corrupt.Count > 0 || result.FailedRuns.Count > 0 ? OracleExitCode.PartialSuccess : OracleExitCode.Success;
+            status.ExitCode = (int)exit;
             status.Save(statusFolder);
 
             Console.WriteLine(
                 $"[process-rider] Abgeschlossen: {result.RaceRunCount} Renn-Run(s), " +
-                $"{result.TotalRaceLaps} Renn-Laps, {result.TotalRaceDistanceMeters:F0} m Gesamtdistanz.");
-            return OracleExitCode.Success;
+                $"{result.TotalRaceLaps} Renn-Laps, {result.TotalRaceDistanceMeters:F0} m Gesamtdistanz." +
+                (repairedDetails.Count > 0 ? $" {repairedDetails.Count} Run(s) repariert." : string.Empty) +
+                (empty.Count > 0 ? $" {empty.Count} leere(r) Run(s) (nur Metadaten)." : string.Empty) +
+                (corrupt.Count > 0 ? $" {corrupt.Count} beschädigte(r) Run-Ordner NICHT verarbeitet." : string.Empty) +
+                (result.FailedRuns.Count > 0 ? $" {result.FailedRuns.Count} Run(s) fehlgeschlagen." : string.Empty));
+            return exit;
+        }
+
+        /// <summary>Setzt in leeren Runs (keine Lap-Daten) die Run-Metadaten (Car.xml, Session.xml), damit sie konsistent benannt sind.</summary>
+        private static void SetEmptyRunProperties(IReadOnlyList<string> emptyRuns, RunMetadata metadata)
+        {
+            var xml = new XmlRunEditor();
+            foreach (var run in emptyRuns)
+                xml.SetRunProperties(run, metadata.BikeName, metadata.TrackName, metadata.TrackLength, metadata.RiderName);
+        }
+
+        /// <summary>Schreibt den Metadaten-Schritt; ohne aufgelösten Rider (KOMPASS) ist er nur teilweise erfolgreich.</summary>
+        private static void SetMetadataStep(OracleStatus status, RunMetadata metadata)
+        {
+            var details = new Dictionary<string, object>
+            {
+                ["bikeName"] = metadata.BikeName,
+                ["riderName"] = metadata.RiderName,
+                ["teamName"] = metadata.TeamName,
+                ["seasonName"] = metadata.SeasonName,
+                ["disciplineName"] = metadata.DisciplineName,
+                ["trackName"] = metadata.TrackName,
+            };
+            var complete = !string.IsNullOrWhiteSpace(metadata.RiderName) && !string.IsNullOrWhiteSpace(metadata.TrackName);
+            if (!complete)
+                Console.WriteLine("[metadata] ⚠️ Metadaten unvollständig (Rider oder Track nicht aufgelöst) – in KODE pflegen.");
+            status.SetStep("metadata", complete ? StepStatus.Success : StepStatus.Partial, details);
+        }
+
+        /// <summary>Protokolliert den Datenstand der Eingaben (KOMPASS, loadChannels) in Log und Status.</summary>
+        private void RecordInputs(OracleStatus status)
+        {
+            var kompass = InputFingerprint.Describe(_config.DatabaseFilePath);
+            var workbook = InputFingerprint.Describe(_config.MotoDbLoadChannelsPath);
+            Console.WriteLine($"[inputs] KOMPASS: {kompass}");
+            Console.WriteLine($"[inputs] loadChannels: {workbook}");
+            status.SetStep("inputs", StepStatus.Success, new Dictionary<string, object>
+            {
+                ["kompass"] = kompass,
+                ["loadChannels"] = workbook,
+            });
         }
 
         /// <summary>
@@ -579,46 +762,314 @@ namespace Ktm.Racing.Oracle
                 System.Globalization.CultureInfo.InvariantCulture, out double m) ? m : 0.0;
 
         /// <summary>
-        /// Teilt die angegebenen Runs per GPS-Ziellinie in Laps: ermittelt die Ziellinie aus KOMPASS
-        /// (Track-Koordinate) und schreibt die Lap-Grenzen headless über <see cref="GpsLapSplitService"/>.
-        /// Non-fatal: ohne Ziellinie oder GPS wird übersprungen, ein Fehler stoppt die Pipeline nicht.
+        /// Bestimmt die Track-Länge vor den Berechnungen aus KOMPASS, CIRCUITS, .HED oder offenen Vorschlägen
+        /// und übernimmt sie in die Metadaten (für .HED, Session.xml und Renn-Erkennung).
         /// </summary>
-        private async Task RunGpsLapSplitAsync(IReadOnlyList<string> runs, RunMetadata metadata, OracleStatus status)
+        private static TrackLengthDecision ResolveKnownTrackLength(TrackLengthGate gate, RunMetadata metadata)
         {
-            var finishLine = await ResolveFinishLineAsync(metadata);
-            if (finishLine is not { } line)
-            {
-                Console.WriteLine($"[gps-split] Übersprungen: keine Ziellinie in KOMPASS für Track \"{metadata.TrackName}\" (Lat/Lon leer?).");
-                status.SetStep("gpsSplit", StepStatus.Skipped, new Dictionary<string, object> { ["reason"] = "no finish line" });
-                return;
-            }
-
-            var service = new GpsLapSplitService();
-            var options = _config.GpsLapSplit.ToOptions();
-            int split = 0, skipped = 0, failed = 0;
-            foreach (var run in runs)
-            {
-                var outcome = service.SplitRun(run, line, options);
-                Console.WriteLine($"[gps-split] {Path.GetFileName(run)}: {outcome.Message}");
-                switch (outcome.Status)
-                {
-                    case GpsLapSplitOutcomeStatus.Split: split++; break;
-                    case GpsLapSplitOutcomeStatus.Failed: failed++; break;
-                    default: skipped++; break;
-                }
-            }
-
-            Console.WriteLine($"[gps-split] Abgeschlossen: {split} gesplittet, {skipped} übersprungen, {failed} Fehler.");
-            status.SetStep("gpsSplit", failed == 0 ? StepStatus.Success : StepStatus.Partial, new Dictionary<string, object>
-            {
-                ["split"] = split,
-                ["skipped"] = skipped,
-                ["failed"] = failed,
-            });
+            var known = gate.ResolveKnown(metadata.TrackName, metadata.TrackLength);
+            if (known.LengthMeters is not null)
+                metadata.TrackLength = known.LengthText;
+            Console.WriteLine($"[trackLength] {known.Message}");
+            return known;
         }
 
         /// <summary>
-        /// Ermittelt die Ziellinien-Koordinate für den Track der Metadaten aus KOMPASS.
+        /// Schließt die Track-Längen-Prüfung ab (ggf. Schätzung aus den Rundendistanzen), schreibt eine geänderte
+        /// Länge in .HED und Session.xml aller Runs und liefert den Exit-Code: <see cref="OracleExitCode.Success"/>,
+        /// <see cref="OracleExitCode.ResourceLocked"/> (loadChannels.xlsx gesperrt) oder
+        /// <see cref="OracleExitCode.TrackLengthMissing"/> (keine eindeutige Länge, MotoDB darf nicht laufen).
+        /// </summary>
+        private OracleExitCode FinishTrackLength(TrackLengthGate gate, TrackLengthDecision known, RunMetadata metadata,
+            IReadOnlyList<string> runs, string hedFolder, IEnumerable<IReadOnlyList<double>> lapDistances,
+            string origin, OracleStatus status)
+        {
+            // Reichen die eigenen Runden nicht, werden die Runden bereits verarbeiteter Runs desselben Events genutzt.
+            var eventFolder = runs.Count > 0 ? LapHistory.FindEventFolder(runs[0], metadata.EventName) : null;
+            Func<IEnumerable<IReadOnlyList<double>>>? eventLaps = eventFolder is null
+                ? null
+                : () => LapHistory.ReadProcessedLapDistances(eventFolder, runs);
+
+            var decision = gate.Complete(known, metadata, lapDistances, origin, eventLaps);
+            foreach (var warning in decision.Warnings)
+                Console.WriteLine($"[trackLength] ⚠️ {warning}");
+            Console.WriteLine($"[trackLength] {decision.Status}: {decision.Message}");
+
+            var data = new Dictionary<string, object>
+            {
+                ["source"] = decision.Source.ToString(),
+                ["provisional"] = decision.Provisional,
+            };
+            if (decision.LengthMeters is { } meters)
+                data["lengthMeters"] = meters;
+
+            switch (decision.Status)
+            {
+                case TrackLengthGateStatus.Locked:
+                    status.SetStep("trackLength", StepStatus.Failed, data);
+                    return OracleExitCode.ResourceLocked;
+
+                case TrackLengthGateStatus.Missing:
+                    status.SetStep("trackLength", StepStatus.Failed, data);
+                    if (!_config.TrackLength.Enforce)
+                        return OracleExitCode.Success;
+                    Console.WriteLine("[trackLength] Keine eindeutige Track-Länge – MotoDB wird nicht gestartet. Länge in KODE eintragen und erneut ausführen.");
+                    return OracleExitCode.TrackLengthMissing;
+            }
+
+            if (!string.Equals(decision.LengthText, metadata.TrackLength, StringComparison.Ordinal))
+            {
+                metadata.TrackLength = decision.LengthText;
+                new HedFileService().EnsureHedInAllRuns(runs, hedFolder, metadata);
+                var xml = new XmlRunEditor();
+                foreach (var run in runs)
+                    xml.SetTrackLength(run, metadata.TrackLength);
+            }
+
+            status.SetStep("trackLength", StepStatus.Success, data);
+            return OracleExitCode.Success;
+        }
+
+        /// <summary>
+        /// Prüft bei bereits verarbeiteten Runs (Idempotenz-Skip) die Track-Länge: ist sie bekannt – oder aus den bereits
+        /// geschriebenen Rundendistanzen (eigene Runs + Event) schätzbar –, werden .HED, Session.xml und CIRCUITS bei
+        /// Abweichung nachgezogen und der Status aktualisiert (auch nach Exit 5/6: keine Vollverarbeitung nötig).
+        /// <c>null</c> = keine Länge und keine gespeicherten Rundendistanzen → vollständig neu verarbeiten.
+        /// </summary>
+        private OracleExitCode? CheckProcessedTrackLength(IReadOnlyList<string> runs, string origin)
+        {
+            var hedFile = runs
+                .Where(Directory.Exists)
+                .Select(r => Directory.EnumerateFiles(r, "*.HED", SearchOption.TopDirectoryOnly).FirstOrDefault())
+                .FirstOrDefault(f => f is not null);
+            if (hedFile is null)
+                return OracleExitCode.Success;
+
+            var hed = new HedFileService();
+            var metadata = hed.ReadMetadata(hedFile);
+            if (string.IsNullOrEmpty(metadata.EventName) && runs.Count > 0)
+                metadata.EventName = _browse.GetEventName(runs[0]) ?? "";
+            var gate = TrackLengthGate.FromConfig(_config);
+            var known = gate.ResolveKnown(metadata.TrackName, metadata.TrackLength);
+            var previous = OracleStatus.Load(origin);
+
+            var ownLaps = LapHistory.ReadLapDistances(runs);
+            if (known.Status != TrackLengthGateStatus.Ok && ownLaps.Count == 0 && previous?.ExitCode is not (5 or 6))
+            {
+                Console.WriteLine($"[trackLength] {known.Message} Bereits verarbeitet, aber ohne Länge und ohne Rundendistanzen – verarbeite erneut.");
+                return null;
+            }
+
+            var eventFolder = runs.Count > 0 ? LapHistory.FindEventFolder(runs[0], metadata.EventName) : null;
+            var decision = gate.Complete(known, metadata, ownLaps, origin,
+                eventFolder is null ? null : () => LapHistory.ReadProcessedLapDistances(eventFolder, runs));
+            foreach (var warning in decision.Warnings)
+                Console.WriteLine($"[trackLength] ⚠️ {warning}");
+            if (decision.Status == TrackLengthGateStatus.Locked)
+                return OracleExitCode.ResourceLocked;
+            if (decision.Status == TrackLengthGateStatus.Missing)
+            {
+                Console.WriteLine($"[trackLength] {decision.Message}");
+                return _config.TrackLength.Enforce ? OracleExitCode.TrackLengthMissing : OracleExitCode.Success;
+            }
+
+            var changed = !string.Equals(decision.LengthText, metadata.TrackLength, StringComparison.Ordinal);
+            if (changed)
+            {
+                Console.WriteLine($"[trackLength] Länge geändert: {(metadata.TrackLength.Length == 0 ? "(leer)" : metadata.TrackLength)} → {decision.LengthText} m ({decision.Source}).");
+                var xml = new XmlRunEditor();
+                foreach (var run in runs)
+                {
+                    hed.SetTrackLength(run, decision.LengthText);
+                    xml.SetTrackLength(run, decision.LengthText);
+                }
+            }
+
+            // Korrektur / nachgeholte Länge im Status nachvollziehbar festhalten.
+            if (previous is not null && (changed || previous.ExitCode is 5 or 6))
+            {
+                var details = new Dictionary<string, object>
+                {
+                    ["source"] = decision.Source.ToString(),
+                    ["provisional"] = decision.Provisional,
+                    ["lengthMeters"] = decision.LengthMeters!.Value,
+                    ["correctedAtUtc"] = DateTime.UtcNow,
+                };
+                if (changed && metadata.TrackLength.Length > 0)
+                    details["correctedFrom"] = metadata.TrackLength;
+                previous.SetStep("trackLength", StepStatus.Success, details);
+                if (previous.ExitCode is 5 or 6)
+                {
+                    var discoveryPartial = previous.Steps.TryGetValue("discovery", out var d) && d.Status == StepStatus.Partial;
+                    previous.ExitCode = (int)(discoveryPartial ? OracleExitCode.PartialSuccess : OracleExitCode.Success);
+                    Console.WriteLine("[trackLength] Länge nachgeholt – Status auf erfolgreich gesetzt (keine Vollverarbeitung nötig).");
+                }
+                previous.Save(origin);
+            }
+
+            // Untergrund aus KOMPASS nachziehen, falls er sich geändert hat.
+            var surface = gate.KompassSurface(metadata.TrackName);
+            if (surface.Length > 0 && !string.Equals(surface, metadata.Surface, StringComparison.Ordinal))
+            {
+                Console.WriteLine($"[hed] Untergrund geändert: \"{metadata.Surface}\" → \"{surface}\".");
+                foreach (var run in runs)
+                    hed.SetTrackSurface(run, surface);
+            }
+
+            return OracleExitCode.Success;
+        }
+
+        /// <summary>
+        /// Teilt die angegebenen Runs per GPS-Ziellinie in Laps (<see cref="GpsLapSplitService"/>): eine Ziellinie für alle Runs
+        /// des Tracks aus der KOMPASS-Koordinate, Erkennung bereits geteilter Runs, Schreiben mit Sicherung und Rollback.
+        /// Non-fatal: ohne Ziellinie oder GPS wird übersprungen, ein Fehler stoppt die Pipeline nicht.
+        /// </summary>
+        private async Task<IReadOnlyList<GpsLapSplitOutcome>> RunGpsLapSplitAsync(IReadOnlyList<string> runs, RunMetadata metadata,
+            OracleStatus? status, bool dryRun = false, bool lockRuns = false)
+        {
+            var reference = await ResolveFinishLineAsync(metadata);
+            if (reference is not { } point)
+            {
+                Console.WriteLine($"[gps-split] Übersprungen: keine Koordinate in KOMPASS für Track \"{metadata.TrackName}\" – Lat/Lon in KODE eintragen.");
+                status?.SetStep("gpsSplit", StepStatus.Skipped, new Dictionary<string, object> { ["reason"] = "no track coordinate in KOMPASS" });
+                return [];
+            }
+
+            var service = new GpsLapSplitService(_config.GpsLapSplit, lockRuns: lockRuns, gps: _config.Gps);
+            var (line, outcomes) = service.SplitRuns(runs, point, dryRun);
+            Console.WriteLine(line.Line is { } l
+                ? $"[gps-split] Ziellinie {metadata.TrackName}: {line.Message} " +
+                  $"Mitte {l.Center.Latitude:0.0000000}, {l.Center.Longitude:0.0000000}, Länge {l.LengthMeters:0} m."
+                : $"[gps-split] Keine Ziellinie: {line.Message}");
+
+            foreach (var outcome in outcomes)
+            {
+                var icon = outcome.Status switch
+                {
+                    GpsLapSplitOutcomeStatus.Failed => "❌ ",
+                    GpsLapSplitOutcomeStatus.Split or GpsLapSplitOutcomeStatus.Planned => "✂ ",
+                    _ => string.Empty,
+                };
+                Console.WriteLine($"[gps-split] {icon}{Path.GetFileName(outcome.RunPath)}: {outcome.Message}");
+            }
+
+            var split = outcomes.Count(o => o.Status is GpsLapSplitOutcomeStatus.Split or GpsLapSplitOutcomeStatus.Planned);
+            var failed = outcomes.Count(o => o.Status == GpsLapSplitOutcomeStatus.Failed);
+            var skipped = outcomes.Count - split - failed;
+            Console.WriteLine($"[gps-split] Abgeschlossen{(dryRun ? " (Probelauf, nichts geschrieben)" : string.Empty)}: " +
+                              $"{split} {(dryRun ? "zu teilen" : "geteilt")}, {skipped} übersprungen, {failed} Fehler.");
+
+            status?.SetStep("gpsSplit", failed > 0 ? StepStatus.Partial : split == 0 ? StepStatus.Skipped : StepStatus.Success,
+                new Dictionary<string, object>
+                {
+                    ["split"] = split,
+                    ["skipped"] = skipped,
+                    ["failed"] = failed,
+                    ["finishLine"] = line.Message,
+                    ["runs"] = outcomes.Select(o => $"{Path.GetFileName(o.RunPath)}: {o.Status} – {o.Message}").ToList(),
+                });
+            return outcomes;
+        }
+
+        /// <summary>
+        /// Command <c>split-laps</c>: teilt alle Runs unter <paramref name="path"/> (Event-, Session-, Geräte- oder Run-Ordner)
+        /// per GPS-Ziellinie in Laps; <paramref name="dryRun"/> zeigt nur, was passieren würde; <paramref name="undo"/> stellt
+        /// die Original-Laps der letzten Teilung wieder her. Sperrt die Geräteordner während der Arbeit.
+        /// </summary>
+        public async Task<OracleExitCode> SplitLapsAsync(string path, bool dryRun, bool undo)
+        {
+            if (!Directory.Exists(path))
+            {
+                Console.WriteLine($"Der angegebene Pfad existiert nicht: {path}");
+                return OracleExitCode.DataNotFound;
+            }
+
+            var runs = RunFolderInspector.FindRunFolders(path);
+            if (runs.Count == 0)
+            {
+                Console.WriteLine($"[split-laps] Keine Run-Ordner gefunden in: {path}");
+                return OracleExitCode.DataNotFound;
+            }
+
+            var locks = new List<ProcessingLock>();
+            try
+            {
+                var lockedRuns = new List<string>();
+                foreach (var device in runs.GroupBy(r => Path.GetDirectoryName(r)!, StringComparer.OrdinalIgnoreCase))
+                {
+                    if (ProcessingLock.TryAcquire(device.Key) is { } deviceLock)
+                    {
+                        locks.Add(deviceLock);
+                        lockedRuns.AddRange(device);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[split-laps] {device.Key} wird gerade von einem anderen ORACLE-Prozess verarbeitet – übersprungen.");
+                    }
+                }
+
+                if (lockedRuns.Count == 0)
+                    return OracleExitCode.ResourceLocked;
+                var lockedOut = lockedRuns.Count < runs.Count;
+
+                if (undo)
+                {
+                    int restored = 0, failedUndo = 0;
+                    foreach (var run in lockedRuns)
+                    {
+                        using var runLock = ProcessingLock.TryAcquire(run);
+                        var result = runLock is null
+                            ? new SplitUndoResult(false, "the run is being processed by another ORACLE process – try again later")
+                            : LapSplitStore.Undo(run);
+                        Console.WriteLine($"[split-laps] {Path.GetFileName(run)}: {(result.Success ? "✔ " : string.Empty)}{result.Message}");
+                        if (result.Success) restored++;
+                        else if (LapSplitStore.FindLatestSplit(run).Manifest is not null) failedUndo++;
+                    }
+
+                    Console.WriteLine($"[split-laps] Rückgängig: {restored} Run(s) wiederhergestellt, {failedUndo} Fehler.");
+                    return failedUndo > 0 || lockedOut ? OracleExitCode.PartialSuccess : OracleExitCode.Success;
+                }
+
+                // Eine Ziellinie je Track: Runs nach Event-Ordner gruppieren. Track ohne Seiteneffekte aus dem Event-Ordner
+                // (die volle Metadaten-Ermittlung legt ggf. .HED-Dateien an und wird nur ohne Probelauf als Rückfall genutzt).
+                var outcomes = new List<GpsLapSplitOutcome>();
+                var unresolved = 0;
+                foreach (var eventRuns in lockedRuns.GroupBy(r => KompassService.ParseEventFromPath(r)?.EventName ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+                {
+                    var group = eventRuns.ToList();
+                    var metadata = KompassService.ParseEventFromPath(group[0]);
+                    if (metadata is null && !dryRun)
+                        metadata = await ResolveMetadataAsync(group[0]);
+                    if (metadata is null || string.IsNullOrWhiteSpace(metadata.TrackName))
+                    {
+                        Console.WriteLine($"[split-laps] Track für {group.Count} Run(s) nicht ermittelbar (Event-Ordner im Format RT37_CHN-Shanghai erwartet), z.B. {group[0]}.");
+                        unresolved += group.Count;
+                        continue;
+                    }
+
+                    Console.WriteLine($"[split-laps] Track: {metadata.TrackName} ({metadata.CountryCode}), {group.Count} Run(s){(dryRun ? ", Probelauf" : string.Empty)}.");
+                    var groupOutcomes = await RunGpsLapSplitAsync(group, metadata, null, dryRun, lockRuns: true);
+                    if (groupOutcomes.Count == 0)
+                        unresolved += group.Count;
+                    outcomes.AddRange(groupOutcomes);
+                }
+
+                if (outcomes.Count == 0)
+                    return _kompassInvalid ? OracleExitCode.InvalidData : OracleExitCode.DataNotFound;
+                var failed = outcomes.Count(o => o.Status == GpsLapSplitOutcomeStatus.Failed);
+                return failed == outcomes.Count ? OracleExitCode.GeneralError
+                    : failed > 0 || lockedOut || unresolved > 0 ? OracleExitCode.PartialSuccess
+                    : OracleExitCode.Success;
+            }
+            finally
+            {
+                foreach (var held in locks)
+                    held.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Ermittelt die Track-Koordinate (Referenz für die Ziellinie) aus KOMPASS – schreibweisen-tolerant, Land bevorzugt.
         /// Gibt <c>null</c> zurück, wenn KOMPASS fehlt oder der Track keine Lat/Lon-Werte hat.
         /// </summary>
         private async Task<GeoCoordinate?> ResolveFinishLineAsync(RunMetadata metadata)
@@ -636,7 +1087,7 @@ namespace Ktm.Racing.Oracle
             if (!await kompass.LoadAsync(_config.DatabaseFilePath))
                 return null;
 
-            return kompass.FindFinishLineByTrack(metadata.TrackName);
+            return kompass.FindFinishLineByTrack(metadata.TrackName, metadata.CountryCode);
         }
 
         /// <summary>
@@ -778,6 +1229,7 @@ namespace Ktm.Racing.Oracle
 
             RunMetadata metadata;
             var hedService = new HedFileService();
+            _kompassInvalid = false;
 
             // --- Versuch 1: .HED-Datei suchen ---
             var hedFilePath = hedService.FindAndPrepareHedFile(runPath, riderPath);
@@ -785,6 +1237,8 @@ namespace Ktm.Racing.Oracle
             {
                 Console.WriteLine("Metadaten werden aus .HED-Datei geladen.");
                 metadata = hedService.ReadMetadata(hedFilePath);
+                EnrichPathMetadata(metadata, runPath);
+                await CompleteFromKompassAsync(metadata, runPath);
             }
             else
             {
@@ -800,17 +1254,49 @@ namespace Ktm.Racing.Oracle
 
                 var kompass = new KompassService();
                 if (!await kompass.LoadAsync(_config.DatabaseFilePath))
+                {
+                    _kompassInvalid = kompass.LastLoadInvalid;
                     return null;
+                }
 
                 metadata = kompass.BuildMetadata(runPath, _browse, _config.TeamMappings);
+                EnrichPathMetadata(metadata, runPath);
                 hedService.WriteHedFile(runPath, metadata);
             }
 
-            // Für den kanonischen .HED-Dateinamen benötigte Pfad-Felder sicherstellen
-            // (die minimale .HED enthält Season/Event/Session nicht).
-            EnrichPathMetadata(metadata, runPath);
             await EnrichTrackMetadataAsync(metadata);
             return metadata;
+        }
+
+        /// <summary>
+        /// Ergänzt aus einer .HED gelesene Metadaten um fehlende Felder aus Pfad + KOMPASS (z.B. leerer riderName
+        /// oder Team/Saison/Disziplin aus einer älteren .HED). Vorhandene .HED-Werte bleiben unverändert. Non-fatal.
+        /// </summary>
+        private async Task CompleteFromKompassAsync(RunMetadata metadata, string runPath)
+        {
+            if (!File.Exists(_config.DatabaseFilePath))
+                return;
+
+            var kompass = new KompassService();
+            if (!await kompass.LoadAsync(_config.DatabaseFilePath))
+                return;
+
+            var derived = new RunMetadata
+            {
+                EventName = metadata.EventName,
+                SessionName = metadata.SessionName,
+                BikeName = metadata.BikeName,
+                RunNumber = metadata.RunNumber,
+            };
+            kompass.CompleteFromPathAndKompass(derived, runPath, _config.TeamMappings);
+
+            var differences = MetadataMerger.Merge(metadata, derived, _config.PreferHedMetadata);
+            foreach (var d in differences)
+            {
+                Console.WriteLine(_config.PreferHedMetadata
+                    ? $"[metadata] ⚠️ {d.Field}: .HED \"{d.HedValue}\" weicht von KOMPASS \"{d.KompassValue}\" ab – .HED-Wert bleibt (PreferHedMetadata)."
+                    : $"[metadata] {d.Field}: .HED \"{d.HedValue}\" → \"{d.KompassValue}\" (KOMPASS/Pfad).");
+            }
         }
 
         /// <summary>

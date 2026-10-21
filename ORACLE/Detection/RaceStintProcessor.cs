@@ -1,4 +1,4 @@
-namespace Ktm.Racing.Oracle
+﻿namespace Ktm.Racing.Oracle
 {
     /// <summary>Zusammenfassung der renn-bewussten Verarbeitung eines Rider-Ordners (Option C).</summary>
     public sealed class RaceStintResult
@@ -17,6 +17,15 @@ namespace Ktm.Racing.Oracle
 
         /// <summary>Pfade der als Rennen verarbeiteten Runs (in chronologischer Reihenfolge).</summary>
         public IReadOnlyList<string> RaceRunPaths { get; init; } = [];
+
+        /// <summary>GPS-Distanz je Lap [m] für jeden verarbeiteten Run (Grundlage der Track-Längen-Schätzung).</summary>
+        public IReadOnlyList<IReadOnlyList<double>> LapDistancesPerRun { get; init; } = [];
+
+        /// <summary>Alle verarbeiteten Run-Pfade (Renn- und Nicht-Renn-Runs).</summary>
+        public IReadOnlyList<string> ProcessedRunPaths { get; init; } = [];
+
+        /// <summary>Runs, deren Verarbeitung fehlschlug (Name: Ursache); die übrigen Runs wurden trotzdem verarbeitet.</summary>
+        public IReadOnlyList<string> FailedRuns { get; init; } = [];
     }
 
     /// <summary>
@@ -64,7 +73,10 @@ namespace Ktm.Racing.Oracle
             Console.WriteLine($"[stint] {raceRuns.Count} Renn-Run(s), {nonRaceRuns.Count} Nicht-Renn-Run(s).");
 
             var xmlEditor = new XmlRunEditor();
-            var calculator = new ImportDataCalculator();
+            var calculator = new ImportDataCalculator(_detector.Gps);
+            var lapDistancesPerRun = new List<IReadOnlyList<double>>();
+            var processedRuns = new List<string>();
+            var failedRuns = new List<string>();
 
             // --- Renn-Runs: durchgehende Distanz + fortlaufende Lap-Nummerierung ---
             double distanceOffset = 0.0;
@@ -76,27 +88,48 @@ namespace Ktm.Racing.Oracle
 
                 // Berechnung ZUERST (schreibt importData.ztx + RunLapHeader-Overlay und liefert die
                 // per-Lap-Distanzen), danach die XML-Properties mit fortlaufender Lap-Nummerierung.
-                var calc = calculator.RunCalculationPipeline(run.RunPath, distanceOffset);
-                int laps = xmlEditor.SetRunProperties(
-                    run.RunPath, metadata.BikeName, metadata.TrackName,
-                    metadata.TrackLength, metadata.RiderName, lapOffset, isLast, calc.LapDistancesMeters);
+                try
+                {
+                    var calc = calculator.RunCalculationPipeline(run.RunPath, distanceOffset);
+                    lapDistancesPerRun.Add(calc.LapDistancesMeters);
+                    processedRuns.Add(run.RunPath);
+                    int laps = xmlEditor.SetRunProperties(
+                        run.RunPath, metadata.BikeName, metadata.TrackName,
+                        metadata.TrackLength, metadata.RiderName, lapOffset, isLast, calc.LapDistancesMeters);
 
-                Console.WriteLine(
-                    $"[stint] {run.RunFolderName}: Laps {lapOffset + 1}..{lapOffset + laps}, " +
-                    $"sVehicle {distanceOffset:F0}..{distanceOffset + calc.RunDistanceMeters:F0} m");
+                    Console.WriteLine(
+                        $"[stint] {run.RunFolderName}: Laps {lapOffset + 1}..{lapOffset + laps}, " +
+                        $"sVehicle {distanceOffset:F0}..{distanceOffset + calc.RunDistanceMeters:F0} m");
 
-                lapOffset += laps;
-                distanceOffset += calc.RunDistanceMeters;
+                    lapOffset += laps;
+                    distanceOffset += calc.RunDistanceMeters;
+                }
+                catch (Exception ex)
+                {
+                    // Ein defekter Run darf die übrigen Runs des Geräts nicht verhindern.
+                    Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: Verarbeitung fehlgeschlagen – {ex.Message}");
+                    failedRuns.Add($"{run.RunFolderName}: {ex.Message}");
+                }
             }
 
             // --- Nicht-Renn-Runs: eigenständig (Offset 0), unverändertes Verhalten ---
             foreach (var run in nonRaceRuns)
             {
                 Console.WriteLine($"[stint] {run.RunFolderName}: kein Rennen ({run.Reason}) — eigenständige Verarbeitung.");
-                var calc = calculator.RunCalculationPipeline(run.RunPath);
-                xmlEditor.SetRunProperties(
-                    run.RunPath, metadata.BikeName, metadata.TrackName,
-                    metadata.TrackLength, metadata.RiderName, 0, true, calc.LapDistancesMeters);
+                try
+                {
+                    var calc = calculator.RunCalculationPipeline(run.RunPath);
+                    lapDistancesPerRun.Add(calc.LapDistancesMeters);
+                    processedRuns.Add(run.RunPath);
+                    xmlEditor.SetRunProperties(
+                        run.RunPath, metadata.BikeName, metadata.TrackName,
+                        metadata.TrackLength, metadata.RiderName, 0, true, calc.LapDistancesMeters);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: Verarbeitung fehlgeschlagen – {ex.Message}");
+                    failedRuns.Add($"{run.RunFolderName}: {ex.Message}");
+                }
             }
 
             return new RaceStintResult
@@ -106,6 +139,9 @@ namespace Ktm.Racing.Oracle
                 TotalRaceLaps = lapOffset,
                 TotalRaceDistanceMeters = distanceOffset,
                 RaceRunPaths = raceRuns.Select(r => r.RunPath).ToList().AsReadOnly(),
+                LapDistancesPerRun = lapDistancesPerRun,
+                ProcessedRunPaths = processedRuns,
+                FailedRuns = failedRuns,
             };
         }
 

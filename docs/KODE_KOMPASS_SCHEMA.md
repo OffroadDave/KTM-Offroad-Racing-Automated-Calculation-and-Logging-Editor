@@ -114,10 +114,10 @@ Ergebnis:  metadata.RiderName = "Max Mustermann"
 
 | Kontext | Pfad |
 |---------|------|
-| KODE Speicherort 1 | Vom Benutzer gewählt (SaveFileDialog) |
-| KODE Speicherort 2 (Backup) | `C:\Users\{user}\OneDrive - PIERER Mobility AG\Datenbank\KOMPASS.json` |
-| KODE Speicherort 3 (ORACLE) | `C:\KTM Tools\KTM Offroad Racing Shared Resources\SoftwareDB\KOMPASS.json` *(auto, falls Verzeichnis existiert)* |
-| ORACLE Lesepfad (Default) | `C:\KTM Tools\KTM Offroad Racing Shared Resources\SoftwareDB\KOMPASS.json` |
+| KODE Master | Team-Master `%OneDriveCommercial%\Workstation - OffroadSync\DevProjects\KTM Internal Software Tools\resources\KOMPASS.json` |
+| KODE lokale Kopie (ORACLE) | `C:\KTM Tools\KTM Offroad Racing Shared Resources\DistributedTools\resources\KOMPASS.json` *(auto, falls Verzeichnis existiert)* |
+| KODE Release-Kopie | `C:\Dev\KTM Offroad Racing Shared Resources\Source\DistributedTools\resources\KOMPASS.json` *(nur Release-Verantwortliche)* |
+| ORACLE Lesepfad (Default) | `C:\KTM Tools\KTM Offroad Racing Shared Resources\DistributedTools\resources\KOMPASS.json` |
 | ORACLE Config | `oracle-config.json` → `DatabaseDirectory` + `DatabaseFileName` |
 
 ## Datenqualitätssicherung

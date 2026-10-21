@@ -43,13 +43,23 @@ public static class MotoDbInputSync
         {
             database = new KompassRepository().Load(kompassPath);
         }
+        catch (Exception ex) when (ex is not IOException)
+        {
+            Console.WriteLine($"KOMPASS ist ungültig und kann nicht gelesen werden: {ex.Message}");
+            return OracleExitCode.InvalidData;
+        }
         catch (Exception ex)
         {
             Console.WriteLine($"KOMPASS konnte nicht geladen werden: {ex.Message}");
             return OracleExitCode.GeneralError;
         }
 
-        var result = new LoadChannelsWriter().Sync(database, new LoadChannelsOptions { WorkbookPath = workbookPath });
+        Console.WriteLine($"[sync-motodb] KOMPASS-Stand:  {InputFingerprint.Describe(kompassPath)}");
+        Console.WriteLine($"[sync-motodb] Workbook-Stand: {InputFingerprint.Describe(workbookPath)}");
+
+        var result = WorkbookGuard.WriteWithRetry(
+            () => new LoadChannelsWriter().Sync(database, new LoadChannelsOptions { WorkbookPath = workbookPath }),
+            TimeSpan.FromSeconds(Math.Max(0, config.TrackLength.LockWaitSeconds)));
         Console.WriteLine($"[sync-motodb] {result.Status}: {result.Message}");
 
         return result.Status switch

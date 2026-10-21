@@ -5,7 +5,7 @@ using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
 using KtmDataHandler.Models.Symbols;
 using KtmSharedUtils.ObjectUtils;
-using MathNet.Numerics.Interpolation;
+using Ktm.Racing.Domain.Telemetry;
 
 namespace Ktm.Racing.Oracle
 {
@@ -21,9 +21,13 @@ namespace Ktm.Racing.Oracle
 
         public IReadOnlyList<string> ChannelNames => channelNames.AsReadOnly();
 
-        private const double EarthRadiusMeters = 6371000.0;
+        private readonly GpsSettings _gps;
+        private GpsCleanResult? runGps; // aufbereitetes GPS des aktuellen Runs (sVehicle → Lap-Distanzen)
         private string? currentRunPath; // Aktueller Run-Pfad
         private IDataset resultDataset = new Dataset(); // Globale Variable für berechnete Ergebnisse
+
+        /// <summary>Erstellt den Rechner; <paramref name="gps"/> = GPS-Kanäle und Aufbereitung (Abschnitt <c>Gps</c>).</summary>
+        public ImportDataCalculator(GpsSettings? gps = null) => _gps = gps ?? new GpsSettings();
 
         /// <summary>
         /// Hauptfunktion: Führt alle Berechnungsschritte für einen einzelnen Run aus.
@@ -38,6 +42,7 @@ namespace Ktm.Racing.Oracle
             currentRunPath = runPath;
             resultDataset = new Dataset();
             channelNames = new();
+            runGps = null;
 
             // Frische Reader/Writer-Instanzen pro Run (vermeidet State-Leaks nach ReleaseObjects)
             ztxAccessRead = KtmDataHandlerFactory.CreateReader();
@@ -154,49 +159,28 @@ namespace Ktm.Racing.Oracle
         {
             Console.WriteLine("Kumulierte Distanz aus GPS wird berechnet...");
 
-            // Kanalnamen case-insensitiv aus der tatsächlichen Kanalliste auflösen: die Rohdaten
-            // liefern die GPS-Kanäle je nach Quelle unterschiedlich groß-/kleingeschrieben.
-            string? latChannelName = ResolveChannelName("Lat_dez");
-            string? lonChannelName = ResolveChannelName("Lon_dez");
+            // Exakte Kanalnamen aus der Konfiguration (Groß/Klein egal, kein Teilstring-Fallback).
+            string? latChannelName = GpsSettings.Resolve(channelNames, _gps.LatitudeChannel);
+            string? lonChannelName = GpsSettings.Resolve(channelNames, _gps.LongitudeChannel);
             if (latChannelName is null || lonChannelName is null)
             {
                 var missing = new List<string>();
-                if (latChannelName is null) missing.Add("Lat_dez");
-                if (lonChannelName is null) missing.Add("Lon_dez");
+                if (latChannelName is null) missing.Add(_gps.LatitudeChannel);
+                if (lonChannelName is null) missing.Add(_gps.LongitudeChannel);
                 Console.WriteLine($"Fehlende Kanäle: {string.Join(", ", missing)}. Berechnung wird abgebrochen.");
                 return 0.0;
             }
             var necessaryChannels = new[] { latChannelName, lonChannelName };
 
-            // Daten vom Datensatz abrufen 
             IDataset processingDataset = ztxAccessRead.GetChannels(necessaryChannels);
-            Console.WriteLine($"Notwendige Kanäle: {string.Join(", ", necessaryChannels)} wurden erfolgreich geladen.");
-
-            // Extract latitude and longitude signals
-            ITimeseries latitudeSignal = processingDataset.GetElement(latChannelName);
-            ITimeseries longitudeSignal = processingDataset.GetElement(lonChannelName);
-
-            if (latitudeSignal == null || longitudeSignal == null)
-            {
-                Console.WriteLine("Latitude oder Longitude Channel haben ungültige Werte.");
-                return 0.0;
-            }
-
-            // Extract data arrays
-            var latitudes = latitudeSignal.SignalData.Data as double[];
-            var longitudes = longitudeSignal.SignalData.Data as double[];
-            var time = latitudeSignal.SignalData.Time as double[];
-
+            var latitudes = processingDataset.GetElement(latChannelName)?.SignalData?.Data as double[];
+            var longitudes = processingDataset.GetElement(lonChannelName)?.SignalData?.Data as double[];
+            var time = processingDataset.GetElement(latChannelName)?.SignalData?.Time as double[];
             if (latitudes == null || longitudes == null || time == null)
             {
                 Console.WriteLine("Channel-Daten sind nicht im erwarteten Format.");
                 return 0.0;
             }
-
-            // Interpolieren von Nullen mit Math.NET Numerics
-            // Die Zeitreihe wird als X-Achse für die Interpolation verwendet
-            latitudes = InterpolateZerosMathNet(latitudes, time, "Latitude");
-            longitudes = InterpolateZerosMathNet(longitudes, time, "Longitude");
 
             if (latitudes.Length != longitudes.Length || latitudes.Length != time.Length || latitudes.Length < 2)
             {
@@ -204,36 +188,21 @@ namespace Ktm.Racing.Oracle
                 return 0.0;
             }
 
-            // Convert to radians
-            double[] latRad = latitudes.Select(x => Math.PI / 180.0 * x).ToArray();
-            double[] lonRad = longitudes.Select(x => Math.PI / 180.0 * x).ToArray();
+            // GPS aufbereiten (wie Lat_Valid/Lon_Valid: Samples ohne Fix entfernen, Aussetzer überbrücken; zusätzlich
+            // wiederholte Fixes zusammenfassen und GPS-Sprünge entfernen) und die Distanz auf das Kanalraster legen.
+            var gps = GpsCleaner.Clean(new GpsTrace(time, latitudes, longitudes), _gps.ToCleanOptions());
+            runGps = gps;
+            if (!gps.HasFix)
+                Console.WriteLine("[gps] Kein GPS-Fix in diesem Run (Lat/Lon = 0) – sVehicle und LapDistance sind 0 m.");
+            else if (gps.InvalidSamples > 0 || gps.SpikeFixes > 0 || gps.JumpCount > 0)
+                Console.WriteLine($"[gps] Aufbereitet: {gps.Summary}.");
 
-            // Calculate segment distances using Haversine formula
-            double[] segmentDistances = new double[latRad.Length - 1];
-            for (int i = 0; i < segmentDistances.Length; i++)
-            {
-                double dLat = latRad[i + 1] - latRad[i];
-                double dLon = lonRad[i + 1] - lonRad[i];
-                double a = Math.Pow(Math.Sin(dLat / 2), 2) +
-                           Math.Cos(latRad[i]) * Math.Cos(latRad[i + 1]) *
-                           Math.Pow(Math.Sin(dLon / 2), 2);
-                double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-                segmentDistances[i] = EarthRadiusMeters * c;
-            }
-
-            // Cumulative distance
-            double[] distance = new double[latRad.Length];
-            distance[0] = 0;
-            for (int i = 1; i < distance.Length; i++)
-                distance[i] = distance[i - 1] + segmentDistances[i - 1];
-
-            // Eigene Renndistanz dieses Runs (vor Offset) für die stint-übergreifende Akkumulation.
-            double runDistance = distance[^1];
+            double[] distance = gps.DistanceAt(time);
+            double runDistance = gps.TotalMeters;
 
             // Offset addieren (Continuity über Renn-Runs), dann erst runden (vermeidet Fehlerakkumulation).
             for (int i = 0; i < distance.Length; i++)
                 distance[i] = Math.Round(distance[i] + distanceOffset, 2);
-
             // Create new timeseries for sVehicle
             var sVehicle = new KtmDataHandler.Models.Channels.Timeseries();
             sVehicle.SignalData.Name = "sVehicle";
@@ -264,27 +233,28 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Löst einen Kanalnamen aus der geladenen Kanalliste auf: exakter Treffer zuerst, sonst
-        /// case-insensitiv. Gibt <c>null</c> zurück, wenn kein passender Kanal existiert.
-        /// </summary>
-        private string? ResolveChannelName(string canonical)
-            => channelNames.FirstOrDefault(n => n.Equals(canonical, StringComparison.Ordinal))
-            ?? channelNames.FirstOrDefault(n => n.Equals(canonical, StringComparison.OrdinalIgnoreCase));
-
-        /// <summary>
-        /// Berechnet die GPS-Distanz [m] je Lap (1-basiert) über die per-Lap-Kanalabfrage
-        /// <c>GetChannels(channels, NLaps, ...)</c> auf dem bereits geladenen Reader.
+        /// GPS-Distanz [m] je Lap (1-basiert). Primär aus der aufbereiteten Run-Distanz an den Lap-Grenzen – dadurch ist die
+        /// Summe der Laps exakt die sVehicle-Distanz, und Aussetzer/Sprünge an einer Lap-Grenze werden wie im Run behandelt.
+        /// Ohne Lap-Grenzen: je Lap über die per-Lap-Kanalabfrage, ebenfalls aufbereitet.
         /// </summary>
         private double[] ComputeLapDistances(string runPath)
         {
             int lapCount = Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly).Length;
             var distances = new double[lapCount];
 
-            string? latName = ResolveChannelName("Lat_dez");
-            string? lonName = ResolveChannelName("Lon_dez");
+            if (runGps is not null && (ztxAccessRead as MarelliDataAccess)?.GetLapMarks() is { } marks && marks.Length == lapCount + 1)
+            {
+                var atMarks = runGps.DistanceAt(marks);
+                for (int i = 0; i < lapCount; i++)
+                    distances[i] = Math.Max(0.0, atMarks[i + 1] - atMarks[i]);
+                return distances;
+            }
+
+            string? latName = GpsSettings.Resolve(channelNames, _gps.LatitudeChannel);
+            string? lonName = GpsSettings.Resolve(channelNames, _gps.LongitudeChannel);
             if (latName is null || lonName is null)
             {
-                Console.WriteLine("Lap-Distanz übersprungen: GPS-Kanäle (Lat_dez/Lon_dez) nicht verfügbar.");
+                Console.WriteLine($"Lap-Distanz übersprungen: GPS-Kanäle ({_gps.LatitudeChannel}/{_gps.LongitudeChannel}) nicht verfügbar.");
                 return distances;
             }
 
@@ -298,7 +268,10 @@ namespace Ktm.Racing.Oracle
                     var ds = combined ?? (perLap is { Length: > 0 } ? perLap[0] : null);
                     var lat = ds?.GetElement(latName)?.SignalData?.Data as double[];
                     var lon = ds?.GetElement(lonName)?.SignalData?.Data as double[];
-                    distances[n - 1] = LapHaversine(lat, lon);
+                    var time = ds?.GetElement(latName)?.SignalData?.Time as double[];
+                    distances[n - 1] = lat is null || lon is null || time is null
+                        ? 0.0
+                        : GpsCleaner.Clean(new GpsTrace(time, lat, lon), _gps.ToCleanOptions()).TotalMeters;
                 }
                 catch (Exception ex)
                 {
@@ -307,84 +280,5 @@ namespace Ktm.Racing.Oracle
                 }
             }
             return distances;
-        }
-
-        /// <summary>Kumulierte Haversine-Distanz über gültige GPS-Punkte (Nullpunkte werden übersprungen).</summary>
-        private static double LapHaversine(double[]? lat, double[]? lon)
-        {
-            if (lat is null || lon is null) return 0.0;
-            int n = Math.Min(lat.Length, lon.Length);
-            double dist = 0.0;
-            for (int i = 1; i < n; i++)
-            {
-                if (lat[i] == 0 || lon[i] == 0 || lat[i - 1] == 0 || lon[i - 1] == 0) continue;
-                double la1 = lat[i - 1] * Math.PI / 180.0, la2 = lat[i] * Math.PI / 180.0;
-                double dLat = la2 - la1, dLon = (lon[i] - lon[i - 1]) * Math.PI / 180.0;
-                double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
-                         + Math.Cos(la1) * Math.Cos(la2) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-                dist += EarthRadiusMeters * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            }
-            return dist;
-        }
-
-        /// <summary>
-        /// Interpoliert Nullen in einem Array mit Math.NET Numerics.
-        /// - Verwendet die Zeitreihe als X-Achse für die Interpolation.
-        /// - Führende/trailing Nullen werden mit dem nächsten gültigen Wert ersetzt.
-        /// - Innere Nullen werden linear interpoliert.
-        /// </summary>
-        private double[] InterpolateZerosMathNet(double[] data, double[] time, string name)
-        {
-            if (data == null || data.Length == 0 || time == null || time.Length != data.Length)
-                return data ?? [];
-
-            const double tol = 1e-9;
-            int n = data.Length;
-            var result = (double[])data.Clone();
-
-            // Indizes der gültigen Werte (nicht Null)
-            var validIdx = new List<int>();
-            for (int i = 0; i < n; i++)
-                if (Math.Abs(result[i]) > tol)
-                    validIdx.Add(i);
-
-            if (validIdx.Count == 0)
-            {
-                Console.WriteLine($"Warnung: {name} enthält nur Nullen; keine Interpolation möglich.");
-                return result;
-            }
-
-            // Führende Nullen mit erstem gültigen Wert ersetzen
-            int first = validIdx.First();
-            for (int i = 0; i < first; i++)
-                result[i] = result[first];
-
-            // Abschließende Nullen mit letztem gültigen Wert ersetzen
-            int last = validIdx.Last();
-            for (int i = last + 1; i < n; i++)
-                result[i] = result[last];
-
-            // Interpolation mit Math.NET Numerics für innere Nullen
-            // X: Zeitpunkte der gültigen Werte, Y: Werte
-            double[] x = validIdx.Select(idx => time[idx]).ToArray();
-            double[] y = validIdx.Select(idx => result[idx]).ToArray();
-
-            // Lineare Interpolation erzeugen
-            var interp = LinearSpline.InterpolateSorted(x, y);
-
-            // Alle Nullstellen (außer führend/trailing) interpolieren
-            for (int i = first + 1; i < last; i++)
-            {
-                if (Math.Abs(data[i]) <= tol)
-                {
-                    result[i] = interp.Interpolate(time[i]);
-                }
-            }
-
-            int zerosInterpolated = result.Count(v => Math.Abs(v) > tol) - validIdx.Count;
-            Console.WriteLine($"{name}: Interpolation mit Math.NET abgeschlossen. Ursprünglich gültige Werte: {validIdx.Count}, interpolierte Werte: {zerosInterpolated}, Länge: {n}.");
-
-            return result;
-        }
-    }
+        }    }
 }

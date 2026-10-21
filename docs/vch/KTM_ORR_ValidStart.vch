@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<Library>
+<VirtualChannels>
+<VCH>
+<Name>CND_VS_Staged</Name>
+<Properties>
+<Comment>1 = am Gatter bereit: Stillstand (vGPS &lt; 3 km/h), Gang eingelegt, Drehzahl &gt; 4000 rpm (Launch-Drehzahl), sonst 0</Comment>
+<Measure/>
+<Expression>if (vVehicleGpsGuarded &lt; 3 &amp;&amp; NGear &gt;= 1 &amp;&amp; nEngine720 &gt; 4000){return 1;} else{return 0;}
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>0</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>tVS_StagedTime</Name>
+<Properties>
+<Comment>Dauer [s], die das Bike ununterbrochen bereit am Gatter steht (0, sobald CND_VS_Staged = 0)</Comment>
+<Measure>s</Measure>
+<Expression>dim t = 0;
+
+if (CND_VS_Staged == 1){t += 1/1000;} else{t = 0;}
+
+return t;
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>2</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>CND_VS_GateReady</Name>
+<Properties>
+<Comment>1 = mindestens 1.5 s bereit gestanden, und das liegt hoechstens 1 s zurueck (Haltezeit von diaggt)</Comment>
+<Measure/>
+<Expression>diaggt(tVS_StagedTime, 1.5, 1)
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>0</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>StartTriggerValid</Name>
+<Properties>
+<Comment>Ausloesen wie StartTrigger (Gas &gt;= Kupplungsweg, Launch-Begrenzer noch aktiv), aber nur aus der Bereitschaft am Gatter</Comment>
+<Measure>s</Measure>
+<Expression>if(IFEQ(CND_VS_GateReady, 1, 0) AND IFGE( rthrottle1, xclutch ) AND IFNE( ngear, 0, 0 ) AND IFNE( revlimitsource, 1, 0 )){return Time;} else{return norx;}
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>2</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>TimestampStartCandidate</Name>
+<Properties>
+<Comment>Erster Start-Kandidat im Run</Comment>
+<Measure>s</Measure>
+<Expression>chmin(StartTriggerValid)
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>3</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>rThrottle_StartLaunch</Name>
+<Properties>
+<Comment>Max. Gas in den ersten 0.5 s nach dem Ausloesen</Comment>
+<Measure>%</Measure>
+<Expression>chmaxrange(rThrottle1, TimestampStartCandidate, TimestampStartCandidate + 0.5)
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>0</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>vVehicleGPS_Start3s</Name>
+<Properties>
+<Comment>Max. GPS-Geschwindigkeit in den ersten 3 s nach dem Start</Comment>
+<Measure>km/h</Measure>
+<Expression>chmaxrange(vVehicleGpsGuarded, TimestampStartCandidate, TimestampStartCandidate + 3)
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>1</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>sStart5s</Name>
+<Properties>
+<Comment>Strecke in den ersten 5 s nach dem Start (sVehicle wird von ORACLE berechnet)</Comment>
+<Measure>m</Measure>
+<Expression>chmaxrange(sVehicle, TimestampStartCandidate, TimestampStartCandidate + 5) - chminrange(sVehicle, TimestampStartCandidate, TimestampStartCandidate + 5)
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>1</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>bValidStart</Name>
+<Properties>
+<Comment>1 = gueltiger Gatterstart: Vollgas (&gt;= 50 % in 0.5 s), &gt;= 30 km/h in 3 s und &gt;= 20 m in 5 s; sonst 0</Comment>
+<Measure/>
+<Expression>if (rThrottle_StartLaunch &gt;= 50 &amp;&amp; vVehicleGPS_Start3s &gt;= 30 &amp;&amp; sStart5s &gt;= 20){return 1;} else{return 0;}
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>0</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+<VCH>
+<Name>TimestampStartValid</Name>
+<Properties>
+<Comment>Zeitpunkt des gueltigen Starts; NoRx, wenn kein gueltiger Start im Run. Ersatz fuer TimestampStart nach Freigabe.</Comment>
+<Measure>s</Measure>
+<Expression>if (bValidStart == 1){return TimestampStartCandidate;} else{return norx;}
+</Expression>
+<Freq>1 kHz</Freq>
+<OutFormat>Dec</OutFormat>
+<Decimals>3</Decimals>
+<Showhide>1</Showhide>
+</Properties>
+</VCH>
+</VirtualChannels>
+<WintaxConfiguration>
+<Version>4.80.22.15</Version>
+</WintaxConfiguration>
+</Library>

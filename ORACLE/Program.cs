@@ -37,6 +37,14 @@ class Program
             return (int)OracleExitCode.InvalidArguments;
         }
 
+        if (CommandLine.Validate(args) is { } argumentError)
+        {
+            Console.WriteLine($"Fehler: {argumentError}");
+            Console.WriteLine("Aufruf ohne Argumente zeigt die Verwendung.");
+            Console.WriteLine($"ORACLE beendet. Exit-Code: {(int)OracleExitCode.InvalidArguments} ({OracleExitCode.InvalidArguments})");
+            return (int)OracleExitCode.InvalidArguments;
+        }
+
         // sync-motodb braucht KEIN KtmDataHandler/native (kein HASP-Dongle) → vor der Pipeline-Erzeugung behandeln.
         if (args[0].Equals("sync-motodb", StringComparison.OrdinalIgnoreCase))
         {
@@ -57,6 +65,10 @@ class Program
                 // "merge" => HandleMerge(args, pipeline),
                 "validate" => HandleValidate(args, pipeline),
                 "detect" => HandleDetect(args, pipeline),
+                "detect-start" => args.Length < 2 ? MissingPath("detect-start <riderPath|runPath>") : pipeline.DetectStarts(args[1]),
+                "split-laps" => args.Length < 2
+                    ? MissingPath("split-laps <event|session|device|run> [--dry-run] [--undo]")
+                    : await pipeline.SplitLapsAsync(args[1], HasFlag(args, "--dry-run"), HasFlag(args, "--undo")),
                 _ => await HandleLegacyAsync(args, pipeline),
             };
         }
@@ -139,6 +151,9 @@ class Program
         return pipeline.DetectRaces(args[1]);
     }
 
+    /// <summary><c>true</c>, wenn der Schalter <paramref name="flag"/> übergeben wurde.</summary>
+    private static bool HasFlag(string[] args, string flag) => args.Any(a => a.Equals(flag, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>Liest den Wert eines <c>--name value</c>-Arguments; <c>null</c> wenn nicht vorhanden.</summary>
     private static string? GetOption(string[] args, string name)
     {
@@ -146,6 +161,13 @@ class Program
             if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
                 return args[i + 1];
         return null;
+    }
+
+    private static OracleExitCode MissingPath(string usage)
+    {
+        Console.WriteLine("Fehler: Pfad fehlt.");
+        Console.WriteLine($"Verwendung: ORACLE.exe {usage}");
+        return OracleExitCode.InvalidArguments;
     }
 
     /// <summary>
@@ -161,8 +183,8 @@ class Program
         var gpsSplit = args.Any(a => a.Equals("--gps-split", StringComparison.OrdinalIgnoreCase));
         Console.WriteLine($"[legacy] Kein Command erkannt — verwende Legacy-Modus für: {runPath}");
 
-        // --- Process ---
-        var processResult = await pipeline.ProcessRunAsync(runPath, force, gpsSplit);
+        // --- Process (wie "process": inkl. Geräteordner-Normalisierung und Run-Reparatur) ---
+        var processResult = await pipeline.ProcessPathAsync(runPath, force, gpsSplit);
 
         // --- Merge temporär deaktiviert – wird separat überarbeitet. ---
         // if (processResult != OracleExitCode.Success)
@@ -192,18 +214,26 @@ class Program
         // Console.WriteLine("  ORACLE.exe merge    <riderPath> [--force]  Session-Merge (alle Runs eines Riders)");
         Console.WriteLine("  ORACLE.exe validate <runPath>                            Datenintegritätsprüfung");
         Console.WriteLine("  ORACLE.exe detect   <riderPath>                          Renn-Erkennung (read-only)");
+        Console.WriteLine("  ORACLE.exe detect-start <riderPath|runPath>              Gültige Starts erkennen (read-only)");
+        Console.WriteLine("  ORACLE.exe split-laps <event|session|device|run> [--dry-run] [--undo]");
+        Console.WriteLine("                                                           Runs per GPS-Ziellinie in Laps teilen (Probelauf/Rückgängig)");
         Console.WriteLine("  ORACLE.exe sync-motodb [--kompass <KOMPASS.json>] [--workbook <loadChannels.xlsx>]  MotoDB-Inputs (CIRCUITS+HED) aus KOMPASS");
         Console.WriteLine("  ORACLE.exe <runPath>            [--force] [--gps-split]  Legacy-Modus (process)");
         Console.WriteLine();
         Console.WriteLine("Optionen:");
         Console.WriteLine("  --force      Idempotenz-Prüfung ignorieren, erneut verarbeiten");
-        Console.WriteLine("  --gps-split  Runs anhand der KOMPASS-GPS-Ziellinie headless in Laps aufteilen");
+        Console.WriteLine("  --gps-split  Runs vor der Verarbeitung per GPS-Ziellinie in Laps teilen (wie split-laps)");
+        Console.WriteLine("  --dry-run    split-laps: nur anzeigen, was geteilt würde");
+        Console.WriteLine("  --undo       split-laps: Original-Laps der letzten Teilung wiederherstellen");
         Console.WriteLine();
         Console.WriteLine("Exit-Codes:");
         Console.WriteLine("  0  Erfolg");
         Console.WriteLine("  1  Allgemeiner Fehler");
         Console.WriteLine("  2  Ungültige Argumente");
-        Console.WriteLine("  3  Daten nicht gefunden");
-        Console.WriteLine("  4  Teilweise erfolgreich");
+        Console.WriteLine("  3  Daten nicht gefunden (Retry)");
+        Console.WriteLine("  4  Teilweise erfolgreich (z.B. beschädigte Run-Ordner übersprungen)");
+        Console.WriteLine("  5  Ressource gesperrt, z.B. loadChannels.xlsx in Excel offen (Retry)");
+        Console.WriteLine("  6  Track-Länge fehlt – MotoDB nicht starten (später erneut / Länge in KODE)");
+        Console.WriteLine("  7  Ungültige Daten (beschädigter Run, ungültige KOMPASS.json) – kein Retry");
     }
 }

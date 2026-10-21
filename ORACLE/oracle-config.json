@@ -4,7 +4,7 @@
   //
   // Falls diese Datei fehlt, werden die Standardwerte aus OracleConfig.cs verwendet.
 
-  "DatabaseDirectory": "C:\\KTM Tools\\KTM Offroad Racing Shared Resources\\SoftwareDB",
+  "DatabaseDirectory": "C:\\KTM Tools\\KTM Offroad Racing Shared Resources\\DistributedTools\\resources",
   "DatabaseFileName": "KOMPASS.json",
 
   // MotoDB loadChannels.xlsx: dessen CIRCUITS/HED-Sheets werden aus KOMPASS synchronisiert (ORACLE.exe sync-motodb).
@@ -24,6 +24,14 @@
   // Auf false setzen, falls nachgelagerte Tools (z.B. KRAKEN) die Originalordnernamen erwarten.
   "NormalizeDeviceFolderName": true,
 
+  // Verwaiste, leere Lap-Ordner (Reste eines WinTAX-Lap-Splits, ohne cableData.ztx und nicht in RunLapHeader.xml)
+  // nach Run_x\\_ORACLE_removed verschieben, damit WinTAX den Run wieder erkennt. Es wird nichts gelöscht.
+  "RepairOrphanLapFolders": true,
+
+  // true = vorhandene .HED-Werte (Rider, Team, Saison ...) haben Vorrang vor KOMPASS (Abweichung nur warnen).
+  // false (Default) = KOMPASS-Stammdaten ersetzen abweichende .HED-Werte, z.B. einen Platzhalter-Rider.
+  "PreferHedMetadata": false,
+
   // Schwellen für die Renn-Erkennung (RaceSegmentDetector).
   // Rein GPS-basiert (Lat/Lon-Distanz + abgeleitete Geschwindigkeit) + Gasstellung;
   // Drehzahl und GPS-Qualität nur als Guards. vRearnEng wird bewusst NICHT verwendet.
@@ -38,12 +46,48 @@
     "MinValidGpsSamples": 10
   },
 
-  // Schwellen für den GPS-Lap-Split (ORACLE process <pfad> --gps-split).
-  // Ziellinie = KOMPASS-Track-Koordinate (Lat/Lon). RadiusMeters = Korridor um die Ziellinie,
-  // MinLapSeconds = Mindest-Rundenzeit (unterdrückt Doppel-Trigger).
+  // GPS-Kanäle und Aufbereitung – gilt für sVehicle, Lap-Distanzen/Track-Länge, Renn-Erkennung und GPS-Lap-Split.
+  // Wie Lat_Valid/Lon_Valid in der VCH: Samples ohne Fix (0) entfernen, über Aussetzer verbinden. Zusätzlich:
+  // wiederholte Fixes zusammenfassen, GPS-Sprünge (>= MinJumpMeters schneller als MaxSpeedKph) nicht mitzählen,
+  // Fragmente < MinSegmentSeconds zwischen zwei Sprüngen als Ausreißer verwerfen.
+  "Gps": {
+    "LatitudeChannel": "Lat_dez",
+    "LongitudeChannel": "Lon_dez",
+    "MaxSpeedKph": 200,
+    "MinJumpMeters": 10,
+    "MinSegmentSeconds": 2
+  },
+
+  // GPS-Lap-Split (ORACLE split-laps <pfad> [--dry-run|--undo] bzw. process <pfad> --gps-split).
+  // Ziellinie = KOMPASS-Track-Koordinate, auf die Ideallinie gelegt, quer zur Fahrachse (Richtung egal).
+  // Bereits geteilte Runs (WinTAX/ORACLE _Def_, Logger-Runden) werden erkannt und nicht erneut geteilt.
   "GpsLapSplit": {
-    "RadiusMeters": 25,
-    "MinLapSeconds": 20,
-    "IncludeTrailingPartialLap": true
+    "MinLapSeconds": 60,
+    "MaxSampleGapSeconds": 1,
+    "MinCrossingAngleDegrees": 30,
+    "MinSpeedKph": 5,
+    "SnapRadiusMeters": 50,
+    "LineHalfWidthMeters": 12,
+    "BoundaryToleranceSeconds": 2,
+    "BoundaryDistanceMeters": 15,
+    "FreeSpaceFactor": 1.2,
+    "MaxTimeShiftSamples": 1
+  },
+
+  // Track-Längen-Prüfung vor MotoDB (MotoDB vergleicht trackLength EXAKT mit CIRCUITS; gleiche Längen = Fehler).
+  // Reihenfolge: KOMPASS -> CIRCUITS -> .HED -> offener Vorschlag -> Schätzung aus den GPS-Rundendistanzen.
+  // Enforce = true: ohne eindeutige Länge Exit-Code 6 (TrackLengthMissing) -> KRAKEN startet MotoDB nicht.
+  // Vorläufige Längen werden als Vorschlag in SuggestionsDirectory abgelegt und in KODE bestätigt.
+  "TrackLength": {
+    "Enforce": true,
+    "SuggestionsDirectory": "%OneDriveCommercial%\\Workstation - OffroadSync\\DevProjects\\KTM Internal Software Tools\\resources\\suggestions",
+    "ExcludeFirstAndLastLap": true,
+    "MinLapMeters": 300,
+    "MaxLapMeters": 6000,
+    "ClusterTolerance": 0.07,
+    "MinLaps": 3,
+    "MaxRelativeSpread": 0.03,
+    "RoundToMeters": 1,
+    "LockWaitSeconds": 120
   }
 }

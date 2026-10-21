@@ -30,6 +30,9 @@
 		},
 		{
 			"path": "../../KTM Tools/KrakenCfg"
+		},
+		{
+			"path": "../../MXTrackData/Testdata/01_KTM-FR/Wintax/2026/450/05_RT/RT37_CHN-Shanghai"
 		}
 	],
 	"settings": {

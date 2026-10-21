@@ -32,7 +32,7 @@ public sealed class MotoDbInputSyncTests
         // Workbook exists but is held open (as if open in Excel) -> transient lock, not a clean skip.
         using (new FileStream(workbook, FileMode.Open, FileAccess.Read, FileShare.None))
         {
-            var code = MotoDbInputSync.Run(new OracleConfig(), kompass, workbook);
+            var code = MotoDbInputSync.Run(new OracleConfig { TrackLength = new TrackLengthSettings { LockWaitSeconds = 0 } }, kompass, workbook);
             Assert.Equal(OracleExitCode.ResourceLocked, code);
         }
     }

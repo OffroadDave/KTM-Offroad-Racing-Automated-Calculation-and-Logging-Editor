@@ -78,7 +78,7 @@ unterbrochenes Rennen zerfällt so über mehrere `Run_xxx`-Ordner. Reine Zeitlü
 Rennen nicht zuverlässig von Auslaufrunden (diese folgen mit Sekundenabstand).
 
 **Erkennung** (`RaceSegmentDetector`, rein antriebsstrang-unabhängig):
-- **Primär:** GPS-Distanz (Haversine aus `Lat_dez`/`Lon_dez`) + daraus abgeleitete Geschwindigkeit + mittlere Gasstellung (`rThrottle1`).
+- **Primär:** GPS-Distanz (aus `Lat_dez`/`Lon_dez`, aufbereitet durch `GpsCleaner`: ohne Aussetzer und GPS-Sprünge) + daraus abgeleitete Geschwindigkeit + mittlere Gasstellung (`rThrottle1`).
 - **Guards:** `nEngine720` (Motor an?), `ValidSat` (GPS gültig?); bei GPS-Ausfall Fallback auf Gas + Drehzahl.
 - `vRearnEng` wird bewusst NICHT verwendet (aus Drehzahl × Getriebeübersetzung berechnet, unzuverlässig).
 - Schwellen konfigurierbar (`RaceDetection` in `oracle-config.json`).

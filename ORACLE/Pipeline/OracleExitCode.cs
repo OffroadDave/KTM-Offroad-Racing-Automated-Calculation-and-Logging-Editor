@@ -39,8 +39,8 @@ namespace Ktm.Racing.Oracle
         DataNotFound = 3,
 
         /// <summary>
-        /// Verarbeitung teilweise erfolgreich (z.B. Properties OK, aber Berechnung fehlgeschlagen).
-        /// KRAKEN-Reaktion: Warnung loggen, ggf. weitermachen.
+        /// Verarbeitung teilweise erfolgreich (z.B. beschädigte Run-Ordner übersprungen, Details im Status <c>discovery</c>).
+        /// KRAKEN-Reaktion: Warnung loggen, weitermachen (MotoDB starten); Runs reparieren und mit --force nachholen.
         /// </summary>
         PartialSuccess = 4,
 
@@ -49,5 +49,44 @@ namespace Ktm.Racing.Oracle
         /// KRAKEN-Reaktion: Retry — die Sperre ist i.d.R. transient; NICHT mit veralteten Inputs weiterlaufen.
         /// </summary>
         ResourceLocked = 5,
+
+        /// <summary>
+        /// Für den Track ist keine eindeutige Länge bekannt (KOMPASS, loadChannels CIRCUITS, .HED und
+        /// offene Vorschläge leer/mehrdeutig) und sie konnte nicht aus den GPS-Rundendistanzen geschätzt werden.
+        /// MotoDB identifiziert die Strecke über einen exakten Längenvergleich und würde fehlschlagen.
+        /// KRAKEN-Reaktion: MotoDB NICHT starten; Länge in KODE eintragen, dann erneut ausführen.
+        /// </summary>
+        TrackLengthMissing = 6,
+
+        /// <summary>
+        /// Daten vorhanden, aber unbrauchbar: beschädigter Run-Ordner (z.B. Lap-Ordner ohne cableData.ztx,
+        /// mehrfach gesplittete Laps) oder ungültige KOMPASS.json. Ein Retry ändert daran nichts.
+        /// KRAKEN-Reaktion: NICHT wiederholen; Daten reparieren (WinTAX / KODE), dann erneut ausführen.
+        /// </summary>
+        InvalidData = 7,
+    }
+
+    /// <summary>Hilfsfunktionen für <see cref="OracleExitCode"/>.</summary>
+    public static class OracleExitCodes
+    {
+        // Reihenfolge = Priorität: der gravierendste Code bestimmt das Gesamtergebnis mehrerer Teilverarbeitungen.
+        private static readonly OracleExitCode[] Priority =
+        [
+            OracleExitCode.GeneralError,
+            OracleExitCode.InvalidArguments,
+            OracleExitCode.ResourceLocked,
+            OracleExitCode.TrackLengthMissing,
+            OracleExitCode.InvalidData,
+            OracleExitCode.DataNotFound,
+            OracleExitCode.PartialSuccess,
+            OracleExitCode.Success,
+        ];
+
+        /// <summary>Fasst die Exit-Codes mehrerer Teilverarbeitungen (z.B. je Geräteordner) zusammen.</summary>
+        public static OracleExitCode Combine(IEnumerable<OracleExitCode> codes)
+        {
+            var list = codes.ToList();
+            return list.Count == 0 ? OracleExitCode.DataNotFound : Priority.First(list.Contains);
+        }
     }
 }

@@ -57,14 +57,60 @@ namespace Ktm.Racing.Oracle
         public int ExitCode { get; set; }
 
         /// <summary>
-        /// Prüft ob der angegebene Pfad bereits erfolgreich verarbeitet wurde.
+        /// Revision der Verarbeitungslogik, mit der der Status geschrieben wurde (0 = vor Einführung). Ist sie kleiner als
+        /// <see cref="CurrentProcessingRevision"/>, wird der Ordner automatisch neu verarbeitet – so profitieren bereits
+        /// verarbeitete Sessions von Korrekturen (z.B. Metadaten, Run-Reparatur), ohne <c>--force</c>.
         /// </summary>
-        /// <param name="targetPath">Run- oder Rider-Pfad</param>
-        /// <returns>True wenn Status existiert und ExitCode == 0</returns>
-        public static bool IsAlreadyProcessed(string targetPath)
+        public int ProcessingRevision { get; set; }
+
+        /// <summary>
+        /// Aktuelle Revision der Verarbeitungslogik. Erhöhen, wenn eine Änderung bereits verarbeitete Daten verbessert.
+        /// 2 = Metadaten per Muster, Geräte getrennt, Run-Reparatur, leere Runs, Längen-Median (2026-10-12).
+        /// 3 = KOMPASS-Stammdaten ersetzen abweichende .HED-Werte (z.B. riderName-Platzhalter) (2026-10-19).
+        /// </summary>
+        public const int CurrentProcessingRevision = 3;
+
+        /// <summary>Verarbeitungszustand eines Ordners laut Status-Datei.</summary>
+        public enum State
+        {
+            /// <summary>Kein (lesbarer) Status oder fehlgeschlagen – vollständig verarbeiten.</summary>
+            NotProcessed,
+
+            /// <summary>Mit älterer Verarbeitungslogik verarbeitet – vollständig neu verarbeiten.</summary>
+            Outdated,
+
+            /// <summary>Verarbeitet; nur die Track-Länge fehlte noch (Exit 5/6) – nur die Länge nachholen.</summary>
+            LengthPending,
+
+            /// <summary>Erfolgreich verarbeitet (Exit 0, oder 4 nur wegen beschädigter Runs).</summary>
+            Done,
+        }
+
+        /// <summary>Ermittelt den Verarbeitungszustand des Ordners.</summary>
+        public static State GetState(string targetPath)
         {
             var status = Load(targetPath);
-            return status is not null && status.ExitCode == 0;
+            if (status is null)
+                return State.NotProcessed;
+            if (status.ProcessingRevision < CurrentProcessingRevision)
+                return State.Outdated;
+            if (status.ExitCode == 0
+                || (status.ExitCode == 4 && status.Steps.TryGetValue("discovery", out var discovery) && discovery.Status == StepStatus.Partial))
+                return State.Done;
+            if (status.ExitCode is 5 or 6 && (status.Steps.ContainsKey("stint") || status.Steps.ContainsKey("calculations")))
+                return State.LengthPending;
+            return State.NotProcessed;
+        }
+
+        /// <summary>
+        /// Prüft ob der angegebene Pfad bereits verarbeitet wurde (<see cref="State.Done"/> oder <see cref="State.LengthPending"/>).
+        /// </summary>
+        public static bool IsAlreadyProcessed(string targetPath)
+        {
+            var state = GetState(targetPath);
+            if (state == State.Outdated)
+                Console.WriteLine($"[status] Mit älterer ORACLE-Verarbeitungslogik verarbeitet (Revision < {CurrentProcessingRevision}) – wird neu verarbeitet.");
+            return state is State.Done or State.LengthPending;
         }
 
         /// <summary>
@@ -130,6 +176,7 @@ namespace Ktm.Racing.Oracle
             {
                 Path = targetPath,
                 ProcessedAtUtc = DateTime.UtcNow,
+                ProcessingRevision = CurrentProcessingRevision,
             };
         }
 
