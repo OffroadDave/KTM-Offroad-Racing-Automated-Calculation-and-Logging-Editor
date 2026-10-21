@@ -147,12 +147,30 @@ namespace Ktm.Racing.Oracle
             try
             {
                 var json = JsonSerializer.Serialize(this, JsonOptions);
-                File.WriteAllText(filePath, json);
+                AtomicFile.WriteAllText(filePath, json);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Warnung: Status-Datei konnte nicht gespeichert werden ({filePath}): {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Markiert einen bereits verarbeiteten Ordner als veraltet (z.B. nachdem <c>split-laps</c> die Laps geändert hat),
+        /// damit der nächste <c>process</c>-Aufruf ihn ohne <c>--force</c> vollständig neu verarbeitet. Ohne Status-Datei
+        /// passiert nichts.
+        /// </summary>
+        public static void MarkOutdated(string directoryPath, string reason)
+        {
+            if (Load(directoryPath) is not { } status)
+                return;
+            status.ProcessingRevision = 0;
+            status.SetStep("invalidated", StepStatus.Skipped, new Dictionary<string, object>
+            {
+                ["reason"] = reason,
+                ["atUtc"] = DateTime.UtcNow,
+            });
+            status.Save(directoryPath);
         }
 
         /// <summary>

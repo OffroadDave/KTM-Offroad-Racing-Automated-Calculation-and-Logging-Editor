@@ -148,6 +148,10 @@ public sealed class GpsLapSplitService
     {
         try
         {
+            var recovered = LapSplitStore.RecoverInterrupted(runPath);
+            if (recovered is not null)
+                Console.WriteLine($"[gps-split] {Path.GetFileName(runPath)}: {recovered}.");
+
             var (marks, raw, problem) = _access.ReadGps(runPath, _gps.LatitudeChannel, _gps.LongitudeChannel);
             var cleaned = raw is null ? null : GpsCleaner.Clean(raw, _gps.ToCleanOptions());
             var gps = cleaned is { HasFix: true } ? cleaned.Trace : null;
@@ -251,6 +255,7 @@ public sealed class GpsLapSplitService
         using var runLock = _lockRuns ? ProcessingLock.TryAcquire(run) : null;
         if (_lockRuns && runLock is null)
             return Failed(run, detection.Verdict, "the run is being processed by another ORACLE process – try again later");
+        var committed = false;
         try
         {
             if (LapSplitStore.CleanupTemp(run))
@@ -282,6 +287,7 @@ public sealed class GpsLapSplitService
                 MaxTimeShiftMs = verify.MaxShiftMs,
                 MaxSampleDelta = verify.MaxSampleDelta,
             });
+            committed = true;
             var (backup, _) = LapSplitStore.FindLatestSplit(run);
 
             var after = _access.ReadBack(run, []);
@@ -309,7 +315,22 @@ public sealed class GpsLapSplitService
         }
         catch (Exception ex)
         {
-            return Failed(run, detection.Verdict, $"{ex.Message} – run unchanged");
+            if (!committed)
+                return Failed(run, detection.Verdict, $"{ex.Message} – run unchanged");
+
+            // The new laps are already in place: undo them so the run is never left in an unverified state.
+            SplitUndoResult undo;
+            try
+            {
+                undo = LapSplitStore.Undo(run);
+            }
+            catch (Exception undoError)
+            {
+                undo = new SplitUndoResult(false, undoError.Message);
+            }
+
+            return Failed(run, detection.Verdict, $"{ex.Message} after the laps were swapped – " +
+                                                  (undo.Success ? "rolled back" : $"ROLLBACK FAILED ({undo.Message}), originals in {LapSplitStore.BackupFolderName}"));
         }
         finally
         {
@@ -408,7 +429,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         try
         {
             access.SetDataLocation([runPath]);
-            if (access.LoadRun() < 0)
+            if (access.LoadRun() <= 0)
                 return ([], null, "LoadRun failed");
 
             var marks = access.GetLapMarks() ?? [];
@@ -442,7 +463,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         try
         {
             reader.SetDataLocation([runPath]);
-            if (reader.LoadRun() < 0)
+            if (reader.LoadRun() <= 0)
                 return new SplitWriteResult(["LoadRun failed"], []);
 
             var names = reader.GetChannelsNames() ?? [];
@@ -457,12 +478,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
                 .Select(m => (ushort)Math.Clamp((int)Math.Round((m - Math.Floor(m)) * 1000.0), 0, 999))
                 .ToArray();
             writer.SetDataLocation([outputDirectory]);
-            var results = writer.SetChannelsSplitByLap(dataset, [.. marks], startOffsets) ?? [];
-            var errors = results
-                .Select((r, i) => (r, i))
-                .Where(x => x.r.Item1 != 0 || x.r.Item3 != 0)
-                .Select(x => $"lap {x.i + 1}: {Clean(x.r.Item4)} ({x.r.Item3} channel(s))")
-                .ToList();
+            var errors = KtmWriteErrors.Describe(writer.SetChannelsSplitByLap(dataset, [.. marks], startOffsets), "lap");
             return new SplitWriteResult(errors, stats);
         }
         finally
@@ -479,7 +495,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         try
         {
             access.SetDataLocation([runPath]);
-            if (access.LoadRun() < 0)
+            if (access.LoadRun() <= 0)
                 return new SplitReadBack([], 0, []);
 
             var marks = access.GetLapMarks() ?? [];
@@ -508,16 +524,5 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         }
 
         return result;
-    }
-
-    /// <summary>The native message may carry garbage after the text; keep the printable part.</summary>
-    private static string Clean(string? message)
-    {
-        if (string.IsNullOrEmpty(message))
-            return "unknown error";
-        var end = 0;
-        while (end < message.Length && message[end] >= ' ' && message[end] < 0x7F)
-            end++;
-        return message[..end].Trim();
     }
 }

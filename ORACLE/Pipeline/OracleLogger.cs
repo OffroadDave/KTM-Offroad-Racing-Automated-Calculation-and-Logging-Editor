@@ -9,7 +9,7 @@ namespace Ktm.Racing.Oracle
     /// ohne Änderungen an bestehenden Services (OraclePipeline, ImportDataCalculator, etc.).
     /// 
     /// <para><b>Log-Datei:</b></para>
-    /// <c>{AppDir}/logs/oracle-{yyyyMMdd-HHmmss}.log</c>
+    /// <c>{AppDir}/logs/oracle-{yyyyMMdd-HHmmss}-{PID}.log</c>
     /// 
     /// <para><b>Verwendung in Program.cs:</b></para>
     /// <code>
@@ -50,15 +50,30 @@ namespace Ktm.Racing.Oracle
 
         public static OracleLogger Initialize()
         {
-            var logDir = Path.Combine(AppContext.BaseDirectory, "logs");
+            try
+            {
+                return Initialize(Path.Combine(AppContext.BaseDirectory, "logs"));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Programmordner nicht beschreibbar (z.B. unter Program Files): ins Benutzer-Temp ausweichen statt abzustürzen.
+                return Initialize(Path.Combine(Path.GetTempPath(), "ORACLE", "logs"));
+            }
+        }
+
+        /// <summary>Initialisiert das Dual-Logging mit einer Log-Datei in <paramref name="logDir"/>.</summary>
+        public static OracleLogger Initialize(string logDir)
+        {
             Directory.CreateDirectory(logDir);
             DeleteOldLogs(logDir, TimeSpan.FromDays(RetentionDays));
 
-            var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-            var logFilePath = Path.Combine(logDir, $"oracle-{timestamp}.log");
+            // Prozess-ID im Namen: zwei Aufrufe in derselben Sekunde schreiben nie in dieselbe Datei.
+            var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+            var logFilePath = Path.Combine(logDir, $"oracle-{timestamp}-{Environment.ProcessId}.log");
 
             var consoleWriter = Console.Out;
-            var fileWriter = new StreamWriter(logFilePath, append: false, System.Text.Encoding.UTF8)
+            var stream = new FileStream(logFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+            var fileWriter = new StreamWriter(stream, System.Text.Encoding.UTF8)
             {
                 AutoFlush = true,
             };

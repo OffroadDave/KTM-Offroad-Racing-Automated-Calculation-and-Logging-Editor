@@ -41,6 +41,12 @@ public sealed class SplitManifest
     /// <summary>Largest sample-count difference of a channel caused by the rewrite.</summary>
     public int MaxSampleDelta { get; set; }
 
+    /// <summary>
+    /// <c>true</c> while the swap is in progress (written before the first folder is moved). A pending manifest found later
+    /// means ORACLE was interrupted mid-swap; <see cref="LapSplitStore.RecoverInterrupted"/> then restores the originals.
+    /// </summary>
+    public bool Pending { get; set; }
+
     /// <summary><c>true</c> once the split was undone.</summary>
     public bool Undone { get; set; }
 
@@ -83,7 +89,9 @@ public static class LapSplitStore
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     /// <summary>
-    /// The lap folders of a run in run order (RunLapHeader.xml; without it: <c>Lap_*</c> by name) with their acquisition.
+    /// The lap folders of a run in data order with their acquisition: the laps referenced in RunLapHeader.xml (without it:
+    /// all <c>Lap_*</c> folders with data), sorted by their start time from LapHeader.xml – the order in which the WinTAX API
+    /// returns laps and lap marks. RunLapHeader.xml is not chronological after repeated splits in WinTAX.
     /// </summary>
     public static IReadOnlyList<LapFolderInfo> ReadLapFolders(string runPath)
     {
@@ -115,7 +123,54 @@ public static class LapSplitStore
                 .ToList();
         }
 
-        return folders.Select(f => new LapFolderInfo(f, ReadAcquisition(Path.Combine(runPath, f)))).ToList();
+        return SortByStartTime(runPath, folders)
+            .Select(f => new LapFolderInfo(f, ReadAcquisition(Path.Combine(runPath, f))))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Sorts lap folders chronologically by the start time in their LapHeader.xml (unix time <c>STS</c>+<c>STNs</c>, else the
+    /// wall clock <c>STMs</c>). When a start time is missing for any lap, the given order is kept.
+    /// </summary>
+    internal static List<string> SortByStartTime(string runPath, IReadOnlyList<string> folders)
+    {
+        var unix = folders.Select(f => ReadStartTime(Path.Combine(runPath, f), useUnix: true)).ToList();
+        if (unix.All(t => t is not null))
+            return folders.Select((f, i) => (f, i)).OrderBy(x => unix[x.i]).ThenBy(x => x.i).Select(x => x.f).ToList();
+
+        var wall = folders.Select(f => ReadStartTime(Path.Combine(runPath, f), useUnix: false)).ToList();
+        if (wall.All(t => t is not null))
+            return folders.Select((f, i) => (f, i)).OrderBy(x => wall[x.i]).ThenBy(x => x.i).Select(x => x.f).ToList();
+
+        return [.. folders];
+    }
+
+    /// <summary>Start time of a lap (seconds; unix time or wall-clock ticks as seconds) from its LapHeader.xml.</summary>
+    private static double? ReadStartTime(string lapFolder, bool useUnix)
+    {
+        try
+        {
+            var file = Path.Combine(lapFolder, LapHeaderFile);
+            if (!File.Exists(file))
+                return null;
+            var info = XDocument.Load(file).Root?.Element("StartTimeInfo")?.Element("InfoArray")?.Element("StartTimeInfo");
+            if (useUnix)
+            {
+                if (!long.TryParse(info?.Element("STS")?.Value.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var seconds))
+                    return null;
+                long.TryParse(info?.Element("STNs")?.Value.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var nanos);
+                return seconds + nanos / 1e9;
+            }
+
+            return DateTime.TryParseExact(info?.Element("STMs")?.Value.Trim(), WallClockFormat, CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var wall)
+                ? wall.Ticks / (double)TimeSpan.TicksPerSecond
+                : null;
+        }
+        catch (Exception ex) when (ex is IOException or System.Xml.XmlException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     /// <summary>Total size of the lap data (<c>cableData.ztx</c>) of a run in bytes.</summary>
@@ -142,7 +197,7 @@ public static class LapSplitStore
         var temp = Path.Combine(runPath, TempFolderName);
         if (!Directory.Exists(temp))
             return false;
-        Retry(() => Directory.Delete(temp, recursive: true));
+        AtomicFile.Retry(() => Directory.Delete(temp, recursive: true));
         return true;
     }
 
@@ -176,16 +231,26 @@ public static class LapSplitStore
         var moved = new List<string>();
         var created = new List<string>();
         var hadRunLapHeader = File.Exists(runLapHeader);
+        var currentLaps = Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly);
+
+        // Journal first: if ORACLE dies during the swap, the next run finds this pending manifest and restores the originals.
+        template.CreatedUtc = DateTime.UtcNow;
+        template.Marks = [.. marks];
+        template.OriginalLaps = currentLaps.Select(Path.GetFileName).OfType<string>().ToList();
+        template.CreatedLaps = plan.Select(p => p.Name).ToList();
+        template.HadRunLapHeader = hadRunLapHeader;
+        template.Pending = true;
 
         try
         {
             if (hadRunLapHeader)
                 File.Copy(runLapHeader, backupRunLapHeader);
+            WriteManifest(backup, template);
 
-            foreach (var lap in Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly))
+            foreach (var lap in currentLaps)
             {
                 var name = Path.GetFileName(lap);
-                Retry(() => Directory.Move(lap, Path.Combine(backup, name)));
+                AtomicFile.Retry(() => Directory.Move(lap, Path.Combine(backup, name)));
                 moved.Add(name);
             }
 
@@ -194,7 +259,7 @@ public static class LapSplitStore
                 var target = Path.Combine(runPath, plan[i].Name);
                 if (Directory.Exists(target))
                     throw new IOException($"Lap folder {plan[i].Name} already exists.");
-                Retry(() => Directory.Move(written[i], target));
+                AtomicFile.Retry(() => Directory.Move(written[i], target));
                 created.Add(plan[i].Name);
 
                 var source = Path.Combine(backup, plan[i].Source);
@@ -205,14 +270,10 @@ public static class LapSplitStore
             if (hadRunLapHeader)
                 WriteRunLapHeader(backupRunLapHeader, runLapHeader, plan);
 
-            template.CreatedUtc = DateTime.UtcNow;
-            template.Marks = [.. marks];
-            template.OriginalLaps = moved;
-            template.CreatedLaps = created;
-            template.HadRunLapHeader = hadRunLapHeader;
+            template.Pending = false;
             WriteManifest(backup, template);
             File.WriteAllText(Path.Combine(backup, "README.txt"),
-                $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} ORACLE split this run into {created.Count} lap(s) by GPS finish line.{Environment.NewLine}" +
+                $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz} ORACLE split this run into {created.Count} lap(s) by GPS finish line.{Environment.NewLine}" +
                 $"The original lap folders and RunLapHeader.xml are stored here unchanged.{Environment.NewLine}" +
                 $"To restore them run: ORACLE.exe split-laps \"{runPath}\" --undo{Environment.NewLine}");
             return template;
@@ -223,7 +284,9 @@ public static class LapSplitStore
             {
                 Restore(runPath, backup, moved, created, hadRunLapHeader);
                 if (Directory.GetDirectories(backup).Length == 0)
-                    Retry(() => Directory.Delete(backup, recursive: true));
+                    AtomicFile.Retry(() => Directory.Delete(backup, recursive: true));
+                else
+                    MarkRolledBack(backup, template);
             }
             catch (Exception rollback)
             {
@@ -260,23 +323,56 @@ public static class LapSplitStore
         return new SplitUndoResult(true, $"{manifest.OriginalLaps.Count} original lap(s) restored, {manifest.CreatedLaps.Count} split lap(s) removed");
     }
 
-    /// <summary>The most recent backup with a manifest that has not been undone.</summary>
+    /// <summary>The most recent completed split (by commit time) that has not been undone.</summary>
     public static (string? Backup, SplitManifest? Manifest) FindLatestSplit(string runPath)
     {
+        var latest = ReadManifests(runPath)
+            .Where(m => m.Manifest is { Undone: false, Pending: false })
+            .OrderByDescending(m => m.Manifest.CreatedUtc)
+            .FirstOrDefault();
+        return latest.Backup is null ? (null, null) : (latest.Backup, latest.Manifest);
+    }
+
+    /// <summary>
+    /// Restores a run whose lap swap was interrupted (pending manifest, e.g. after a crash or power loss): removes the
+    /// partially moved new laps, moves the original laps back and restores RunLapHeader.xml. Returns a message when something
+    /// was recovered, otherwise <c>null</c>. Throws when the recovery itself fails (the originals stay in the backup).
+    /// </summary>
+    public static string? RecoverInterrupted(string runPath)
+    {
+        var messages = new List<string>();
+        foreach (var (backup, manifest) in ReadManifests(runPath).Where(m => m.Manifest is { Pending: true, Undone: false }))
+        {
+            var names = manifest.CreatedLaps.Concat(manifest.OriginalLaps).ToList();
+            if (names.Any(n => !IsSafeLapFolderName(n)))
+                throw new InvalidDataException($"Interrupted split in {backup} has an invalid manifest ? restore manually.");
+
+            var moved = manifest.OriginalLaps.Where(n => Directory.Exists(Path.Combine(backup, n))).ToList();
+            var created = manifest.CreatedLaps.Where(n => Directory.Exists(Path.Combine(runPath, n))).ToList();
+            Restore(runPath, backup, moved, created, manifest.HadRunLapHeader);
+            MarkRolledBack(backup, manifest);
+            messages.Add($"interrupted split of {manifest.CreatedUtc:u} rolled back ({moved.Count} original lap(s) restored)");
+        }
+
+        return messages.Count == 0 ? null : string.Join("; ", messages);
+    }
+
+    private static List<(string Backup, SplitManifest Manifest)> ReadManifests(string runPath)
+    {
+        var result = new List<(string, SplitManifest)>();
         var root = Path.Combine(runPath, BackupFolderName);
         if (!Directory.Exists(root))
-            return (null, null);
+            return result;
 
-        foreach (var folder in Directory.GetDirectories(root).OrderByDescending(d => d, StringComparer.OrdinalIgnoreCase))
+        foreach (var folder in Directory.GetDirectories(root))
         {
             var file = Path.Combine(folder, ManifestFileName);
             if (!File.Exists(file))
                 continue;
             try
             {
-                var manifest = JsonSerializer.Deserialize<SplitManifest>(File.ReadAllText(file));
-                if (manifest is { Undone: false })
-                    return (folder, manifest);
+                if (JsonSerializer.Deserialize<SplitManifest>(File.ReadAllText(file)) is { } manifest)
+                    result.Add((folder, manifest));
             }
             catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
             {
@@ -284,7 +380,15 @@ public static class LapSplitStore
             }
         }
 
-        return (null, null);
+        return result;
+    }
+
+    private static void MarkRolledBack(string backup, SplitManifest manifest)
+    {
+        manifest.Pending = false;
+        manifest.Undone = true;
+        manifest.UndoneUtc = DateTime.UtcNow;
+        WriteManifest(backup, manifest);
     }
 
     /// <summary>Planned name and timing of a new lap.</summary>
@@ -331,16 +435,24 @@ public static class LapSplitStore
             Set(root, "CloseType", "PcCommand");
 
         var info = root.Element("StartTimeInfo")?.Element("InfoArray")?.Element("StartTimeInfo");
-        if (info is not null && TryShift(info.Element("STMs")?.Value, info.Element("STS")?.Value, info.Element("STNs")?.Value,
-                lap.Start - lap.SourceStart, out var wall, out var seconds, out var nanos))
+        if (info is not null)
         {
-            Set(info, "STMs", wall.ToString(WallClockFormat, CultureInfo.InvariantCulture));
-            Set(info, "STS", seconds.ToString(CultureInfo.InvariantCulture));
-            Set(info, "STNs", nanos.ToString(CultureInfo.InvariantCulture));
-            Set(root, "StartTime", wall.ToString("dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture));
+            Shift(info.Element("STMs")?.Value, info.Element("STS")?.Value, info.Element("STNs")?.Value,
+                lap.Start - lap.SourceStart, out var wall, out var seconds, out var nanos);
+            if (wall is { } w)
+            {
+                Set(info, "STMs", w.ToString(WallClockFormat, CultureInfo.InvariantCulture));
+                Set(root, "StartTime", w.ToString("dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture));
+            }
+
+            if (seconds is { } sec && nanos is { } ns)
+            {
+                Set(info, "STS", sec.ToString(CultureInfo.InvariantCulture));
+                Set(info, "STNs", ns.ToString(CultureInfo.InvariantCulture));
+            }
         }
 
-        doc.Save(targetPath);
+        AtomicFile.Save(doc, targetPath);
     }
 
     /// <summary>Builds RunLapHeader.xml for the new laps from the original one (one cloned entry per new lap).</summary>
@@ -380,11 +492,12 @@ public static class LapSplitStore
 
             var startS = GetInfo(infos, "StartTimeS");
             var startNs = GetInfo(infos, "StartTimeNs");
-            if (TryShift(null, startS, startNs, lap.Start - lap.SourceStart, out _, out var seconds, out var nanos))
+            Shift(null, startS, startNs, lap.Start - lap.SourceStart, out _, out var seconds, out var nanos);
+            if (seconds is { } sec && nanos is { } ns)
             {
-                SetInfo(infos, "StartTimeS", seconds.ToString(CultureInfo.InvariantCulture));
-                SetInfo(infos, "StartTimeNs", nanos.ToString(CultureInfo.InvariantCulture));
-                SetInfo(infos, "StartTime", seconds.ToString(CultureInfo.InvariantCulture));
+                SetInfo(infos, "StartTimeS", sec.ToString(CultureInfo.InvariantCulture));
+                SetInfo(infos, "StartTimeNs", ns.ToString(CultureInfo.InvariantCulture));
+                SetInfo(infos, "StartTime", sec.ToString(CultureInfo.InvariantCulture));
             }
 
             if (TryParseClock(GetInfo(infos, "StartTimeMSec"), out var clock))
@@ -397,9 +510,7 @@ public static class LapSplitStore
         lapArray.Add(entries);
         Set(doc.Root?.Element("Inf"), "ModT", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
 
-        var temp = targetPath + ".tmp";
-        doc.Save(temp);
-        Retry(() => File.Move(temp, targetPath, overwrite: true));
+        AtomicFile.Save(doc, targetPath);
     }
 
     /// <summary>Only plain lap folder names are acted upon (no paths, no traversal).</summary>
@@ -418,7 +529,7 @@ public static class LapSplitStore
             try
             {
                 if (Directory.Exists(path))
-                    Retry(() => Directory.Delete(path, recursive: true));
+                    AtomicFile.Retry(() => Directory.Delete(path, recursive: true));
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
@@ -432,7 +543,7 @@ public static class LapSplitStore
             {
                 var target = Path.Combine(runPath, name);
                 if (!Directory.Exists(target))
-                    Retry(() => Directory.Move(Path.Combine(backup, name), target));
+                    AtomicFile.Retry(() => Directory.Move(Path.Combine(backup, name), target));
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
@@ -448,30 +559,10 @@ public static class LapSplitStore
             throw new IOException($"Restoring the original laps was incomplete ({string.Join("; ", errors)}). Originals remain in {backup}.");
     }
 
-    /// <summary>
-    /// Runs a file-system operation, retrying briefly when another process (virus scanner, indexer, OneDrive) holds a freshly
-    /// written file for a moment. Persistent errors are rethrown after ~1.5 s.
-    /// </summary>
-    internal static void Retry(Action operation)
-    {
-        for (var attempt = 0; ; attempt++)
-        {
-            try
-            {
-                operation();
-                return;
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException && attempt < 4 && ex is not DirectoryNotFoundException and not FileNotFoundException)
-            {
-                Thread.Sleep(100 << attempt);
-            }
-        }
-    }
-
     private static string CreateBackupFolder(string runPath)
     {
         var root = Path.Combine(runPath, BackupFolderName);
-        var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+        var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss'Z'", CultureInfo.InvariantCulture);
         var folder = Path.Combine(root, stamp);
         for (var i = 1; Directory.Exists(folder); i++)
             folder = Path.Combine(root, $"{stamp}-{i}");
@@ -492,7 +583,7 @@ public static class LapSplitStore
     }
 
     private static void WriteManifest(string backup, SplitManifest manifest) =>
-        File.WriteAllText(Path.Combine(backup, ManifestFileName), JsonSerializer.Serialize(manifest, JsonOptions));
+        AtomicFile.WriteAllText(Path.Combine(backup, ManifestFileName), JsonSerializer.Serialize(manifest, JsonOptions));
 
     private static string ReadAcquisition(string lapFolder)
     {
@@ -510,36 +601,26 @@ public static class LapSplitStore
     private static string FirstSegment(string? path) =>
         (path ?? string.Empty).Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
 
-    /// <summary>Shifts a WinTAX start time (wall clock and/or unix seconds + nanoseconds) by <paramref name="delta"/> seconds.</summary>
-    private static bool TryShift(string? wallText, string? secondsText, string? nanosText, double delta,
-        out DateTime wall, out long seconds, out long nanos)
+    /// <summary>
+    /// Shifts a WinTAX start time by <paramref name="delta"/> seconds. The wall clock (<c>STMs</c>, local time of the logger)
+    /// and the unix time (<c>STS</c> + <c>STNs</c>) are shifted independently; a missing value is never derived from the other
+    /// because the logger's time zone is unknown.
+    /// </summary>
+    private static void Shift(string? wallText, string? secondsText, string? nanosText, double delta,
+        out DateTime? wall, out long? seconds, out long? nanos)
     {
-        wall = default;
-        seconds = 0;
-        nanos = 0;
-        var haveWall = DateTime.TryParseExact(wallText?.Trim(), WallClockFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var w);
-        var haveUnix = long.TryParse(secondsText?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var s);
-        if (!haveUnix && !haveWall)
-            return false;
-
+        wall = null;
+        seconds = null;
+        nanos = null;
         var deltaNs = (long)Math.Round(delta * 1e9);
-        if (haveWall)
+        if (DateTime.TryParseExact(wallText?.Trim(), WallClockFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var w))
             wall = w.AddTicks(deltaNs / 100);
-        if (haveUnix)
+        if (long.TryParse(secondsText?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var s))
         {
             long.TryParse(nanosText?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var ns);
-            var total = s * 1_000_000_000L + ns + deltaNs;
-            seconds = Math.DivRem(total, 1_000_000_000L, out nanos);
+            seconds = Math.DivRem(s * 1_000_000_000L + ns + deltaNs, 1_000_000_000L, out var remainder);
+            nanos = remainder;
         }
-        else
-        {
-            seconds = new DateTimeOffset(wall, TimeSpan.Zero).ToUnixTimeSeconds();
-            nanos = wall.Ticks % TimeSpan.TicksPerSecond * 100;
-        }
-
-        if (!haveWall)
-            wall = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime.AddTicks(nanos / 100);
-        return true;
     }
 
     private static bool TryParseClock(string? text, out TimeSpan clock) =>

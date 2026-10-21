@@ -289,12 +289,12 @@ Bedingung: missingChannels.Count > 0
 
 ORACLE schreibt automatisch in:
 ```
-{Build-Ausgabeverzeichnis}\logs\oracle-{yyyyMMdd-HHmmss}.log
+{Build-Ausgabeverzeichnis}\logs\oracle-{yyyyMMdd-HHmmss}-{PID}.log
 ```
 
 Typischer Pfad:
 ```
-ORACLE\bin\x64\Debug\net8.0\logs\oracle-20250715-143022.log
+ORACLE\bin\x64\Debug\net8.0\logs\oracle-20250715-143022-12345.log
 ```
 
 ### Log-Format

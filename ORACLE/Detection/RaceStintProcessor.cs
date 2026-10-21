@@ -91,11 +91,11 @@
                 try
                 {
                     var calc = calculator.RunCalculationPipeline(run.RunPath, distanceOffset);
-                    lapDistancesPerRun.Add(calc.LapDistancesMeters);
-                    processedRuns.Add(run.RunPath);
                     int laps = xmlEditor.SetRunProperties(
                         run.RunPath, metadata.BikeName, metadata.TrackName,
                         metadata.TrackLength, metadata.RiderName, lapOffset, isLast, calc.LapDistancesMeters);
+                    lapDistancesPerRun.Add(calc.LapDistancesMeters);
+                    processedRuns.Add(run.RunPath);
 
                     Console.WriteLine(
                         $"[stint] {run.RunFolderName}: Laps {lapOffset + 1}..{lapOffset + laps}, " +
@@ -119,17 +119,24 @@
                 try
                 {
                     var calc = calculator.RunCalculationPipeline(run.RunPath);
-                    lapDistancesPerRun.Add(calc.LapDistancesMeters);
-                    processedRuns.Add(run.RunPath);
                     xmlEditor.SetRunProperties(
                         run.RunPath, metadata.BikeName, metadata.TrackName,
                         metadata.TrackLength, metadata.RiderName, 0, true, calc.LapDistancesMeters);
+                    lapDistancesPerRun.Add(calc.LapDistancesMeters);
+                    processedRuns.Add(run.RunPath);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: Verarbeitung fehlgeschlagen – {ex.Message}");
                     failedRuns.Add($"{run.RunFolderName}: {ex.Message}");
                 }
+            }
+
+            // --- Runs, die die Renn-Erkennung nicht lesen konnte: nicht verarbeitet, aber nie stillschweigend ---
+            foreach (var run in detection.Runs.Where(r => r.Verdict == RaceRunVerdict.Error))
+            {
+                Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: nicht lesbar – {run.Reason}");
+                failedRuns.Add($"{run.RunFolderName}: {run.Reason}");
             }
 
             return new RaceStintResult

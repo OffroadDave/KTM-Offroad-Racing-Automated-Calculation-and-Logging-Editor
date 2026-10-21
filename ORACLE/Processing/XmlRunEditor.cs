@@ -25,6 +25,7 @@ namespace Ktm.Racing.Oracle
         /// <param name="isLastInStint">True wenn dies der letzte Renn-Run ist (nur dann Box-Marker am Ende).</param>
         /// <param name="lapDistances">GPS-Distanz je Lap [m] (Index 0 = erste Lap); null = LapDistance nicht schreiben.</param>
         /// <returns>Anzahl der Laps in diesem Run (für die Offset-Akkumulation).</returns>
+        /// <exception cref="Exception">Eine XML-Datei kann nicht gelesen/geschrieben werden – der Aufrufer zählt den Run als fehlgeschlagen.</exception>
         public int SetRunProperties(string runPath, string alias, string track, string trackLength, string rider,
             int lapOffset = 0, bool isLastInStint = true, IReadOnlyList<double>? lapDistances = null)
         {
@@ -34,40 +35,46 @@ namespace Ktm.Racing.Oracle
             string runFolderName = new DirectoryInfo(runPath).Name;
             int runNumber = int.TryParse(runFolderName.Replace("Run_", ""), out int num) ? num : 0;
 
-            var lapDirs = Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly)
-                .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            // Lap-Reihenfolge wie in den Daten (RunLapHeader.xml, nur Laps mit Daten) – dieselbe Reihenfolge wie lapDistances.
+            var lapDirs = OrderedLapFolders(runPath);
             int numLaps = lapDirs.Count;
 
-            try
+            // --- Run-Level (Car.xml / Session.xml) ---
+            UpdateCarXml(runPath, alias, rider);
+            UpdateSessionXml(runPath, track, trackLength);
+
+            // --- per-Lap LapHeader.xml (PRIMÄR) ---
+            for (int i = 0; i < numLaps; i++)
             {
-                // --- Run-Level (Car.xml / Session.xml) ---
-                UpdateCarXml(runPath, alias, rider);
-                UpdateSessionXml(runPath, track, trackLength);
-
-                // --- per-Lap LapHeader.xml (PRIMÄR) ---
-                for (int i = 0; i < numLaps; i++)
-                {
-                    int continuousLap = lapOffset + i + 1;
-                    bool lastLapOfStint = isLastInStint && i == numLaps - 1;
-                    double lapDist = (lapDistances is not null && i < lapDistances.Count) ? lapDistances[i] : double.NaN;
-                    UpdateLapHeaderXml(lapDirs[i], continuousLap, alias, runNumber,
-                        lastLapOfStint ? "Box" : "Lap", lapDist);
-                }
-
-                // --- RunLapHeader.xml (SEKUNDÄR, konsistent) ---
-                UpdateRunLapHeaderXml(runPath, lapDirs, alias, runNumber, lapOffset, isLastInStint, lapDistances);
-
-                Console.WriteLine(
-                    $"XML-Properties gesetzt für {runFolderName}: {numLaps} Lap(s), " +
-                    $"Lap {lapOffset + 1}..{lapOffset + numLaps}, Alias=\"{alias}\", Run={runNumber}.");
+                int continuousLap = lapOffset + i + 1;
+                bool lastLapOfStint = isLastInStint && i == numLaps - 1;
+                double lapDist = (lapDistances is not null && i < lapDistances.Count) ? lapDistances[i] : double.NaN;
+                UpdateLapHeaderXml(lapDirs[i], continuousLap, alias, runNumber,
+                    lastLapOfStint ? "Box" : "Lap", lapDist);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Fehler beim Schreiben der XML-Properties für {runFolderName}: {ex.Message}");
-            }
+
+            // --- RunLapHeader.xml (SEKUNDÄR, konsistent) ---
+            UpdateRunLapHeaderXml(runPath, lapDirs, alias, runNumber, lapOffset, isLastInStint, lapDistances);
+
+            Console.WriteLine(
+                $"XML-Properties gesetzt für {runFolderName}: {numLaps} Lap(s), " +
+                $"Lap {lapOffset + 1}..{lapOffset + numLaps}, Alias=\"{alias}\", Run={runNumber}.");
 
             return numLaps;
+        }
+
+        /// <summary>
+        /// Die Lap-Ordner eines Runs in Daten-Reihenfolge (<c>RunLapHeader.xml</c>, nur Ordner mit Daten); ohne
+        /// RunLapHeader alle <c>Lap_*</c>-Ordner nach Namen.
+        /// </summary>
+        public static List<string> OrderedLapFolders(string runPath)
+        {
+            var ordered = LapSplitStore.ReadLapFolders(runPath).Select(f => Path.Combine(runPath, f.Folder)).ToList();
+            return ordered.Count > 0
+                ? ordered
+                : Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly)
+                    .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
+                    .ToList();
         }
 
         // =====================================================================
@@ -83,7 +90,7 @@ namespace Ktm.Racing.Oracle
             if (doc.Root is not { } car) return;
             SetChild(car, "Name", name);
             SetChild(car, "DriverName", driver);
-            doc.Save(file);
+            AtomicFile.Save(doc, file);
         }
 
         private static void UpdateSessionXml(string runPath, string track, string trackLength)
@@ -95,7 +102,7 @@ namespace Ktm.Racing.Oracle
             if (doc.Root is not { } session) return;
             SetChild(session, "Track", track);
             SetChild(session, "TrackLen", trackLength);
-            doc.Save(file);
+            AtomicFile.Save(doc, file);
         }
 
         /// <summary>
@@ -112,7 +119,7 @@ namespace Ktm.Racing.Oracle
                 var doc = XDocument.Load(file);
                 if (doc.Root is not { } session) return;
                 SetChild(session, "TrackLen", trackLength);
-                doc.Save(file);
+                AtomicFile.Save(doc, file);
             }
             catch (Exception ex)
             {
@@ -141,7 +148,7 @@ namespace Ktm.Racing.Oracle
             foreach (var pathEl in lh.Descendants("Path"))
                 pathEl.Value = NormalizeAliasInPath(pathEl.Value, alias);
 
-            doc.Save(file);
+            AtomicFile.Save(doc, file);
         }
 
         private static void UpdateRunLapHeaderXml(string runPath, List<string> lapDirs, string alias,
@@ -187,7 +194,7 @@ namespace Ktm.Racing.Oracle
             foreach (var pathEl in doc.Descendants("Path"))
                 pathEl.Value = NormalizeAliasInPath(pathEl.Value, alias);
 
-            doc.Save(file);
+            AtomicFile.Save(doc, file);
         }
 
         // =====================================================================

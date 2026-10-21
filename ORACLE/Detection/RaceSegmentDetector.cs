@@ -105,7 +105,7 @@ namespace Ktm.Racing.Oracle
             {
                 reader.SetDataLocation([runPath]);
                 int loadResult = reader.LoadRun();
-                if (loadResult < 0)
+                if (loadResult <= 0)
                     return ErrorResult(runPath, folder, $"LoadRun fehlgeschlagen (Rückgabe {loadResult})");
 
                 var names = reader.GetChannelsNames() ?? Array.Empty<string>();
@@ -128,19 +128,26 @@ namespace Ktm.Racing.Oracle
                 var rpm = GetData(ds, rpmName);
                 var sat = GetData(ds, satName);
 
+                // Fehlende Kanäle sind "unbekannt" (NaN), nicht 0: ein anderes Kanal-Setup darf ein Rennen nicht verwerfen.
+                var missing = new[] { ("nEngine720", rpm), ("rThrottle1", thr), ("ValidSat", sat) }
+                    .Where(c => c.Item2 is null).Select(c => c.Item1).ToList();
+                if (missing.Count > 0)
+                    Console.WriteLine($"[detect] {folder}: Kanal fehlt ({string.Join(", ", missing)}) – Kriterium wird übersprungen.");
+
                 double distance = GpsDistance(ds, latName, lonName, out int validGps);
                 double meanSpeedKph = duration > 1.0 ? distance / duration * 3.6 : 0.0;
-                double meanThrottle = Mean(thr);
-                double meanRpm = Mean(rpm);
-                double meanSat = Mean(sat);
-                bool gpsUsable = meanSat > 0.0 && validGps > _thresholds.MinValidGpsSamples;
+                double meanThrottle = thr is null ? double.NaN : Mean(thr);
+                double meanRpm = rpm is null ? double.NaN : Mean(rpm);
+                double meanSat = sat is null ? double.NaN : Mean(sat);
+                bool gpsUsable = (sat is null || meanSat > 0.0) && validGps > _thresholds.MinValidGpsSamples;
 
                 double minDistance = trackLengthMeters > 0
                     ? Math.Max(_thresholds.DistanceMinMeters, _thresholds.TrackLengthFactor * trackLengthMeters)
                     : _thresholds.DistanceMinMeters;
 
                 var (verdict, reason, lowConfidence) =
-                    Classify(distance, meanSpeedKph, meanThrottle, meanRpm, gpsUsable, minDistance);
+                    Classify(_thresholds, distance, meanSpeedKph, meanThrottle, meanRpm, gpsUsable, minDistance);
+                lowConfidence |= missing.Count > 0 && verdict == RaceRunVerdict.Race;
 
                 return new RunRaceFeatures
                 {
@@ -175,12 +182,15 @@ namespace Ktm.Racing.Oracle
 
         /// <summary>
         /// Dreistufige Klassifikation: Motor-Guard → GPS-Pfad → Fallback bei GPS-Ausfall.
+        /// Fehlende Kanäle werden als <see cref="double.NaN"/> übergeben; ein unbekanntes Kriterium verwirft nicht.
         /// </summary>
-        private (RaceRunVerdict Verdict, string Reason, bool LowConfidence) Classify(
+        public static (RaceRunVerdict Verdict, string Reason, bool LowConfidence) Classify(RaceDetectionThresholds thresholds,
             double distanceM, double speedKph, double throttlePct, double rpm, bool gpsUsable, double minDistanceM)
         {
+            ArgumentNullException.ThrowIfNull(thresholds);
+
             // Guard: Motor aus → niemals Rennen (fängt Blips/Stillstand ab).
-            if (rpm < _thresholds.EngineOnMinRpm)
+            if (rpm < thresholds.EngineOnMinRpm)
                 return (RaceRunVerdict.NoRace, "Motor aus", false);
 
             // Primärpfad: GPS gültig → Distanz + Geschwindigkeit + Gas (UND-verknüpft).
@@ -188,15 +198,15 @@ namespace Ktm.Racing.Oracle
             {
                 if (distanceM <= minDistanceM)
                     return (RaceRunVerdict.NoRace, $"Distanz {distanceM:F0} m <= {minDistanceM:F0} m", false);
-                if (speedKph <= _thresholds.SpeedMinKph)
+                if (speedKph <= thresholds.SpeedMinKph)
                     return (RaceRunVerdict.NoRace, $"vGPS {speedKph:F0} kph zu langsam", false);
-                if (throttlePct <= _thresholds.ThrottleMinPercent)
+                if (throttlePct <= thresholds.ThrottleMinPercent)
                     return (RaceRunVerdict.NoRace, $"Gas {throttlePct:F0} % zu gering", false);
                 return (RaceRunVerdict.Race, "GPS: Distanz+Speed+Gas erfüllt", false);
             }
 
             // Fallback: GPS ausgefallen → nur Gas + Drehzahl (geringere Konfidenz).
-            if (throttlePct > _thresholds.ThrottleFallbackPercent && rpm > _thresholds.RpmRaceMin)
+            if (throttlePct > thresholds.ThrottleFallbackPercent && rpm > thresholds.RpmRaceMin)
                 return (RaceRunVerdict.Race, "Fallback Gas+Drehzahl (GPS ungültig)", true);
 
             return (RaceRunVerdict.NoRace, "GPS ungültig, kein Renn-Profil", false);

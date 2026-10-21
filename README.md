@@ -396,7 +396,7 @@ wird erhöht, wenn eine Änderung bereits verarbeitete Daten verbessert.
 
 ## 12. Logging und Nachvollziehbarkeit
 
-Jeder Lauf schreibt zusätzlich zur Konsole eine Logdatei: `{AppDir}/logs/oracle-{yyyyMMdd-HHmmss}.log`.
+Jeder Lauf schreibt zusätzlich zur Konsole eine Logdatei: `{AppDir}/logs/oracle-{yyyyMMdd-HHmmss}-{PID}.log`.
 Praktisch, wenn ORACLE als KRAKEN-Job läuft und die Konsolenausgabe verloren geht. Logdateien älter als 60 Tage
 werden beim Start automatisch gelöscht. Runs ohne GPS-Fix erzeugen eine einzige Zeile `[gps] Kein GPS-Fix …`.
 

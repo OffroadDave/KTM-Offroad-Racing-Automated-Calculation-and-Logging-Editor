@@ -39,7 +39,17 @@ namespace Ktm.Racing.Oracle
                     continue;
                 }
 
-                var starts = StartDetector.Detect(signals, options);
+                IReadOnlyList<DetectedStart> starts;
+                try
+                {
+                    starts = StartDetector.Detect(signals, options);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"{name,-24} – Analyse fehlgeschlagen: {ex.Message}");
+                    continue;
+                }
+
                 if (double.TryParse(Environment.GetEnvironmentVariable("ORACLE_START_DEBUG"), System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out var debugTime))
                     DumpWindow(name, signals, debugTime);
@@ -70,7 +80,7 @@ namespace Ktm.Racing.Oracle
             try
             {
                 reader.SetDataLocation([run]);
-                if (reader.LoadRun() < 0)
+                if (reader.LoadRun() <= 0)
                     return (null, "LoadRun fehlgeschlagen", null);
 
                 var names = reader.GetChannelsNames() ?? [];
@@ -103,13 +113,20 @@ namespace Ktm.Racing.Oracle
                 var grid = StartDetector.Grid(sp.T.Length > 0 ? sp.T[0] : 0, end, Step);
                 double[]? On((double[] T, double[] V)? c) => c is { } x ? StartDetector.Resample(x.T, x.V, grid) : null;
 
+                var speedKph = On(sp);
+                var gearValues = On(Channel(gear));
+                var rpmValues = On(Channel(rpm));
+                var throttleValues = On(Channel(throttle));
+                if (speedKph is null || gearValues is null || rpmValues is null || throttleValues is null)
+                    return (null, "Kanaldaten nicht im erwarteten Format", null);
+
                 var signals = new StartSignals
                 {
                     Time = grid,
-                    SpeedKph = On(sp)!,
-                    Gear = On(Channel(gear))!,
-                    Rpm = On(Channel(rpm))!,
-                    Throttle = On(Channel(throttle))!,
+                    SpeedKph = speedKph,
+                    Gear = gearValues,
+                    Rpm = rpmValues,
+                    Throttle = throttleValues,
                     Clutch = On(Channel(clutch)),
                     RevLimitSource = On(Channel(rls)),
                     LaunchActive = On(Channel(lc)),

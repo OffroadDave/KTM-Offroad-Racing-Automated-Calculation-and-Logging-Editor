@@ -14,25 +14,40 @@ namespace Ktm.Racing.Oracle
 
         private ProcessingLock(FileStream? stream) => _stream = stream;
 
-        /// <summary>Versucht die Sperre zu erhalten; <c>null</c>, wenn ein anderer Prozess den Ordner verarbeitet.</summary>
+        /// <summary>
+        /// Versucht die Sperre zu erhalten; <c>null</c>, wenn ein anderer Prozess den Ordner verarbeitet.
+        /// Kurze Verzögerungen (Datei wird gerade von einem beendeten Prozess gelöscht) werden abgewartet.
+        /// </summary>
+        /// <exception cref="DirectoryNotFoundException">Der Ordner existiert nicht.</exception>
         public static ProcessingLock? TryAcquire(string folder)
         {
-            try
+            if (!Directory.Exists(folder))
+                throw new DirectoryNotFoundException($"Folder not found: {folder}");
+
+            for (var attempt = 0; ; attempt++)
             {
-                var stream = new FileStream(Path.Combine(folder, FileName), FileMode.OpenOrCreate, FileAccess.ReadWrite,
-                    FileShare.None, 1, FileOptions.DeleteOnClose);
-                using (var writer = new StreamWriter(stream, leaveOpen: true))
-                    writer.Write($"{Environment.MachineName} pid {Environment.ProcessId} {DateTime.Now:s}");
-                return new ProcessingLock(stream);
-            }
-            catch (IOException)
-            {
-                return null;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Ordner nicht beschreibbar: ohne Sperre weiter (Schreibfehler zeigen sich später konkret).
-                return new ProcessingLock(null);
+                try
+                {
+                    var stream = new FileStream(Path.Combine(folder, FileName), FileMode.OpenOrCreate, FileAccess.ReadWrite,
+                        FileShare.None, 1, FileOptions.DeleteOnClose);
+                    using (var writer = new StreamWriter(stream, leaveOpen: true))
+                        writer.Write($"{Environment.MachineName} pid {Environment.ProcessId} {DateTimeOffset.Now:O}");
+                    return new ProcessingLock(stream);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException && attempt < 3)
+                {
+                    Thread.Sleep(200);
+                }
+                catch (IOException)
+                {
+                    return null;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Ordner nicht beschreibbar: ohne Sperre weiter (Schreibfehler zeigen sich später konkret).
+                    Console.WriteLine($"Warnung: {folder} ist nicht beschreibbar – Verarbeitung ohne Sperre.");
+                    return new ProcessingLock(null);
+                }
             }
         }
 
