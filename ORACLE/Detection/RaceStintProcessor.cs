@@ -56,7 +56,7 @@
         /// <param name="trackLengthMeters">Track length from KOMPASS for the relative distance threshold (0 = absolute only).</param>
         public RaceStintResult ProcessRider(string riderPath, RunMetadata metadata, double trackLengthMeters = 0)
         {
-            var detection = _detector.DetectRaces(riderPath, trackLengthMeters);
+            var detection = _detector.DetectRaces(riderPath, trackLengthMeters, includeData: true);
 
             // Race runs in chronological order (numerically by run number, robust against different digit counts).
             var raceRuns = detection.Runs

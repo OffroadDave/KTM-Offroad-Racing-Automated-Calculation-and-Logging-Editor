@@ -25,6 +25,7 @@ namespace Ktm.Racing.Oracle
     /// </summary>
     public class RaceSegmentDetector
     {
+        private const long MaxRetainedGpsDataBytes = 64 * 1024 * 1024;
         private readonly IMarelliDataBrowse _browse;
         private readonly RaceDetectionThresholds _thresholds;
         private readonly GpsSettings _gps;
@@ -49,7 +50,8 @@ namespace Ktm.Racing.Oracle
         /// </summary>
         /// <param name="folderPath">Rider/session folder or a direct run folder.</param>
         /// <param name="trackLengthMeters">Optional track length from KOMPASS for the relative distance threshold (0 = absolute only).</param>
-        public RaceDetectionResult DetectRaces(string folderPath, double trackLengthMeters = 0)
+        /// <param name="includeData">Retain bounded preloaded GPS data for subsequent calculations.</param>
+        public RaceDetectionResult DetectRaces(string folderPath, double trackLengthMeters = 0, bool includeData = false)
         {
             if (!Directory.Exists(folderPath))
             {
@@ -61,8 +63,14 @@ namespace Ktm.Racing.Oracle
                 : RunFolders.InOrder(_browse.FindRuns(folderPath) ?? Enumerable.Empty<string>());
 
             var features = new List<RunRaceFeatures>(runPaths.Count);
+            long retainedGpsDataBytes = 0;
             foreach (var runPath in runPaths)
-                features.Add(ClassifyRun(runPath, trackLengthMeters));
+            {
+                var feature = ClassifyRun(runPath, trackLengthMeters, includeData);
+                if (includeData)
+                    retainedGpsDataBytes = RetainGpsData(feature, retainedGpsDataBytes, MaxRetainedGpsDataBytes);
+                features.Add(feature);
+            }
 
             var raceRunPaths = features
                 .Where(f => f.Verdict == RaceRunVerdict.Race)
@@ -81,7 +89,8 @@ namespace Ktm.Racing.Oracle
         /// Loads the required channels of a single run, computes the metrics and classifies it.
         /// Errors result in <see cref="RaceRunVerdict.Error"/> instead of an exception (fail-forward).
         /// </summary>
-        public RunRaceFeatures ClassifyRun(string runPath, double trackLengthMeters = 0)
+        /// <param name="includeData">Retain preloaded GPS data for a subsequent calculation.</param>
+        public RunRaceFeatures ClassifyRun(string runPath, double trackLengthMeters = 0, bool includeData = false)
         {
             string folder = Path.GetFileName(
                 runPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -113,14 +122,16 @@ namespace Ktm.Racing.Oracle
 
                 var latSignal = latName is null ? null : ds?.GetElement(latName)?.SignalData;
                 var lonSignal = lonName is null ? null : ds?.GetElement(lonName)?.SignalData;
-                var data = new RunGpsData
-                {
-                    ChannelNames = names,
-                    LapMarks = reader.GetLapMarks() ?? [],
-                    Time = latSignal?.Time as double[],
-                    Latitude = latSignal?.Data as double[],
-                    Longitude = lonSignal?.Data as double[],
-                };
+                RunGpsData? data = includeData
+                    ? new RunGpsData
+                    {
+                        ChannelNames = names,
+                        LapMarks = reader.GetLapMarks() ?? [],
+                        Time = latSignal?.Time as double[],
+                        Latitude = latSignal?.Data as double[],
+                        Longitude = lonSignal?.Data as double[],
+                    }
+                    : null;
 
                 var thr = GetData(ds, thrName);
                 var rpm = GetData(ds, rpmName);
@@ -240,6 +251,23 @@ namespace Ktm.Racing.Oracle
             foreach (var v in data)
                 if (!double.IsNaN(v) && !double.IsInfinity(v)) { sum += v; count++; }
             return count == 0 ? 0.0 : sum / count;
+        }
+
+        internal static long RetainGpsData(RunRaceFeatures feature, long retainedBytes, long maxRetainedBytes)
+        {
+            if (feature.Data is not { } data)
+                return retainedBytes;
+
+            long dataBytes = ((data.Time?.LongLength ?? 0) +
+                              (data.Latitude?.LongLength ?? 0) +
+                              (data.Longitude?.LongLength ?? 0)) * sizeof(double);
+            if (retainedBytes > maxRetainedBytes || dataBytes > maxRetainedBytes - retainedBytes)
+            {
+                feature.Data = null;
+                return retainedBytes;
+            }
+
+            return retainedBytes + dataBytes;
         }
 
         /// <summary>

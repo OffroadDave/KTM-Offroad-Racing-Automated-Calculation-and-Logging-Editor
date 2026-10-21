@@ -59,10 +59,10 @@ namespace Ktm.Racing.Oracle
         public bool LowConfidence { get; init; }
 
         /// <summary>
-        /// Already loaded run data (channel list, lap boundaries, GPS) for the subsequent calculation – avoids loading
-        /// the run a second time. <c>null</c> on errors.
+        /// Optionally retained run data (channel list, lap boundaries, GPS) for the subsequent calculation – avoids
+        /// loading the run a second time. <c>null</c> when not requested, not retained, or on errors.
         /// </summary>
-        public RunGpsData? Data { get; init; }
+        public RunGpsData? Data { get; internal set; }
     }
 
     /// <summary>

@@ -357,6 +357,26 @@ public sealed class ReviewBugfixTests
         Assert.Equal(RaceRunVerdict.NoRace, neither.Verdict);
     }
 
+    [Fact]
+    public void Race_detection_preloaded_gps_data_respects_the_retention_limit()
+    {
+        var fits = new RunRaceFeatures
+        {
+            Data = new RunGpsData { Time = new double[2], Latitude = new double[2], Longitude = new double[2] },
+        };
+        var exceeds = new RunRaceFeatures
+        {
+            Data = new RunGpsData { Time = new double[2], Latitude = new double[2], Longitude = new double[2] },
+        };
+
+        long retained = RaceSegmentDetector.RetainGpsData(fits, 0, 48);
+        retained = RaceSegmentDetector.RetainGpsData(exceeds, retained, 48);
+
+        Assert.Equal(48, retained);
+        Assert.NotNull(fits.Data);
+        Assert.Null(exceeds.Data);
+    }
+
     // ---- B21: invalid configuration ---------------------------------------------------------------------------------
 
     [Fact]
