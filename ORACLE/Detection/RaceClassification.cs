@@ -57,6 +57,12 @@ namespace Ktm.Racing.Oracle
 
         /// <summary>True wenn das Verdikt über den GPS-Fallback zustande kam (geringere Konfidenz).</summary>
         public bool LowConfidence { get; init; }
+
+        /// <summary>
+        /// Bereits gelesene Run-Daten (Kanalliste, Lap-Grenzen, GPS) für die anschließende Berechnung – vermeidet ein zweites
+        /// Laden des Runs. <c>null</c> bei Fehlern.
+        /// </summary>
+        public RunGpsData? Data { get; init; }
     }
 
     /// <summary>

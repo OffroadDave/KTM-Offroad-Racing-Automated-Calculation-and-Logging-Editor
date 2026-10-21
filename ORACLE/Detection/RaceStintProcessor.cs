@@ -90,7 +90,7 @@
                 // per-Lap-Distanzen), danach die XML-Properties mit fortlaufender Lap-Nummerierung.
                 try
                 {
-                    var calc = calculator.RunCalculationPipeline(run.RunPath, distanceOffset);
+                    var calc = calculator.RunCalculationPipeline(run.RunPath, distanceOffset, run.Data);
                     int laps = xmlEditor.SetRunProperties(
                         run.RunPath, metadata.BikeName, metadata.TrackName,
                         metadata.TrackLength, metadata.RiderName, lapOffset, isLast, calc.LapDistancesMeters);
@@ -118,7 +118,7 @@
                 Console.WriteLine($"[stint] {run.RunFolderName}: kein Rennen ({run.Reason}) — eigenständige Verarbeitung.");
                 try
                 {
-                    var calc = calculator.RunCalculationPipeline(run.RunPath);
+                    var calc = calculator.RunCalculationPipeline(run.RunPath, 0, run.Data);
                     xmlEditor.SetRunProperties(
                         run.RunPath, metadata.BikeName, metadata.TrackName,
                         metadata.TrackLength, metadata.RiderName, 0, true, calc.LapDistancesMeters);

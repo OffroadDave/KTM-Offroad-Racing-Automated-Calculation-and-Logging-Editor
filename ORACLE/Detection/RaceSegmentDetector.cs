@@ -100,7 +100,7 @@ namespace Ktm.Racing.Oracle
             if (!Directory.Exists(runPath))
                 return ErrorResult(runPath, folder, "Run-Ordner existiert nicht");
 
-            var reader = KtmDataHandlerFactory.CreateReader();
+            var reader = KtmDataHandlerFactory.CreateAccess();
             try
             {
                 reader.SetDataLocation([runPath]);
@@ -122,7 +122,16 @@ namespace Ktm.Racing.Oracle
                 double duration = reader.GetLastSampleTime();
                 IDataset? ds = request.Length > 0 ? reader.GetChannels(request) : null;
 
-
+                var latSignal = latName is null ? null : ds?.GetElement(latName)?.SignalData;
+                var lonSignal = lonName is null ? null : ds?.GetElement(lonName)?.SignalData;
+                var data = new RunGpsData
+                {
+                    ChannelNames = names,
+                    LapMarks = reader.GetLapMarks() ?? [],
+                    Time = latSignal?.Time as double[],
+                    Latitude = latSignal?.Data as double[],
+                    Longitude = lonSignal?.Data as double[],
+                };
 
                 var thr = GetData(ds, thrName);
                 var rpm = GetData(ds, rpmName);
@@ -164,6 +173,7 @@ namespace Ktm.Racing.Oracle
                     Verdict = verdict,
                     Reason = reason,
                     LowConfidence = lowConfidence,
+                    Data = data,
                 };
             }
             catch (Exception ex)
