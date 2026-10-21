@@ -44,13 +44,71 @@ public sealed class ReviewBugfixTests
     // ---- B14: crash-safe lap swap ----------------------------------------------------------------------------------
 
     [Fact]
-    public void Interrupted_lap_swap_is_rolled_back_on_the_next_analysis()
+    public void Interrupted_lap_swap_is_rolled_back_by_recovery()
     {
         using var tmp = new TempDir();
+        var (run, header) = CreateInterruptedSplit(tmp);
+
+        Assert.Null(LapSplitStore.FindLatestSplit(run).Manifest); // a pending swap is never "the latest split"
+        var message = LapSplitStore.RecoverInterrupted(run);
+
+        Assert.NotNull(message);
+        Assert.Equal(["Lap_00000894_00412"], FakeRun.LapFolders(run));
+        Assert.Equal(header, File.ReadAllText(IOPath.Combine(run, "RunLapHeader.xml")));
+        Assert.Null(LapSplitStore.RecoverInterrupted(run)); // done once
+    }
+
+    [Fact]
+    public void Analysis_only_reports_an_interrupted_lap_swap()
+    {
+        using var tmp = new TempDir();
+        var (run, _) = CreateInterruptedSplit(tmp);
+        var service = new GpsLapSplitService(access: new FakeSplitAccess { OriginalMarks = [0, 200], Gps = Stadium.Drive(200) });
+
+        var analysis = service.Analyze(run);
+
+        Assert.Empty(analysis.Laps);
+        Assert.Contains("interrupted lap split", analysis.Problem);
+        Assert.True(LapSplitStore.HasInterruptedSplit(run));
+        Assert.Equal(["Lap_00000894_00412_Def_000"], FakeRun.LapFolders(run)); // nothing restored or deleted
+    }
+
+    [Fact]
+    public void Interrupted_lap_swap_is_recovered_only_under_the_locks()
+    {
+        using var tmp = new TempDir();
+        var (run, header) = CreateInterruptedSplit(tmp);
+
+        using (ProcessingLock.TryAcquire(IOPath.GetDirectoryName(run)!))
+        {
+            var locked = LapSplitStore.RecoverInterruptedLocked([run]);
+            Assert.Equal(new[] { run }, locked.Locked);
+            Assert.False(locked.Complete);
+            Assert.True(LapSplitStore.HasInterruptedSplit(run));
+        }
+
+        using (ProcessingLock.TryAcquire(run))
+        {
+            Assert.Equal(new[] { run }, LapSplitStore.RecoverInterruptedLocked([run]).Locked);
+            Assert.True(LapSplitStore.HasInterruptedSplit(run));
+        }
+
+        var recovery = LapSplitStore.RecoverInterruptedLocked([run]);
+
+        Assert.Equal(new[] { run }, recovery.Recovered);
+        Assert.True(recovery.Complete);
+        Assert.False(LapSplitStore.HasInterruptedSplit(run));
+        Assert.Equal(["Lap_00000894_00412"], FakeRun.LapFolders(run));
+        Assert.Equal(header, File.ReadAllText(IOPath.Combine(run, "RunLapHeader.xml")));
+        Assert.Empty(LapSplitStore.RecoverInterruptedLocked([run]).Recovered);
+    }
+
+    /// <summary>State after a crash mid-swap: pending manifest, original lap already in the backup, one new lap in place.</summary>
+    private static (string Run, string Header) CreateInterruptedSplit(TempDir tmp)
+    {
         var run = FakeRun.Create(tmp, ("Lap_00000894_00412", "894"));
         var header = File.ReadAllText(IOPath.Combine(run, "RunLapHeader.xml"));
 
-        // State after a crash mid-swap: pending manifest, original lap already in the backup, one new lap in place.
         var backup = Directory.CreateDirectory(IOPath.Combine(run, LapSplitStore.BackupFolderName, "20261021-080000Z")).FullName;
         File.Copy(IOPath.Combine(run, "RunLapHeader.xml"), IOPath.Combine(backup, "RunLapHeader.xml"));
         Directory.Move(IOPath.Combine(run, "Lap_00000894_00412"), IOPath.Combine(backup, "Lap_00000894_00412"));
@@ -63,14 +121,7 @@ public sealed class ReviewBugfixTests
             OriginalLaps = ["Lap_00000894_00412"],
             CreatedLaps = ["Lap_00000894_00412_Def_000", "Lap_00000894_00412_Def_001"],
         }));
-
-        Assert.Null(LapSplitStore.FindLatestSplit(run).Manifest); // a pending swap is never "the latest split"
-        var message = LapSplitStore.RecoverInterrupted(run);
-
-        Assert.NotNull(message);
-        Assert.Equal(["Lap_00000894_00412"], FakeRun.LapFolders(run));
-        Assert.Equal(header, File.ReadAllText(IOPath.Combine(run, "RunLapHeader.xml")));
-        Assert.Null(LapSplitStore.RecoverInterrupted(run)); // done once
+        return (run, header);
     }
 
     [Fact]

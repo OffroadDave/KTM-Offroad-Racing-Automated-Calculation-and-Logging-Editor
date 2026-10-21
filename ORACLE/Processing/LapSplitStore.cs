@@ -64,6 +64,16 @@ public sealed record LapFolderInfo(string Folder, string Acquisition);
 /// <param name="Message">Human-readable result.</param>
 public sealed record SplitUndoResult(bool Success, string Message);
 
+/// <summary>Result of <see cref="LapSplitStore.RecoverInterruptedLocked"/>.</summary>
+/// <param name="Recovered">Runs whose interrupted lap swap was rolled back (originals restored).</param>
+/// <param name="Failed">Runs whose recovery failed (originals stay in the backup).</param>
+/// <param name="Locked">Runs not recovered because another ORACLE process holds their lock.</param>
+public sealed record SplitRecoveryResult(IReadOnlyList<string> Recovered, IReadOnlyList<string> Failed, IReadOnlyList<string> Locked)
+{
+    /// <summary><c>true</c> when every interrupted lap swap was recovered.</summary>
+    public bool Complete => Failed.Count == 0 && Locked.Count == 0;
+}
+
 /// <summary>
 /// File side of the GPS lap split (no native API, testable): reads the lap structure of a run and swaps the laps written by
 /// the WinTAX API into the run as a transaction – originals are moved (not copied) to <c>_ORACLE_original\&lt;timestamp&gt;</c>,
@@ -355,6 +365,55 @@ public static class LapSplitStore
         }
 
         return messages.Count == 0 ? null : string.Join("; ", messages);
+    }
+
+    /// <summary><c>true</c> when the run has an interrupted lap swap (pending manifest) that must be recovered first.</summary>
+    public static bool HasInterruptedSplit(string runPath) =>
+        ReadManifests(runPath).Any(m => m.Manifest is { Pending: true, Undone: false });
+
+    /// <summary>
+    /// Recovers interrupted lap swaps of <paramref name="runs"/> under the processing locks: the run lock and – unless the
+    /// caller already holds it (<paramref name="deviceLocked"/>) – the lock of the device folder. A run whose lock is held by
+    /// another ORACLE process is not touched (its writer may still be running). Never throws.
+    /// </summary>
+    public static SplitRecoveryResult RecoverInterruptedLocked(IEnumerable<string> runs, bool deviceLocked = false)
+    {
+        var recovered = new List<string>();
+        var failed = new List<string>();
+        var locked = new List<string>();
+        foreach (var run in runs)
+        {
+            try
+            {
+                if (!HasInterruptedSplit(run))
+                    continue;
+
+                var device = Path.GetDirectoryName(run);
+                var needsDeviceLock = !deviceLocked && !string.IsNullOrEmpty(device);
+                using var deviceLock = needsDeviceLock ? ProcessingLock.TryAcquire(device!) : null;
+                using var runLock = needsDeviceLock && deviceLock is null ? null : ProcessingLock.TryAcquire(run);
+                if (runLock is null)
+                {
+                    Console.WriteLine($"[split-recovery] {Path.GetFileName(run)}: interrupted lap split not recovered – the run is locked by another ORACLE process.");
+                    locked.Add(run);
+                    continue;
+                }
+
+                if (RecoverInterrupted(run) is { } message)
+                {
+                    Console.WriteLine($"[split-recovery] {Path.GetFileName(run)}: {message}.");
+                    recovered.Add(run);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[split-recovery] ⚠️ {Path.GetFileName(run)}: recovery of an interrupted lap split failed – {ex.Message} " +
+                                  $"(originals in {BackupFolderName}).");
+                failed.Add(run);
+            }
+        }
+
+        return new SplitRecoveryResult(recovered, failed, locked);
     }
 
     private static List<(string Backup, SplitManifest Manifest)> ReadManifests(string runPath)

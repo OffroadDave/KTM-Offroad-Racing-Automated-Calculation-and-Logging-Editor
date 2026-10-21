@@ -143,14 +143,22 @@ public sealed class GpsLapSplitService
         _lockRuns = lockRuns;
     }
 
-    /// <summary>Phase 1: reads GPS (prepared by <see cref="GpsCleaner"/>) and lap structure of a run. Never throws.</summary>
+    /// <summary>
+    /// Phase 1: reads GPS (prepared by <see cref="GpsCleaner"/>) and lap structure of a run. Never throws and never writes: a run
+    /// with an interrupted lap swap is only reported – callers recover it beforehand under the processing locks
+    /// (<see cref="LapSplitStore.RecoverInterruptedLocked"/>).
+    /// </summary>
     public RunSplitAnalysis Analyze(string runPath)
     {
         try
         {
-            var recovered = LapSplitStore.RecoverInterrupted(runPath);
-            if (recovered is not null)
-                Console.WriteLine($"[gps-split] {Path.GetFileName(runPath)}: {recovered}.");
+            if (LapSplitStore.HasInterruptedSplit(runPath))
+                return new RunSplitAnalysis
+                {
+                    RunPath = runPath,
+                    Problem = "an interrupted lap split must be recovered first (originals in " +
+                              $"{LapSplitStore.BackupFolderName}) – run 'process' or 'split-laps' without --dry-run",
+                };
 
             var (marks, raw, problem) = _access.ReadGps(runPath, _gps.LatitudeChannel, _gps.LongitudeChannel);
             var cleaned = raw is null ? null : GpsCleaner.Clean(raw, _gps.ToCleanOptions());
@@ -258,6 +266,9 @@ public sealed class GpsLapSplitService
         var committed = false;
         try
         {
+            if (LapSplitStore.HasInterruptedSplit(run))
+                return Failed(run, detection.Verdict, "an interrupted lap split must be recovered first – nothing changed");
+
             if (LapSplitStore.CleanupTemp(run))
                 Console.WriteLine($"[gps-split] {Path.GetFileName(run)}: leftover {LapSplitStore.TempFolderName} from an aborted split removed.");
 

@@ -82,6 +82,10 @@ namespace Ktm.Racing.Oracle
                 return OracleExitCode.DataNotFound;
             }
 
+            // Unterbrochene GPS-Lap-Teilung zuerst (unter Geräte- und Run-Sperre) zurückrollen.
+            if (RecoverInterruptedSplits(runPath) is { } recoveryExit)
+                return recoveryExit;
+
             // Parallele ORACLE-Jobs dürfen nicht gleichzeitig denselben Run bearbeiten.
             using var processingLock = ProcessingLock.TryAcquire(runPath);
             if (processingLock is null)
@@ -516,6 +520,10 @@ namespace Ktm.Racing.Oracle
             if (_config.NormalizeDeviceFolderName)
                 path = NormalizeDeviceFolders(path);
 
+            // Unterbrochene GPS-Lap-Teilungen zuerst (unter Sperre) zurückrollen – vor Reparatur, Erkennung und Idempotenz.
+            if (RecoverInterruptedSplits(path) is { } recoveryExit)
+                return recoveryExit;
+
             // Aus demselben Grund vor der WinTAX-API: verwaiste Lap-Ordner (Split-/Append-Reste ohne Daten) aus den
             // Runs räumen, damit WinTAX die Runs wieder erkennt und sie verarbeitet werden.
             if (_config.RepairOrphanLapFolders)
@@ -540,6 +548,9 @@ namespace Ktm.Racing.Oracle
             // bikeName in Ordnern und XML durchgängig ohne Leerzeichen ist. Non-fatal + guarded.
             if (_config.NormalizeDeviceFolderName)
                 riderPath = NormalizeDeviceFolders(riderPath);
+
+            if (RecoverInterruptedSplits(riderPath) is { } recoveryExit)
+                return recoveryExit;
 
             var runs = (_browse.FindRuns(riderPath) ?? Enumerable.Empty<string>())
                 .OrderBy(p => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)
@@ -1048,11 +1059,30 @@ namespace Ktm.Racing.Oracle
                     return OracleExitCode.ResourceLocked;
                 var lockedOut = lockedRuns.Count < runs.Count;
 
+                // Unterbrochene Teilungen unter den Sperren zurückrollen, bevor Undo/Analyse den Run ansehen; der Probelauf
+                // meldet sie nur (Analyze). Für --undo zählt eine Wiederherstellung als erfolgreich rückgängig gemacht.
+                var recovery = undo || !dryRun ? LapSplitStore.RecoverInterruptedLocked(lockedRuns, deviceLocked: true) : null;
+                var unrecovered = recovery is null ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    : recovery.Failed.Concat(recovery.Locked).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
                 if (undo)
                 {
                     int restored = 0, failedUndo = 0;
                     foreach (var run in lockedRuns)
                     {
+                        if (recovery!.Recovered.Contains(run, StringComparer.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine($"[split-laps] {Path.GetFileName(run)}: ✔ interrupted lap split rolled back, original laps restored");
+                            restored++;
+                            InvalidateProcessedStatus(run, "interrupted lap split rolled back");
+                            continue;
+                        }
+                        if (unrecovered.Contains(run))
+                        {
+                            failedUndo++;
+                            continue;
+                        }
+
                         using var runLock = ProcessingLock.TryAcquire(run);
                         var result = runLock is null
                             ? new SplitUndoResult(false, "the run is being processed by another ORACLE process – try again later")
@@ -1108,7 +1138,7 @@ namespace Ktm.Racing.Oracle
 
                 var failed = outcomes.Count(o => o.Status == GpsLapSplitOutcomeStatus.Failed);
                 return failed == outcomes.Count ? OracleExitCode.GeneralError
-                    : failed > 0 || lockedOut || unresolved > 0 ? OracleExitCode.PartialSuccess
+                    : failed > 0 || lockedOut || unresolved > 0 || unrecovered.Count > 0 ? OracleExitCode.PartialSuccess
                     : OracleExitCode.Success;
             }
             finally
@@ -1116,6 +1146,29 @@ namespace Ktm.Racing.Oracle
                 foreach (var held in locks)
                     held.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Rollt unterbrochene GPS-Lap-Teilungen (ausstehendes Manifest) aller Runs unter <paramref name="root"/> unter Geräte- und
+        /// Run-Sperre zurück, bevor ein schreibender Befehl Runs erkennt oder die Idempotenz prüft. <c>null</c>, wenn nichts
+        /// aussteht; sonst der Exit-Code, mit dem abgebrochen wird (Originale bleiben in der Sicherung).
+        /// </summary>
+        private static OracleExitCode? RecoverInterruptedSplits(string root)
+        {
+            var recovery = LapSplitStore.RecoverInterruptedLocked(RunFolderInspector.FindRunFolders(root));
+            if (recovery.Failed.Count > 0)
+            {
+                Console.WriteLine($"[process] Unterbrochene Lap-Teilung konnte nicht zurückgerollt werden ({string.Join(", ", recovery.Failed.Select(Path.GetFileName))}) – " +
+                                  $"Originale in {LapSplitStore.BackupFolderName}, manuell wiederherstellen.");
+                return OracleExitCode.GeneralError;
+            }
+            if (recovery.Locked.Count > 0)
+            {
+                Console.WriteLine($"[process] Unterbrochene Lap-Teilung in gesperrtem Run ({string.Join(", ", recovery.Locked.Select(Path.GetFileName))}) – später erneut versuchen.");
+                return OracleExitCode.ResourceLocked;
+            }
+
+            return null;
         }
 
         /// <summary>
