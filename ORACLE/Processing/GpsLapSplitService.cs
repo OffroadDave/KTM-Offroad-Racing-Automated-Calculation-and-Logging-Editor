@@ -123,6 +123,7 @@ public sealed class GpsLapSplitService
     private readonly ISplitDataAccess _access;
     private readonly Func<string, long?> _freeSpace;
     private readonly bool _lockRuns;
+    private readonly Action<string>? _beforeSwap;
     private readonly GpsLapSplitter _splitter = new();
 
     /// <summary>Creates the service.</summary>
@@ -133,14 +134,19 @@ public sealed class GpsLapSplitService
     /// Lock each run folder (<c>oracle.lock</c>) while writing – for the stand-alone command; <c>process</c> already holds the lock.
     /// </param>
     /// <param name="gps">GPS channels and preparation (oracle-config.json, section Gps).</param>
+    /// <param name="beforeSwap">
+    /// Called with the run path under the run lock right before the laps are swapped (e.g. to persist the invalidation of
+    /// processing statuses). If it throws, the run is left unchanged and the split fails.
+    /// </param>
     public GpsLapSplitService(GpsLapSplitSettings? settings = null, ISplitDataAccess? access = null, Func<string, long?>? freeSpace = null,
-        bool lockRuns = false, GpsSettings? gps = null)
+        bool lockRuns = false, GpsSettings? gps = null, Action<string>? beforeSwap = null)
     {
         _settings = settings ?? new GpsLapSplitSettings();
         _gps = gps ?? new GpsSettings();
         _access = access ?? new KtmSplitDataAccess();
         _freeSpace = freeSpace ?? FreeSpace;
         _lockRuns = lockRuns;
+        _beforeSwap = beforeSwap;
     }
 
     /// <summary>
@@ -289,6 +295,15 @@ public sealed class GpsLapSplitService
             var verify = VerifyWritten(written, split.LapMarks, write.Channels);
             if (verify.Error is not null)
                 return Failed(run, detection.Verdict, $"verification of the written laps failed – nothing changed: {verify.Error}");
+
+            try
+            {
+                _beforeSwap?.Invoke(run);
+            }
+            catch (Exception ex)
+            {
+                return Failed(run, detection.Verdict, $"processing status could not be invalidated – nothing changed: {ex.Message}");
+            }
 
             var manifest = LapSplitStore.Commit(run, written, split.LapMarks, analysis.Laps, new SplitManifest
             {

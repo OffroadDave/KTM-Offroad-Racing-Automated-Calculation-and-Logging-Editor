@@ -158,7 +158,7 @@ namespace Ktm.Racing.Oracle
         /// <summary>
         /// Markiert einen bereits verarbeiteten Ordner als veraltet (z.B. nachdem <c>split-laps</c> die Laps geändert hat),
         /// damit der nächste <c>process</c>-Aufruf ihn ohne <c>--force</c> vollständig neu verarbeitet. Ohne Status-Datei
-        /// passiert nichts.
+        /// passiert nichts. Wirft, wenn die Invalidierung nicht gespeichert werden kann (anders als <see cref="Save"/>).
         /// </summary>
         public static void MarkOutdated(string directoryPath, string reason)
         {
@@ -170,7 +170,7 @@ namespace Ktm.Racing.Oracle
                 ["reason"] = reason,
                 ["atUtc"] = DateTime.UtcNow,
             });
-            status.Save(directoryPath);
+            AtomicFile.WriteAllText(System.IO.Path.Combine(directoryPath, FileName), JsonSerializer.Serialize(status, JsonOptions));
         }
 
         /// <summary>

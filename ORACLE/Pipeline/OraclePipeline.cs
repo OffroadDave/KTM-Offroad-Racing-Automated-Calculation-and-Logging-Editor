@@ -982,7 +982,10 @@ namespace Ktm.Racing.Oracle
                 return [];
             }
 
-            var service = new GpsLapSplitService(_config.GpsLapSplit, lockRuns: lockRuns, gps: _config.Gps);
+            // Status vor jedem Lap-Tausch (unter der Run-Sperre) invalidieren: geänderte Laps (Lap-Nummern, LapDistance,
+            // sVehicle) müssen neu berechnet werden, auch wenn ORACLE direkt nach dem Tausch abbricht.
+            var service = new GpsLapSplitService(_config.GpsLapSplit, lockRuns: lockRuns, gps: _config.Gps,
+                beforeSwap: run => InvalidateProcessedStatus(run, "laps split by GPS finish line"));
             var (line, outcomes) = service.SplitRuns(runs, point, dryRun);
             Console.WriteLine(line.Line is { } l
                 ? $"[gps-split] Ziellinie {metadata.TrackName}: {line.Message} " +
@@ -1074,7 +1077,14 @@ namespace Ktm.Racing.Oracle
                         {
                             Console.WriteLine($"[split-laps] {Path.GetFileName(run)}: ✔ interrupted lap split rolled back, original laps restored");
                             restored++;
-                            InvalidateProcessedStatus(run, "interrupted lap split rolled back");
+                            try
+                            {
+                                InvalidateProcessedStatus(run, "interrupted lap split rolled back");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[split-laps] ⚠️ {Path.GetFileName(run)}: Verarbeitungsstatus konnte nicht zurückgesetzt werden: {ex.Message}");
+                            }
                             continue;
                         }
                         if (unrecovered.Contains(run))
@@ -1086,14 +1096,11 @@ namespace Ktm.Racing.Oracle
                         using var runLock = ProcessingLock.TryAcquire(run);
                         var result = runLock is null
                             ? new SplitUndoResult(false, "the run is being processed by another ORACLE process – try again later")
-                            : LapSplitStore.Undo(run);
+                            : UndoSplit(run);
                         Console.WriteLine($"[split-laps] {Path.GetFileName(run)}: {(result.Success ? "✔ " : string.Empty)}{result.Message}");
-                            if (result.Success)
-                            {
-                                restored++;
-                                InvalidateProcessedStatus(run, "lap split undone");
-                            }
-                            else if (LapSplitStore.FindLatestSplit(run).Manifest is not null) failedUndo++;
+                        if (result.Success)
+                            restored++;
+                        else if (LapSplitStore.FindLatestSplit(run).Manifest is not null) failedUndo++;
                     }
 
                     Console.WriteLine($"[split-laps] Rückgängig: {restored} Run(s) wiederhergestellt, {failedUndo} Fehler.");
@@ -1132,10 +1139,6 @@ namespace Ktm.Racing.Oracle
                 if (outcomes.Count == 0)
                     return kompassInvalid ? OracleExitCode.InvalidData : OracleExitCode.DataNotFound;
 
-                // Geänderte Laps: Lap-Nummern, LapDistance und sVehicle müssen neu berechnet werden.
-                foreach (var split in outcomes.Where(o => o.Status == GpsLapSplitOutcomeStatus.Split))
-                    InvalidateProcessedStatus(split.RunPath, "laps split by GPS finish line");
-
                 var failed = outcomes.Count(o => o.Status == GpsLapSplitOutcomeStatus.Failed);
                 return failed == outcomes.Count ? OracleExitCode.GeneralError
                     : failed > 0 || lockedOut || unresolved > 0 || unrecovered.Count > 0 ? OracleExitCode.PartialSuccess
@@ -1172,8 +1175,28 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
+        /// Stellt die Original-Laps der letzten Teilung wieder her. Der Verarbeitungsstatus wird vorher (unter der Run-Sperre)
+        /// invalidiert; lässt sich das nicht speichern, bleibt der Run unverändert.
+        /// </summary>
+        private static SplitUndoResult UndoSplit(string run)
+        {
+            if (LapSplitStore.FindLatestSplit(run).Manifest is null)
+                return LapSplitStore.Undo(run);
+            try
+            {
+                InvalidateProcessedStatus(run, "lap split undone");
+            }
+            catch (Exception ex)
+            {
+                return new SplitUndoResult(false, $"processing status could not be invalidated – nothing changed: {ex.Message}");
+            }
+            return LapSplitStore.Undo(run);
+        }
+
+        /// <summary>
         /// Markiert den Status des Runs und seines Geräteordners als veraltet, damit der nächste <c>process</c>-Aufruf die
-        /// geänderten Laps neu berechnet (Lap-Nummern, LapDistance, sVehicle).
+        /// geänderten Laps neu berechnet (Lap-Nummern, LapDistance, sVehicle). Wirft, wenn die Invalidierung nicht
+        /// gespeichert werden kann – der Aufrufer darf die Laps dann nicht tauschen.
         /// </summary>
         private static void InvalidateProcessedStatus(string runPath, string reason)
         {

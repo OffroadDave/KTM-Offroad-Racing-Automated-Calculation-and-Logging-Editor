@@ -392,6 +392,38 @@ public sealed class GpsLapSplitServiceTests
     }
 
     [Fact]
+    public void Status_invalidation_runs_before_the_lap_swap()
+    {
+        using var tmp = new TempDir();
+        var run = FakeRun.Create(tmp, ("Lap_00000894_00412", "894"));
+        var access = new FakeSplitAccess { OriginalMarks = [0, 200], Gps = Stadium.Drive(200) };
+        string[]? lapsAtInvalidation = null;
+
+        var outcome = Assert.Single(new GpsLapSplitService(access: access, freeSpace: _ => long.MaxValue,
+            beforeSwap: r => lapsAtInvalidation = FakeRun.LapFolders(r)).SplitRuns([run], TrackPoint).Outcomes);
+
+        Assert.Equal(GpsLapSplitOutcomeStatus.Split, outcome.Status);
+        Assert.Equal(["Lap_00000894_00412"], lapsAtInvalidation);
+    }
+
+    [Fact]
+    public void Failed_status_invalidation_aborts_the_swap()
+    {
+        using var tmp = new TempDir();
+        var run = FakeRun.Create(tmp, ("Lap_00000894_00412", "894"));
+        var access = new FakeSplitAccess { OriginalMarks = [0, 200], Gps = Stadium.Drive(200) };
+
+        var outcome = Assert.Single(new GpsLapSplitService(access: access, freeSpace: _ => long.MaxValue,
+            beforeSwap: _ => throw new IOException("status locked")).SplitRuns([run], TrackPoint).Outcomes);
+
+        Assert.Equal(GpsLapSplitOutcomeStatus.Failed, outcome.Status);
+        Assert.Contains("status locked", outcome.Message);
+        Assert.Equal(["Lap_00000894_00412"], FakeRun.LapFolders(run));
+        Assert.False(Directory.Exists(IOPath.Combine(run, LapSplitStore.BackupFolderName)));
+        Assert.False(Directory.Exists(IOPath.Combine(run, LapSplitStore.TempFolderName)));
+    }
+
+    [Fact]
     public void Not_enough_disk_space_writes_nothing()
     {
         using var tmp = new TempDir();
