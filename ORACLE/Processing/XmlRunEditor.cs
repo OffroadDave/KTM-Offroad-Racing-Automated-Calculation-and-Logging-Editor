@@ -23,7 +23,10 @@ namespace Ktm.Racing.Oracle
         /// </summary>
         /// <param name="lapOffset">Basis für fortlaufende Lap-Nummerierung über mehrere Renn-Runs (Option C).</param>
         /// <param name="isLastInStint">True wenn dies der letzte Renn-Run ist (nur dann Box-Marker am Ende).</param>
-        /// <param name="lapDistances">GPS-Distanz je Lap [m] (Index 0 = erste Lap); null = LapDistance nicht schreiben.</param>
+        /// <param name="lapDistances">
+        /// GPS-Distanz je Lap [m] (Index 0 = erste Lap); null = LapDistance unverändert lassen. Ein unbekannter Wert
+        /// (<see cref="double.NaN"/> oder fehlender Eintrag) entfernt eine vorhandene (veraltete) LapDistance.
+        /// </param>
         /// <returns>Anzahl der Laps in diesem Run (für die Offset-Akkumulation).</returns>
         /// <exception cref="Exception">Eine XML-Datei kann nicht gelesen/geschrieben werden – der Aufrufer zählt den Run als fehlgeschlagen.</exception>
         public int SetRunProperties(string runPath, string alias, string track, string trackLength, string rider,
@@ -48,7 +51,7 @@ namespace Ktm.Racing.Oracle
             {
                 int continuousLap = lapOffset + i + 1;
                 bool lastLapOfStint = isLastInStint && i == numLaps - 1;
-                double lapDist = (lapDistances is not null && i < lapDistances.Count) ? lapDistances[i] : double.NaN;
+                double? lapDist = LapDistanceAt(lapDistances, i);
                 UpdateLapHeaderXml(lapDirs[i], continuousLap, alias, runNumber,
                     lastLapOfStint ? "Box" : "Lap", lapDist);
             }
@@ -128,7 +131,7 @@ namespace Ktm.Racing.Oracle
         }
 
         private static void UpdateLapHeaderXml(string lapDir, int lapNumber, string alias, int runNumber,
-            string marker, double lapDistance)
+            string marker, double? lapDistance)
         {
             var file = Path.Combine(lapDir, "LapHeader.xml");
             if (!File.Exists(file)) return;
@@ -141,8 +144,13 @@ namespace Ktm.Racing.Oracle
             SetChild(lh, "Run", runNumber);
             SetChild(lh, "TrackRun", runNumber);
             SetChild(lh, "Marker", marker);
-            if (!double.IsNaN(lapDistance))
-                SetChild(lh, "LapDistance", Math.Round(lapDistance, 2));
+            if (lapDistance is double dist)
+            {
+                if (double.IsNaN(dist))
+                    lh.Elements("LapDistance").Remove();
+                else
+                    SetChild(lh, "LapDistance", Math.Round(dist, 2));
+            }
 
             // Alias-Segment in etwaigen <Path>-Feldern normalisieren ("\AA 01\" → "\AA01\").
             foreach (var pathEl in lh.Descendants("Path"))
@@ -158,12 +166,12 @@ namespace Ktm.Racing.Oracle
             if (!File.Exists(file)) return;
 
             // Ordnername → (fortlaufende Lap-Nr, Marker, Distanz) für die Zuordnung über den Pfad.
-            var byFolder = new Dictionary<string, (int Lap, string Marker, double Dist)>(StringComparer.OrdinalIgnoreCase);
+            var byFolder = new Dictionary<string, (int Lap, string Marker, double? Dist)>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < lapDirs.Count; i++)
             {
                 string folder = Path.GetFileName(lapDirs[i]);
                 bool last = isLastInStint && i == lapDirs.Count - 1;
-                double dist = (lapDistances is not null && i < lapDistances.Count) ? lapDistances[i] : double.NaN;
+                double? dist = LapDistanceAt(lapDistances, i);
                 byFolder[folder] = (lapOffset + i + 1, last ? "Box" : "Lap", dist);
             }
 
@@ -185,8 +193,13 @@ namespace Ktm.Racing.Oracle
                 SetInfo(infos, "CarName", alias);
                 SetInfo(infos, "Run", runNumber);
                 SetInfo(infos, "Marker", info.Marker);
-                if (!double.IsNaN(info.Dist))
-                    SetInfo(infos, "LapDistance", Math.Round(info.Dist, 2));
+                if (info.Dist is double dist)
+                {
+                    if (double.IsNaN(dist))
+                        infos.Elements("Info").Where(e => (string?)e.Element("Name") == "LapDistance").Remove();
+                    else
+                        SetInfo(infos, "LapDistance", Math.Round(dist, 2));
+                }
             }
 
             // Alias-Segment in ALLEN <Path>-Feldern normalisieren (v.a. Inf/Path als absoluter
@@ -200,6 +213,13 @@ namespace Ktm.Racing.Oracle
         // =====================================================================
         //  Hilfsmethoden
         // =====================================================================
+
+        /// <summary>
+        /// Distanz für Lap <paramref name="index"/>: null = keine Distanzen übergeben (LapDistance unverändert),
+        /// <see cref="double.NaN"/> = berechnet, aber unbekannt (vorhandene LapDistance entfernen).
+        /// </summary>
+        private static double? LapDistanceAt(IReadOnlyList<double>? lapDistances, int index)
+            => lapDistances is null ? null : index < lapDistances.Count ? lapDistances[index] : double.NaN;
 
         /// <summary>Setzt den Wert eines Kind-Elements; legt es an, falls es fehlt.</summary>
         private static void SetChild(XElement parent, string name, object value)

@@ -223,7 +223,7 @@ namespace Ktm.Racing.Oracle
         /// GPS-Distanz [m] je Lap (1-basiert). Primär aus der aufbereiteten Run-Distanz an den Lap-Grenzen – dadurch ist die
         /// Summe der Laps exakt die sVehicle-Distanz, und Aussetzer/Sprünge an einer Lap-Grenze werden wie im Run behandelt.
         /// Ohne Lap-Grenzen: je Lap über die per-Lap-Kanalabfrage, ebenfalls aufbereitet. Ohne GPS-Fix ist die Distanz
-        /// unbekannt (<see cref="double.NaN"/>) – dann wird keine LapDistance geschrieben statt „0 m“.
+        /// unbekannt (<see cref="double.NaN"/>) – dann wird eine vorhandene LapDistance entfernt statt „0 m“ zu schreiben.
         /// </summary>
         private double[] ComputeLapDistances(string runPath)
         {
