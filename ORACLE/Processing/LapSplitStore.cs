@@ -358,7 +358,11 @@ public static class LapSplitStore
                 throw new InvalidDataException($"Interrupted split in {backup} has an invalid manifest ? restore manually.");
 
             var moved = manifest.OriginalLaps.Where(n => Directory.Exists(Path.Combine(backup, n))).ToList();
-            var created = manifest.CreatedLaps.Where(n => Directory.Exists(Path.Combine(runPath, n))).ToList();
+            var created = manifest.CreatedLaps
+                .Where(n => Directory.Exists(Path.Combine(runPath, n))
+                            && (!manifest.OriginalLaps.Contains(n, StringComparer.OrdinalIgnoreCase)
+                                || Directory.Exists(Path.Combine(backup, n))))
+                .ToList();
             Restore(runPath, backup, moved, created, manifest.HadRunLapHeader);
             MarkRolledBack(backup, manifest);
             messages.Add($"interrupted split of {manifest.CreatedUtc:u} rolled back ({moved.Count} original lap(s) restored)");
