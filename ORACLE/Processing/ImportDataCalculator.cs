@@ -1,10 +1,6 @@
 ﻿using KtmDataHandler.DataStorage;
-using KtmDataHandler.Generic.Data;
-using KtmDataHandler.Marelli.Sysma;
 using KtmDataHandler.Marelli.Wintax;
 using KtmDataHandler.Models.Channels;
-using KtmDataHandler.Models.Symbols;
-using KtmSharedUtils.ObjectUtils;
 using Ktm.Racing.Domain.Telemetry;
 
 namespace Ktm.Racing.Oracle
@@ -13,7 +9,7 @@ namespace Ktm.Racing.Oracle
     {
         // Reader/Writer werden pro Run frisch erzeugt (vermeidet State-Leaks nach ReleaseObjects)
         private IMarelliDataAccessWrite ztxAccessWrite = null!;
-        private IMarelliDataAccessRead ztxAccessRead = null!;
+        private MarelliDataAccess? ztxAccessRead;
 
         private List<string> channelNames = new();
 
@@ -36,30 +32,35 @@ namespace Ktm.Racing.Oracle
         /// </summary>
         /// <param name="runPath">Pfad zum Run-Ordner (Basis für das Laden der Daten)</param>
         /// <param name="distanceOffsetMeters">Start-Offset für sVehicle (Continuity über Renn-Runs).</param>
+        /// <param name="preloaded">
+        /// Bereits gelesene Run-Daten (z.B. aus der Renn-Erkennung); dann wird der Run nicht erneut geladen.
+        /// <c>null</c> = Run hier laden.
+        /// </param>
         /// <returns>Run-Distanz (ohne Offset) und die GPS-Distanz je Lap.</returns>
-        public RunCalcResult RunCalculationPipeline(string runPath, double distanceOffsetMeters = 0)
+        public RunCalcResult RunCalculationPipeline(string runPath, double distanceOffsetMeters = 0, RunGpsData? preloaded = null)
         {
             currentRunPath = runPath;
             resultDataset = new Dataset();
             channelNames = new();
             runGps = null;
+            ztxAccessRead = null;
 
-            // Frische Reader/Writer-Instanzen pro Run (vermeidet State-Leaks nach ReleaseObjects)
-            ztxAccessRead = KtmDataHandlerFactory.CreateAccess();
+            // Frischer Writer pro Run (vermeidet State-Leaks nach ReleaseObjects); der Reader nur, wenn wirklich gelesen wird.
             ztxAccessWrite = KtmDataHandlerFactory.CreateWriter();
 
             double runDistance = 0.0;
             double[] lapDistances = [];
             try
             {
-                // 1. Datensatz laden (Fehler werfen, damit der Aufrufer den Run als fehlgeschlagen zählt)
-                LoadDataSet(runPath);
+                // 1. Run-Daten übernehmen oder laden (Fehler werfen, damit der Aufrufer den Run als fehlgeschlagen zählt)
+                var data = preloaded ?? LoadDataSet(runPath);
+                channelNames = data.ChannelNames.ToList();
 
                 // 2. Berechnungsfunktionen der Reihe nach ausführen
-                runDistance = SVehicleCalc(distanceOffsetMeters);
+                runDistance = SVehicleCalc(data, distanceOffsetMeters);
 
-                // 3. Distanz je Lap (aus derselben geladenen Datenquelle) für LapDistance
-                lapDistances = ComputeLapDistances(runPath);
+                // 3. Distanz je Lap (aus derselben Datenquelle) für LapDistance
+                lapDistances = ComputeLapDistances(runPath, data);
 
                 // 4. Ergebnisse speichern (nur wenn Berechnungen Ergebnisse erzeugt haben)
                 if (resultDataset.NumElements() > 0)
@@ -74,7 +75,7 @@ namespace Ktm.Racing.Oracle
             }
             finally
             {
-                ztxAccessRead.ReleaseObjects();
+                ztxAccessRead?.ReleaseObjects();
                 ztxAccessWrite.ReleaseObjects();
             }
             return new RunCalcResult { RunDistanceMeters = runDistance, LapDistancesMeters = lapDistances };
@@ -118,37 +119,67 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Lädt den Datensatz aus dem angegebenen Run-Ordner.
+        /// Lädt den Run und liest Kanalliste, Lap-Grenzen und die GPS-Kanäle.
         /// </summary>
         /// <param name="runPath">Pfad zum Run-Ordner</param>
         /// <exception cref="InvalidDataException">Der Run kann nicht geladen werden.</exception>
-        private void LoadDataSet(string runPath)
+        private RunGpsData LoadDataSet(string runPath)
         {
+            var reader = OpenReader(runPath);
+            Console.WriteLine($"Datensatz erfolgreich geladen aus: {runPath}");
+
+            var names = reader.GetChannelsNames() ?? [];
+            Console.WriteLine("Channelliste aus Datensatz extrahiert.");
+
+            var latName = GpsSettings.Resolve(names, _gps.LatitudeChannel);
+            var lonName = GpsSettings.Resolve(names, _gps.LongitudeChannel);
+            double[]? time = null, lat = null, lon = null;
+            if (latName is not null && lonName is not null)
+            {
+                var ds = reader.GetChannels([latName, lonName]);
+                time = ds.GetElement(latName)?.SignalData?.Time as double[];
+                lat = ds.GetElement(latName)?.SignalData?.Data as double[];
+                lon = ds.GetElement(lonName)?.SignalData?.Data as double[];
+            }
+
+            return new RunGpsData
+            {
+                ChannelNames = names,
+                LapMarks = reader.GetLapMarks() ?? [],
+                Time = time,
+                Latitude = lat,
+                Longitude = lon,
+            };
+        }
+
+        /// <summary>Lädt den Run einmalig (lazy) für Lesezugriffe.</summary>
+        /// <exception cref="InvalidDataException">Der Run kann nicht geladen werden.</exception>
+        private MarelliDataAccess OpenReader(string runPath)
+        {
+            if (ztxAccessRead is not null)
+                return ztxAccessRead;
+
+            ztxAccessRead = KtmDataHandlerFactory.CreateAccess();
             ztxAccessRead.SetDataLocation([runPath]);
             var result = ztxAccessRead.LoadRun();
             if (result <= 0)
                 throw new InvalidDataException($"LoadRun failed (result {result}): {runPath}");
-            Console.WriteLine($"Datensatz erfolgreich geladen aus: {runPath}");
-
-            var names = ztxAccessRead.GetChannelsNames();
-            if (names != null)
-                channelNames = names.ToList();
-
-            Console.WriteLine("Channelliste aus Datensatz extrahiert.");
+            return ztxAccessRead;
         }
 
         /// <summary>
         /// Berechnung der kumulierten Distanz aus GPS-Koordinaten und Hinzufügen als neuen Channel.
         /// </summary>
+        /// <param name="data">Kanalliste und GPS-Kanäle des Runs.</param>
         /// <param name="distanceOffset">Offset [m], der auf jede sVehicle-Stützstelle addiert wird.</param>
         /// <returns>Die in diesem Run zurückgelegte Distanz [m] (ohne Offset).</returns>
-        private double SVehicleCalc(double distanceOffset)
+        private double SVehicleCalc(RunGpsData data, double distanceOffset)
         {
             Console.WriteLine("Kumulierte Distanz aus GPS wird berechnet...");
 
             // Exakte Kanalnamen aus der Konfiguration (Groß/Klein egal, kein Teilstring-Fallback).
-            string? latChannelName = GpsSettings.Resolve(channelNames, _gps.LatitudeChannel);
-            string? lonChannelName = GpsSettings.Resolve(channelNames, _gps.LongitudeChannel);
+            string? latChannelName = GpsSettings.Resolve(data.ChannelNames, _gps.LatitudeChannel);
+            string? lonChannelName = GpsSettings.Resolve(data.ChannelNames, _gps.LongitudeChannel);
             if (latChannelName is null || lonChannelName is null)
             {
                 var missing = new List<string>();
@@ -157,12 +188,10 @@ namespace Ktm.Racing.Oracle
                 Console.WriteLine($"Fehlende Kanäle: {string.Join(", ", missing)}. Berechnung wird abgebrochen.");
                 return 0.0;
             }
-            var necessaryChannels = new[] { latChannelName, lonChannelName };
 
-            IDataset processingDataset = ztxAccessRead.GetChannels(necessaryChannels);
-            var latitudes = processingDataset.GetElement(latChannelName)?.SignalData?.Data as double[];
-            var longitudes = processingDataset.GetElement(lonChannelName)?.SignalData?.Data as double[];
-            var time = processingDataset.GetElement(latChannelName)?.SignalData?.Time as double[];
+            var latitudes = data.Latitude;
+            var longitudes = data.Longitude;
+            var time = data.Time;
             if (latitudes == null || longitudes == null || time == null)
             {
                 Console.WriteLine("Channel-Daten sind nicht im erwarteten Format.");
@@ -225,16 +254,16 @@ namespace Ktm.Racing.Oracle
         /// Ohne Lap-Grenzen: je Lap über die per-Lap-Kanalabfrage, ebenfalls aufbereitet. Ohne GPS-Fix ist die Distanz
         /// unbekannt (<see cref="double.NaN"/>) – dann wird eine vorhandene LapDistance entfernt statt „0 m“ zu schreiben.
         /// </summary>
-        private double[] ComputeLapDistances(string runPath)
+        private double[] ComputeLapDistances(string runPath, RunGpsData data)
         {
             int lapCount = XmlRunEditor.OrderedLapFolders(runPath).Count;
             var distances = Enumerable.Repeat(double.NaN, lapCount).ToArray();
             if (runGps is { HasFix: false })
                 return distances;
 
-            if (runGps is not null && (ztxAccessRead as MarelliDataAccess)?.GetLapMarks() is { } marks && marks.Length == lapCount + 1)
+            if (runGps is not null && data.LapMarks.Count == lapCount + 1)
             {
-                var atMarks = runGps.DistanceAt(marks);
+                var atMarks = runGps.DistanceAt(data.LapMarks);
                 for (int i = 0; i < lapCount; i++)
                     distances[i] = Math.Max(0.0, atMarks[i + 1] - atMarks[i]);
                 return distances;
@@ -248,12 +277,13 @@ namespace Ktm.Racing.Oracle
                 return distances;
             }
 
+            var reader = OpenReader(runPath);
             for (uint n = 1; n <= lapCount; n++)
             {
                 try
                 {
                     // Der NLaps-Overload liefert ein Tuple (per-Lap-Array, kombiniert).
-                    var (perLap, combined) = ztxAccessRead.GetChannels(
+                    var (perLap, combined) = reader.GetChannels(
                         new[] { latName, lonName }, new uint[] { n }, null, false);
                     var ds = combined ?? (perLap is { Length: > 0 } ? perLap[0] : null);
                     var lat = ds?.GetElement(latName)?.SignalData?.Data as double[];
