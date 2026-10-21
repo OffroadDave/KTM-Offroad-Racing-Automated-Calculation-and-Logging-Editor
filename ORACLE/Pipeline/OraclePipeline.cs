@@ -86,6 +86,14 @@ namespace Ktm.Racing.Oracle
             if (RecoverInterruptedSplits(runPath) is { } recoveryExit)
                 return recoveryExit;
 
+            var devicePath = Path.GetDirectoryName(Path.GetFullPath(runPath))!;
+            using var deviceLock = ProcessingLock.TryAcquire(devicePath);
+            if (deviceLock is null)
+            {
+                Console.WriteLine($"[process] {devicePath} wird gerade von einem anderen ORACLE-Prozess verarbeitet – später erneut versuchen.");
+                return OracleExitCode.ResourceLocked;
+            }
+
             // Parallele ORACLE-Jobs dürfen nicht gleichzeitig denselben Run bearbeiten.
             using var processingLock = ProcessingLock.TryAcquire(runPath);
             if (processingLock is null)
