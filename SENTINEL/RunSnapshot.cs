@@ -1,3 +1,5 @@
+using System.Xml.Linq;
+
 namespace SENTINEL
 {
     /// <summary>
@@ -5,10 +7,17 @@ namespace SENTINEL
     /// 
     /// Wird bei jedem Polling-Zyklus für jeden Run ohne download.done erstellt.
     /// Zwei aufeinanderfolgende Snapshots werden verglichen um Stabilität zu erkennen:
-    /// - Gleiche Dateianzahl + gleiche Gesamtgröße + keine 0-Byte-Dateien + keine Locks = stabil
+    /// - Gleiche Dateianzahl + gleiche Gesamtgröße + vollständig + keine Platzhalter/0-Byte-Dateien + keine Locks = stabil
     /// </summary>
     public sealed class RunSnapshot
     {
+        // Windows-Attribute von Cloud-Platzhaltern (OneDrive Files-On-Demand): Daten liegen noch nicht lokal.
+        private const FileAttributes RecallOnOpen = (FileAttributes)0x00040000;
+        private const FileAttributes RecallOnDataAccess = (FileAttributes)0x00400000;
+
+        private static readonly EnumerationOptions Enumeration = new() { IgnoreInaccessible = true, RecurseSubdirectories = false };
+        private static readonly EnumerationOptions RecursiveEnumeration = new() { IgnoreInaccessible = true, RecurseSubdirectories = true };
+
         /// <summary>Vollständiger Pfad zum Run-Ordner</summary>
         public required string RunPath { get; init; }
 
@@ -24,11 +33,20 @@ namespace SENTINEL
         /// <summary>Anzahl Lap_*-Unterordner</summary>
         public int LapCount { get; init; }
 
-        /// <summary>True wenn mindestens eine Datei 0 Bytes groß ist (OneDrive-Platzhalter)</summary>
+        /// <summary>True wenn mindestens eine Datei 0 Bytes groß ist bzw. eine ZTX-Datei unter der Mindestgröße liegt</summary>
         public bool HasZeroByteFiles { get; init; }
+
+        /// <summary>True wenn mindestens eine Datei ein Cloud-Platzhalter ist (Inhalt noch nicht heruntergeladen)</summary>
+        public bool HasPlaceholderFiles { get; init; }
 
         /// <summary>True wenn mindestens eine Datei nicht lesbar ist (gelockt durch Sync)</summary>
         public bool HasLockedFiles { get; init; }
+
+        /// <summary>
+        /// Lap-Dateien (relativ zum Run), die <c>RunLapHeader.xml</c> referenziert, die aber (noch) fehlen.
+        /// Enthält <c>RunLapHeader.xml</c> selbst, wenn die Datei fehlt oder nicht lesbar ist.
+        /// </summary>
+        public List<string> MissingFiles { get; init; } = [];
 
         /// <summary>Dateien auf Run-Ebene (z.B. Session.xml)</summary>
         public List<FileSnapshot> RunFiles { get; init; } = [];
@@ -36,11 +54,14 @@ namespace SENTINEL
         /// <summary>Detailinfo pro Lap-Ordner</summary>
         public List<LapSnapshot> Laps { get; init; } = [];
 
+        /// <summary>True wenn alle in RunLapHeader.xml referenzierten Laps mit Daten vorhanden sind.</summary>
+        public bool IsComplete => MissingFiles.Count == 0;
+
         /// <summary>
-        /// Strukturell gültig: Mindestens 1 Lap, keine 0-Byte-Dateien, keine Locks.
-        /// Ein strukturell gültiger Snapshot kann für den Stabilitätsvergleich herangezogen werden.
+        /// Strukturell gültig: Mindestens 1 Lap, vollständig laut RunLapHeader.xml, keine 0-Byte-Dateien, keine Platzhalter,
+        /// keine Locks. Ein strukturell gültiger Snapshot kann für den Stabilitätsvergleich herangezogen werden.
         /// </summary>
-        public bool IsStructurallyValid => LapCount > 0 && !HasZeroByteFiles && !HasLockedFiles;
+        public bool IsStructurallyValid => LapCount > 0 && IsComplete && !HasZeroByteFiles && !HasPlaceholderFiles && !HasLockedFiles;
 
         /// <summary>
         /// Vergleicht diesen Snapshot mit einem vorherigen auf Stabilität.
@@ -57,7 +78,7 @@ namespace SENTINEL
 
         /// <summary>
         /// Erstellt einen Snapshot des angegebenen Run-Ordners.
-        /// Scannt rekursiv alle Dateien, prüft Größen und File-Locks.
+        /// Scannt rekursiv alle Dateien, prüft Größen, Platzhalter, File-Locks und die Vollständigkeit laut RunLapHeader.xml.
         /// </summary>
         /// <param name="runPath">Pfad zum Run_xxx-Ordner</param>
         /// <param name="minimumFileSize">Minimale Dateigröße in Bytes (unter diesem Wert = Platzhalter)</param>
@@ -79,10 +100,10 @@ namespace SENTINEL
             int totalFileCount = 0;
             long totalSize = 0;
             bool hasZeroByteFiles = false;
+            bool hasPlaceholders = false;
             bool hasLockedFiles = false;
 
-            // --- Dateien auf Run-Ebene scannen (z.B. Session.xml, Car.xml) ---
-            foreach (var file in runDir.GetFiles())
+            void Inspect(FileInfo file)
             {
                 totalFileCount++;
                 totalSize += file.Length;
@@ -90,14 +111,22 @@ namespace SENTINEL
                 if (file.Length == 0)
                     hasZeroByteFiles = true;
 
-                if (IsFileLocked(file.FullName))
+                // Platzhalter nie öffnen: das Öffnen würde den Download auslösen.
+                if (IsPlaceholder(file))
+                    hasPlaceholders = true;
+                else if (IsFileLocked(file.FullName))
                     hasLockedFiles = true;
+            }
 
+            // --- Dateien auf Run-Ebene scannen (z.B. Session.xml, Car.xml) ---
+            foreach (var file in runDir.GetFiles("*", Enumeration))
+            {
+                Inspect(file);
                 runFiles.Add(new FileSnapshot { FileName = file.Name, SizeBytes = file.Length });
             }
 
             // --- Lap_*-Ordner scannen ---
-            var lapDirs = runDir.GetDirectories("Lap_*", SearchOption.TopDirectoryOnly)
+            var lapDirs = runDir.GetDirectories("Lap_*", Enumeration)
                 .OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
@@ -107,21 +136,14 @@ namespace SENTINEL
                 long lapSize = 0;
                 int lapFileCount = 0;
 
-                foreach (var file in lapDir.GetFiles("*", SearchOption.AllDirectories))
+                foreach (var file in lapDir.GetFiles("*", RecursiveEnumeration))
                 {
                     lapFileCount++;
                     lapSize += file.Length;
-                    totalFileCount++;
-                    totalSize += file.Length;
-
-                    if (file.Length == 0)
-                        hasZeroByteFiles = true;
+                    Inspect(file);
 
                     if (file.Length < minimumFileSize && file.Extension.Equals(".ztx", StringComparison.OrdinalIgnoreCase))
                         hasZeroByteFiles = true;
-
-                    if (IsFileLocked(file.FullName))
-                        hasLockedFiles = true;
 
                     lapFiles.Add(new FileSnapshot { FileName = file.Name, SizeBytes = file.Length });
                 }
@@ -131,7 +153,7 @@ namespace SENTINEL
                     LapPath = lapDir.FullName,
                     LapName = lapDir.Name,
                     SizeBytes = lapSize,
-                    SubfolderCount = lapDir.GetDirectories().Length,
+                    SubfolderCount = lapDir.GetDirectories("*", Enumeration).Length,
                     FileCount = lapFileCount,
                     Files = lapFiles,
                 });
@@ -144,10 +166,55 @@ namespace SENTINEL
                 TotalSizeBytes = totalSize,
                 LapCount = lapDirs.Length,
                 HasZeroByteFiles = hasZeroByteFiles,
+                HasPlaceholderFiles = hasPlaceholders,
                 HasLockedFiles = hasLockedFiles,
+                MissingFiles = FindMissingFiles(runDir),
                 RunFiles = runFiles,
                 Laps = laps,
             };
+        }
+
+        /// <summary>
+        /// Vergleicht <c>RunLapHeader.xml</c> mit den vorhandenen Dateien: Jede in <c>LapInfo/Path</c> referenzierte
+        /// Datei (z.B. <c>Lap_…\cableData.ztx</c>) muss vorhanden sein. Ein reines Größen-Gleichbleiben genügt nicht, weil ein pausierter Sync
+        /// (offline, Standby) ebenfalls „stabil“ aussieht.
+        /// </summary>
+        internal static List<string> FindMissingFiles(DirectoryInfo runDir)
+        {
+            var header = Path.Combine(runDir.FullName, "RunLapHeader.xml");
+            if (!File.Exists(header) || IsPlaceholder(new FileInfo(header)))
+                return ["RunLapHeader.xml"];
+
+            List<string> referenced;
+            try
+            {
+                referenced = XDocument.Load(header).Descendants("LapInfo")
+                    .Select(info => (info.Element("Path")?.Value ?? string.Empty).Trim())
+                    .Where(path => path.Length > 0)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+            catch (Exception ex) when (ex is IOException or System.Xml.XmlException or UnauthorizedAccessException)
+            {
+                return ["RunLapHeader.xml"];
+            }
+
+            var root = Path.GetFullPath(runDir.FullName).TrimEnd('\\') + "\\";
+            return referenced
+                .Where(relative =>
+                {
+                    // Pfade außerhalb des Run-Ordners (absolut oder mit ..) zählen als fehlend.
+                    var full = Path.GetFullPath(Path.Combine(root, relative));
+                    return !full.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(full);
+                })
+                .ToList();
+        }
+
+        /// <summary>True für Cloud-Platzhalter (OneDrive Files-On-Demand), deren Inhalt noch nicht lokal vorliegt.</summary>
+        internal static bool IsPlaceholder(FileInfo file)
+        {
+            var attributes = file.Attributes;
+            return (attributes & (FileAttributes.Offline | RecallOnOpen | RecallOnDataAccess)) != 0;
         }
 
         /// <summary>

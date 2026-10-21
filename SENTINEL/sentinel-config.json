@@ -12,5 +12,8 @@
     "stabilityThreshold": 3,
 
     // Minimale Dateigröße in Bytes (filtert OneDrive-Platzhalter mit 0 Bytes)
-    "minimumFileSizeBytes": 1024
+    "minimumFileSizeBytes": 1024,
+
+    // Runs ignorieren, deren Ordner länger als N Tage unverändert ist (0 = deaktiviert)
+    "maxRunAgeDays": 0
 }

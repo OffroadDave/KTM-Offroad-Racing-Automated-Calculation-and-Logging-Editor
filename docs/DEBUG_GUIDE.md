@@ -537,9 +537,35 @@ SENTINEL ist ein separates Projekt (reines .NET 8, keine KtmDataHandler-Abhängi
   "WatchPaths": ["C:\\MXTrackData\\..."],
   "PollingIntervalSeconds": 30,
   "StabilityThreshold": 3,
-  "MinimumFileSizeBytes": 1024
+  "MinimumFileSizeBytes": 1024,
+  "MaxRunAgeDays": 0
 }
 ```
+
+Ungültige Werte werden beim Laden korrigiert und gemeldet (`SentinelConfig.Normalize`): `PollingIntervalSeconds` wird auf
+1–3600 begrenzt, `StabilityThreshold <= 0` → 3, negative Werte → 0. `MaxRunAgeDays > 0` ignoriert Runs, deren Ordner länger
+unverändert ist (0 = aus).
+
+### Wann gilt ein Run als fertig?
+
+`RunSnapshot.IsStructurallyValid` verlangt:
+
+- mindestens ein `Lap_*`-Ordner,
+- **jede in `RunLapHeader.xml` (`LapInfo/Path`) referenzierte Datei ist vorhanden** (`MissingFiles` leer) — ein pausierter
+  OneDrive-Sync sieht sonst nach 90 s „stabil“ aus,
+- keine 0-Byte-Dateien bzw. `.ztx` unter `MinimumFileSizeBytes`,
+- keine Cloud-Platzhalter (Attribute `Offline`, `RecallOnOpen`, `RecallOnDataAccess`; diese Dateien werden nicht geöffnet,
+  um keinen Download auszulösen),
+- keine gesperrten Dateien.
+
+Danach muss der Snapshot `StabilityThreshold`-mal unverändert bleiben. `download.done` wird über eine `.tmp`-Datei geschrieben
+und dann umbenannt, damit KRAKEN nie ein halbes XML liest. Das Konsolenlog nennt bei ungültigen Runs den Grund (z.B.
+„1 fehlende Datei(en) laut RunLapHeader.xml“, „Cloud-Platzhalter“).
+
+### Tests
+
+`SENTINEL.Tests` (xUnit) deckt Snapshot, Stabilität, Writer, Konfiguration und Watcher mit temporären Run-Ordnern ab:
+`dotnet test SENTINEL.Tests`.
 
 ### Debug-Ablauf
 

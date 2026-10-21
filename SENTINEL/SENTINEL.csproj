@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="SENTINEL.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="sentinel-config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
