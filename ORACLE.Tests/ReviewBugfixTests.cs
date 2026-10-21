@@ -103,6 +103,32 @@ public sealed class ReviewBugfixTests
         Assert.Empty(LapSplitStore.RecoverInterruptedLocked([run]).Recovered);
     }
 
+    [Fact]
+    public void Recovery_keeps_an_original_lap_that_was_not_moved_yet()
+    {
+        using var tmp = new TempDir();
+        var run = FakeRun.Create(tmp, ("Lap_00000894_00412", "894"), ("Lap_00000894_00412_Def_000", "895"));
+        var original = File.ReadAllBytes(IOPath.Combine(run, "Lap_00000894_00412_Def_000", "LapHeader.xml"));
+
+        // Crash after writing the pending manifest, before any original was moved: the new lap
+        // Lap_00000894_00412_Def_000 has the same name as an original that is still in place.
+        var backup = Directory.CreateDirectory(IOPath.Combine(run, LapSplitStore.BackupFolderName, "20261021-080000Z")).FullName;
+        File.Copy(IOPath.Combine(run, "RunLapHeader.xml"), IOPath.Combine(backup, "RunLapHeader.xml"));
+        File.WriteAllText(IOPath.Combine(backup, LapSplitStore.ManifestFileName), System.Text.Json.JsonSerializer.Serialize(new SplitManifest
+        {
+            Pending = true,
+            HadRunLapHeader = true,
+            OriginalLaps = ["Lap_00000894_00412", "Lap_00000894_00412_Def_000"],
+            CreatedLaps = ["Lap_00000894_00412_Def_000", "Lap_00000894_00412_Def_001"],
+        }));
+
+        LapSplitStore.RecoverInterrupted(run);
+
+        Assert.Equal(["Lap_00000894_00412", "Lap_00000894_00412_Def_000"], FakeRun.LapFolders(run));
+        Assert.Equal(original, File.ReadAllBytes(IOPath.Combine(run, "Lap_00000894_00412_Def_000", "LapHeader.xml")));
+        Assert.False(LapSplitStore.HasInterruptedSplit(run));
+    }
+
     /// <summary>State after a crash mid-swap: pending manifest, original lap already in the backup, one new lap in place.</summary>
     private static (string Run, string Header) CreateInterruptedSplit(TempDir tmp)
     {
@@ -307,6 +333,28 @@ public sealed class ReviewBugfixTests
         Assert.Equal(RaceRunVerdict.Race, noRpm.Verdict);
         Assert.Equal(RaceRunVerdict.Race, noThrottle.Verdict);
         Assert.Equal(RaceRunVerdict.NoRace, engineOff.Verdict);
+        Assert.True(noRpm.LowConfidence);
+        Assert.True(noThrottle.LowConfidence);
+    }
+
+    [Fact]
+    public void Fallback_without_gps_uses_the_available_channel_with_low_confidence()
+    {
+        var thresholds = new RaceDetectionThresholds();
+
+        var noThrottle = RaceSegmentDetector.Classify(thresholds, 0, 0, double.NaN, 8000, gpsUsable: false, minDistanceM: 1000);
+        var noRpm = RaceSegmentDetector.Classify(thresholds, 0, 0, 40, double.NaN, gpsUsable: false, minDistanceM: 1000);
+        var noThrottleLowRpm = RaceSegmentDetector.Classify(thresholds, 0, 0, double.NaN, 3000, gpsUsable: false, minDistanceM: 1000);
+        var noRpmLowThrottle = RaceSegmentDetector.Classify(thresholds, 0, 0, 10, double.NaN, gpsUsable: false, minDistanceM: 1000);
+        var neither = RaceSegmentDetector.Classify(thresholds, 0, 0, double.NaN, double.NaN, gpsUsable: false, minDistanceM: 1000);
+
+        Assert.Equal(RaceRunVerdict.Race, noThrottle.Verdict);
+        Assert.True(noThrottle.LowConfidence);
+        Assert.Equal(RaceRunVerdict.Race, noRpm.Verdict);
+        Assert.True(noRpm.LowConfidence);
+        Assert.Equal(RaceRunVerdict.NoRace, noThrottleLowRpm.Verdict);
+        Assert.Equal(RaceRunVerdict.NoRace, noRpmLowThrottle.Verdict);
+        Assert.Equal(RaceRunVerdict.NoRace, neither.Verdict);
     }
 
     // ---- B21: invalid configuration ---------------------------------------------------------------------------------

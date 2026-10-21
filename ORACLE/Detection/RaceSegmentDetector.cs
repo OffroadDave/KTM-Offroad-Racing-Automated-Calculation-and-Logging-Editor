@@ -189,6 +189,9 @@ namespace Ktm.Racing.Oracle
         {
             ArgumentNullException.ThrowIfNull(thresholds);
 
+            bool rpmKnown = !double.IsNaN(rpm);
+            bool throttleKnown = !double.IsNaN(throttlePct);
+
             // Guard: Motor aus → niemals Rennen (fängt Blips/Stillstand ab).
             if (rpm < thresholds.EngineOnMinRpm)
                 return (RaceRunVerdict.NoRace, "Motor aus", false);
@@ -202,12 +205,25 @@ namespace Ktm.Racing.Oracle
                     return (RaceRunVerdict.NoRace, $"vGPS {speedKph:F0} kph zu langsam", false);
                 if (throttlePct <= thresholds.ThrottleMinPercent)
                     return (RaceRunVerdict.NoRace, $"Gas {throttlePct:F0} % zu gering", false);
-                return (RaceRunVerdict.Race, "GPS: Distanz+Speed+Gas erfüllt", false);
+                return (RaceRunVerdict.Race, "GPS: Distanz+Speed+Gas erfüllt", !rpmKnown || !throttleKnown);
             }
 
             // Fallback: GPS ausgefallen → nur Gas + Drehzahl (geringere Konfidenz).
-            if (throttlePct > thresholds.ThrottleFallbackPercent && rpm > thresholds.RpmRaceMin)
-                return (RaceRunVerdict.Race, "Fallback Gas+Drehzahl (GPS ungültig)", true);
+            // Mindest-Evidenz: ohne GPS muss wenigstens Gas oder Drehzahl vorhanden sein; ein fehlender Kanal wird übersprungen.
+            if (!rpmKnown && !throttleKnown)
+                return (RaceRunVerdict.NoRace, "GPS ungültig, Gas und Drehzahl fehlen – keine Renn-Evidenz", false);
+
+            bool throttleOk = !throttleKnown || throttlePct > thresholds.ThrottleFallbackPercent;
+            bool rpmOk = !rpmKnown || rpm > thresholds.RpmRaceMin;
+            if (throttleOk && rpmOk)
+            {
+                string reason = rpmKnown && throttleKnown
+                    ? "Fallback Gas+Drehzahl (GPS ungültig)"
+                    : rpmKnown
+                        ? "Fallback nur Drehzahl (GPS ungültig, Gas fehlt)"
+                        : "Fallback nur Gas (GPS ungültig, Drehzahl fehlt)";
+                return (RaceRunVerdict.Race, reason, true);
+            }
 
             return (RaceRunVerdict.NoRace, "GPS ungültig, kein Renn-Profil", false);
         }
