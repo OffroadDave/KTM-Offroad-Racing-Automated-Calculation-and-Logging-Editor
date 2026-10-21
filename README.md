@@ -311,7 +311,7 @@ Aufbereitung (`GpsCleaner`, Abschnitt `Gps` der Konfiguration):
 
 Hintergrund: In 26 von 178 Runs (Shanghai, Teutschenthal) springt die Position kurz nach dem ersten Fix um 17–254 m.
 Ohne Filter landen diese Sprünge in sVehicle, in der Distanz der ersten Lap und in der Renn-Erkennung. Ohne GPS-Fix sind
-sVehicle und Lap-Distanz 0 m (Log `[gps] Kein GPS-Fix`); Aufbereitungen stehen im Log als `[gps] Aufbereitet: …`.
+sVehicle 0 m, und es wird keine Lap-Distanz geschrieben (Log `[gps] No GPS fix …`); Aufbereitungen stehen im Log als `[gps] Cleaned: …`.
 Die Rohkanäle werden nicht verändert; sVehicle liegt weiter auf dem Raster von `Lat_dez`. Lap-Distanzen ergeben sich aus
 sVehicle an den Lap-Grenzen (Summe der Laps = Run-Distanz).
 
@@ -398,7 +398,7 @@ wird erhöht, wenn eine Änderung bereits verarbeitete Daten verbessert.
 
 Jeder Lauf schreibt zusätzlich zur Konsole eine Logdatei: `{AppDir}/logs/oracle-{yyyyMMdd-HHmmss}-{PID}.log`.
 Praktisch, wenn ORACLE als KRAKEN-Job läuft und die Konsolenausgabe verloren geht. Logdateien älter als 60 Tage
-werden beim Start automatisch gelöscht. Runs ohne GPS-Fix erzeugen eine einzige Zeile `[gps] Kein GPS-Fix …`.
+werden beim Start automatisch gelöscht. Runs ohne GPS-Fix erzeugen eine einzige Zeile `[gps] No GPS fix …`. Alle Konsolen- und Logmeldungen sind englisch.
 
 Der verwendete **Datenstand** wird protokolliert (Log `[inputs]` und Status-Schritt `inputs`):
 `KOMPASS.json` und `loadChannels.xlsx` mit Zeitstempel, Größe, SHA-256 (gekürzt) und – aus dem KODE-Sidecar
@@ -430,15 +430,15 @@ Logger am Bike ─► OneDrive/Workstation ─► SENTINEL (download.done)
 
 | Symptom | Ursache / Lösung |
 |---|---|
-| `Metadaten konnten nicht ermittelt werden` | Keine `.HED` **und** `KOMPASS.json` nicht gefunden/leer → Pfade in `oracle-config.json` prüfen. |
-| `[gps-split] Übersprungen: keine Koordinate in KOMPASS …` | Track in KOMPASS hat keine `Latitude`/`Longitude` → in KODE pflegen. |
-| `[gps-split] Keine Ziellinie: No GPS pass within 50 m …` | KOMPASS-Punkt liegt neben der Strecke (Abstand steht im Log) → Koordinate in KODE korrigieren. |
+| `Metadata could not be determined.` | Keine `.HED` **und** `KOMPASS.json` nicht gefunden/leer → Pfade in `oracle-config.json` prüfen. |
+| `[gps-split] Skipped: no coordinate in KOMPASS …` | Track in KOMPASS hat keine `Latitude`/`Longitude` → in KODE pflegen. |
+| `[gps-split] No finish line: No GPS pass within 50 m …` | KOMPASS-Punkt liegt neben der Strecke (Abstand steht im Log) → Koordinate in KODE korrigieren. |
 | `[gps-split] … unclear lap structure …` | Run hat Akquisitions-Grenzen ohne GPS-Position → nicht automatisch geteilt; in WinTAX prüfen. |
 | `[gps-split] ❌ … – run unchanged` | Schreiben/Prüfen fehlgeschlagen, Rollback erfolgt (Ursache im Log, z.B. Speicherplatz). |
 | Exit-Code `5` bei `sync-motodb` | `loadChannels.xlsx` ist in Excel geöffnet → schließen und erneut ausführen. |
 | Exit-Code `6` bei `process` | Keine eindeutige Track-Länge (Log `[trackLength]`) → Länge in KODE eintragen bzw. Vorschlag bestätigen, Konflikte gleicher Längen auflösen, erneut ausführen. |
-| Exit-Code `4` / `7`, Log `[discovery] Run übersprungen` | Beschädigter `Run_*`-Ordner (Ursache im Log, z.B. Lap-Ordner ohne `cableData.ztx`, mehrfach gesplittete Laps) → Lap-Split in WinTAX reparieren bzw. Run neu vom Logger laden, dann `--force`. |
-| Exit-Code `7`, `KOMPASS ist ungültig` | `KOMPASS.json` beschädigt → in KODE öffnen/speichern oder aus `backups` wiederherstellen. |
+| Exit-Code `4` / `7`, Log `[discovery] ⚠️ Run skipped …` | Beschädigter `Run_*`-Ordner (Ursache im Log, z.B. Lap-Ordner ohne `cableData.ztx`, mehrfach gesplittete Laps) → Lap-Split in WinTAX reparieren bzw. Run neu vom Logger laden, dann `--force`. |
+| Exit-Code `7`, `KOMPASS is invalid …` | `KOMPASS.json` beschädigt → in KODE öffnen/speichern oder aus `backups` wiederherstellen. |
 | `riderName` leer, Status `metadata: partial` | Rider (Kürzel/Saison/Team) fehlt in KOMPASS oder Team-Ordner fehlt in `TeamMappings` → in KODE bzw. `oracle-config.json` ergänzen. |
 | `DriverName`/`riderName` falsch (alter Wert aus `.HED`) | Ab Revision 3 ersetzt KOMPASS abweichende `.HED`-Werte automatisch; der Ordner wird beim nächsten Aufruf neu verarbeitet. Bleibt der Wert, steht `PreferHedMetadata: true` in der Konfiguration oder KOMPASS kennt den Rider (Kürzel + Saison) nicht. |
 | `Access denied` beim Umbenennen eines Geräteordners | Ordner liegt in einem offenen VS-Code-Workspace o.ä. (Datei-Lock); non-fatal — oder `NormalizeDeviceFolderName: false`. |

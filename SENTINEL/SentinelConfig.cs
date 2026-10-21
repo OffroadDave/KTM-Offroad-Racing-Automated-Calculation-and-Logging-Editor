@@ -3,65 +3,65 @@ using System.Text.Json;
 namespace SENTINEL
 {
     /// <summary>
-    /// Konfiguration für SENTINEL.
-    /// Wird aus sentinel-config.json geladen (Fallback: Standardwerte).
+    /// Configuration for SENTINEL.
+    /// Loaded from sentinel-config.json (fallback: default values).
     /// </summary>
     public sealed class SentinelConfig
     {
         /// <summary>
-        /// Überwachte Verzeichnisse — SENTINEL durchsucht diese rekursiv nach Run_*-Ordnern.
-        /// Typisch: OneDrive-Sync-Zielordner, z.B. ["C:\MXTrackData"]
+        /// Watched directories — SENTINEL searches them recursively for Run_* folders.
+        /// Typically: OneDrive sync target folder, e.g. ["C:\MXTrackData"]
         /// </summary>
         public List<string> WatchPaths { get; set; } = [];
 
         /// <summary>
-        /// Polling-Intervall in Sekunden.
-        /// Empfehlung: 30s für OneDrive-Sync (nicht zu aggressiv, nicht zu langsam).
+        /// Polling interval in seconds.
+        /// Recommended: 30s for OneDrive sync (not too aggressive, not too slow).
         /// </summary>
         public int PollingIntervalSeconds { get; set; } = 30;
 
         /// <summary>
-        /// Anzahl aufeinanderfolgender stabiler Checks bevor download.done erzeugt wird.
-        /// Bei 30s Intervall und Threshold=3: Run muss 90s lang unverändert sein.
+        /// Number of consecutive stable checks before download.done is created.
+        /// With a 30s interval and Threshold=3: the run must remain unchanged for 90s.
         /// </summary>
         public int StabilityThreshold { get; set; } = 3;
 
         /// <summary>
-        /// Minimale Dateigröße in Bytes für cableData.ztx.
-        /// Dateien unter diesem Wert gelten als OneDrive-Platzhalter (0-Byte-Dateien).
-        /// Standard: 1024 Bytes (1 KB).
+        /// Minimum file size in bytes for cableData.ztx.
+        /// Files below this value are considered OneDrive placeholders (0-byte files).
+        /// Default: 1024 bytes (1 KB).
         /// </summary>
         public long MinimumFileSizeBytes { get; set; } = 1024;
 
         /// <summary>
-        /// Runs, deren Ordner länger als diese Anzahl Tage nicht verändert wurde, werden ignoriert
-        /// (verhindert, dass alte Runs ohne download.done bei jedem Zyklus erneut gescannt werden).
-        /// 0 = deaktiviert (Standard, bisheriges Verhalten).
+        /// Runs whose folder has not been modified for more than this number of days are ignored
+        /// (prevents old runs without download.done from being rescanned on every cycle).
+        /// 0 = disabled (default, previous behavior).
         /// </summary>
         public int MaxRunAgeDays { get; set; } = 0;
 
-        /// <summary>Untergrenze für das Polling-Intervall in Sekunden.</summary>
+        /// <summary>Lower bound for the polling interval in seconds.</summary>
         public const int MinPollingIntervalSeconds = 1;
 
-        /// <summary>Obergrenze für das Polling-Intervall in Sekunden (1 Stunde).</summary>
+        /// <summary>Upper bound for the polling interval in seconds (1 hour).</summary>
         public const int MaxPollingIntervalSeconds = 3600;
 
         /// <summary>
-        /// Lädt die Konfiguration aus sentinel-config.json im Anwendungsverzeichnis.
-        /// Falls keine Datei existiert oder ein Fehler auftritt, werden Standardwerte verwendet.
+        /// Loads the configuration from sentinel-config.json in the application directory.
+        /// If no file exists or an error occurs, default values are used.
         /// </summary>
         public static SentinelConfig Load() =>
             Load(Path.Combine(AppContext.BaseDirectory, "sentinel-config.json"));
 
         /// <summary>
-        /// Lädt die Konfiguration aus der angegebenen Datei und korrigiert ungültige Werte (<see cref="Normalize"/>).
-        /// Falls keine Datei existiert oder ein Fehler auftritt, werden Standardwerte verwendet.
+        /// Loads the configuration from the given file and corrects invalid values (<see cref="Normalize"/>).
+        /// If no file exists or an error occurs, default values are used.
         /// </summary>
         public static SentinelConfig Load(string configPath)
         {
             if (!File.Exists(configPath))
             {
-                Console.WriteLine("Keine sentinel-config.json gefunden, verwende Standardkonfiguration.");
+                Console.WriteLine("No sentinel-config.json found, using default configuration.");
                 return new SentinelConfig();
             }
 
@@ -81,15 +81,15 @@ namespace SENTINEL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Laden der Konfiguration: {ex.Message}");
-                Console.WriteLine("Verwende Standardkonfiguration.");
+                Console.WriteLine($"Error loading configuration: {ex.Message}");
+                Console.WriteLine("Using default configuration.");
                 return new SentinelConfig();
             }
         }
 
         /// <summary>
-        /// Korrigiert ungültige Werte: Ein Polling-Intervall von 0 oder negativ würde eine Dauerschleife bzw.
-        /// eine Exception in <c>Task.Delay</c> erzeugen. Jede Korrektur wird auf der Konsole gemeldet.
+        /// Corrects invalid values: a polling interval of 0 or less would cause an endless loop or
+        /// an exception in <c>Task.Delay</c>. Every correction is reported on the console.
         /// </summary>
         public void Normalize()
         {
@@ -102,25 +102,25 @@ namespace SENTINEL
             var interval = Math.Clamp(PollingIntervalSeconds, MinPollingIntervalSeconds, MaxPollingIntervalSeconds);
             if (interval != PollingIntervalSeconds)
             {
-                Console.WriteLine($"⚠️ pollingIntervalSeconds={PollingIntervalSeconds} ungültig, verwende {interval}s.");
+                Console.WriteLine($"⚠️ pollingIntervalSeconds={PollingIntervalSeconds} invalid, using {interval}s.");
                 PollingIntervalSeconds = interval;
             }
 
             if (StabilityThreshold <= 0)
             {
-                Console.WriteLine($"⚠️ stabilityThreshold={StabilityThreshold} ungültig, verwende 3.");
+                Console.WriteLine($"⚠️ stabilityThreshold={StabilityThreshold} invalid, using 3.");
                 StabilityThreshold = 3;
             }
 
             if (MinimumFileSizeBytes < 0)
             {
-                Console.WriteLine($"⚠️ minimumFileSizeBytes={MinimumFileSizeBytes} ungültig, verwende 0.");
+                Console.WriteLine($"⚠️ minimumFileSizeBytes={MinimumFileSizeBytes} invalid, using 0.");
                 MinimumFileSizeBytes = 0;
             }
 
             if (MaxRunAgeDays < 0)
             {
-                Console.WriteLine($"⚠️ maxRunAgeDays={MaxRunAgeDays} ungültig, verwende 0 (deaktiviert).");
+                Console.WriteLine($"⚠️ maxRunAgeDays={MaxRunAgeDays} invalid, using 0 (disabled).");
                 MaxRunAgeDays = 0;
             }
         }

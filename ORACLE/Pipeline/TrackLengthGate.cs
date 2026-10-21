@@ -5,47 +5,47 @@ using Ktm.Racing.Domain.Telemetry;
 
 namespace Ktm.Racing.Oracle;
 
-/// <summary>Herkunft der von <see cref="TrackLengthGate"/> verwendeten Track-Länge.</summary>
+/// <summary>Source of the track length used by <see cref="TrackLengthGate"/>.</summary>
 public enum TrackLengthSource
 {
-    /// <summary>Keine Länge gefunden.</summary>
+    /// <summary>No length found.</summary>
     None,
 
-    /// <summary>Bestätigte Länge aus KOMPASS (Stammdaten).</summary>
+    /// <summary>Confirmed length from KOMPASS (master data).</summary>
     Kompass,
 
-    /// <summary>Länge aus loadChannels.xlsx (Sheet CIRCUITS).</summary>
+    /// <summary>Length from loadChannels.xlsx (sheet CIRCUITS).</summary>
     MotoDb,
 
-    /// <summary>Länge aus der .HED-Datei des Runs.</summary>
+    /// <summary>Length from the run's .HED file.</summary>
     Hed,
 
-    /// <summary>Offener Vorschlag (bereits von einer anderen Verarbeitung gemessen, in KODE noch nicht bestätigt).</summary>
+    /// <summary>Open suggestion (already measured by another processing, not yet confirmed in KODE).</summary>
     Suggestion,
 
-    /// <summary>Aus den GPS-Rundendistanzen dieser Verarbeitung geschätzt.</summary>
+    /// <summary>Estimated from the GPS lap distances of this processing.</summary>
     Estimate,
 }
 
-/// <summary>Ergebnis der Track-Längen-Prüfung.</summary>
+/// <summary>Result of the track length check.</summary>
 public enum TrackLengthGateStatus
 {
-    /// <summary>Eine eindeutige Länge ist bekannt (ggf. vorläufig).</summary>
+    /// <summary>An unambiguous length is known (possibly provisional).</summary>
     Ok,
 
-    /// <summary>Keine eindeutige Länge – MotoDB darf nicht laufen.</summary>
+    /// <summary>No unambiguous length – MotoDB must not run.</summary>
     Missing,
 
-    /// <summary>loadChannels.xlsx ist gesperrt (z.B. in Excel geöffnet) – erneut versuchen.</summary>
+    /// <summary>loadChannels.xlsx is locked (e.g. open in Excel) – try again.</summary>
     Locked,
 }
 
-/// <summary>Die Entscheidung der Track-Längen-Prüfung.</summary>
-/// <param name="Status">Ergebnis.</param>
-/// <param name="LengthMeters">Die zu verwendende Länge (nur bei <see cref="TrackLengthGateStatus.Ok"/>).</param>
-/// <param name="Source">Herkunft der Länge.</param>
-/// <param name="Message">Zusammenfassung für Log/Status.</param>
-/// <param name="Warnings">Hinweise, z.B. verworfene, nicht eindeutige Längen.</param>
+/// <summary>The decision of the track length check.</summary>
+/// <param name="Status">Result.</param>
+/// <param name="LengthMeters">The length to use (only for <see cref="TrackLengthGateStatus.Ok"/>).</param>
+/// <param name="Source">Source of the length.</param>
+/// <param name="Message">Summary for log/status.</param>
+/// <param name="Warnings">Notes, e.g. discarded, ambiguous lengths.</param>
 public sealed record TrackLengthDecision(
     TrackLengthGateStatus Status,
     int? LengthMeters,
@@ -53,22 +53,22 @@ public sealed record TrackLengthDecision(
     string Message,
     IReadOnlyList<string> Warnings)
 {
-    /// <summary>True, wenn die Länge noch nicht in KOMPASS bestätigt ist.</summary>
+    /// <summary>True if the length is not yet confirmed in KOMPASS.</summary>
     public bool Provisional => Status == TrackLengthGateStatus.Ok && Source != TrackLengthSource.Kompass;
 
-    /// <summary>Die Länge als Text für .HED/XML (leer, wenn keine).</summary>
+    /// <summary>The length as text for .HED/XML (empty if none).</summary>
     public string LengthText => LengthMeters?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
 }
 
 /// <summary>
-/// Stellt vor MotoDB sicher, dass der Track eine <b>eindeutige</b> Länge hat. MotoDB vergleicht die
-/// <c>trackLength</c> der .HED exakt mit der Spalte <c>Length</c> im Sheet CIRCUITS der loadChannels.xlsx;
-/// zwei Strecken mit gleicher Länge führen zu einem Fehler.
+/// Ensures before MotoDB that the track has an <b>unambiguous</b> length. MotoDB compares the
+/// <c>trackLength</c> of the .HED exactly with the column <c>Length</c> in the sheet CIRCUITS of loadChannels.xlsx;
+/// two tracks with the same length lead to an error.
 ///
-/// <para><b>Priorität:</b> KOMPASS → CIRCUITS → .HED → offener Vorschlag → Schätzung aus den GPS-Rundendistanzen
-/// (auf eine freie Länge verschoben). Jede Quelle wird nur verwendet, wenn kein anderer Track dieselbe
-/// Länge nutzt (KOMPASS und CIRCUITS). Vorläufige Längen werden in CIRCUITS geschrieben und als Vorschlag
-/// für KODE abgelegt, wo sie bestätigt werden.</para>
+/// <para><b>Priority:</b> KOMPASS → CIRCUITS → .HED → open suggestion → estimate from the GPS lap distances
+/// (shifted to a free length). Each source is only used if no other track uses the same
+/// length (KOMPASS and CIRCUITS). Provisional lengths are written to CIRCUITS and stored as a suggestion
+/// for KODE, where they are confirmed.</para>
 /// </summary>
 public sealed class TrackLengthGate
 {
@@ -80,7 +80,7 @@ public sealed class TrackLengthGate
     private List<Track>? _kompassTracks;
     private List<CircuitEntry>? _circuits;
 
-    /// <summary>Erstellt eine Prüfung für die angegebenen Dateien.</summary>
+    /// <summary>Creates a check for the specified files.</summary>
     public TrackLengthGate(string kompassPath, string workbookPath, TrackLengthSettings settings)
     {
         _kompassPath = kompassPath;
@@ -88,13 +88,13 @@ public sealed class TrackLengthGate
         _settings = settings ?? new TrackLengthSettings();
     }
 
-    /// <summary>Erstellt eine Prüfung aus der ORACLE-Konfiguration.</summary>
+    /// <summary>Creates a check from the ORACLE configuration.</summary>
     public static TrackLengthGate FromConfig(OracleConfig config) =>
         new(config.DatabaseFilePath, config.MotoDbLoadChannelsPath, config.TrackLength);
 
     /// <summary>
-    /// Ermittelt die Länge aus den vorhandenen Quellen (ohne Schätzung). Vor den Berechnungen aufrufen,
-    /// damit .HED, XML und Renn-Erkennung bereits mit der richtigen Länge arbeiten.
+    /// Determines the length from the existing sources (without estimate). Call before the calculations
+    /// so that .HED, XML and race detection already work with the correct length.
     /// </summary>
     public TrackLengthDecision ResolveKnown(string trackName, string? hedLength)
     {
@@ -114,7 +114,7 @@ public sealed class TrackLengthGate
         else if (kompassLengths.Count == 1 && Accept(trackName, kompassLengths[0], "KOMPASS", others, warnings))
             return Ok(kompassLengths[0], TrackLengthSource.Kompass, warnings);
 
-        // In KODE abgelehnte Werte gelten nicht mehr – auch wenn ORACLE sie vorläufig in CIRCUITS/.HED geschrieben hat.
+        // Values rejected in KODE no longer apply – even if ORACLE has provisionally written them to CIRCUITS/.HED.
         var rejected = RejectedLengths(trackName);
         bool NotRejected(int length, string source)
         {
@@ -143,16 +143,16 @@ public sealed class TrackLengthGate
     }
 
     /// <summary>
-    /// Schließt die Prüfung nach den Berechnungen ab: schätzt bei Bedarf die Länge aus den Rundendistanzen,
-    /// schreibt sie in CIRCUITS und legt vorläufige Längen als Vorschlag für KODE ab.
+    /// Completes the check after the calculations: estimates the length from the lap distances if needed,
+    /// writes it to CIRCUITS and stores provisional lengths as a suggestion for KODE.
     /// </summary>
-    /// <param name="known">Ergebnis von <see cref="ResolveKnown"/>.</param>
-    /// <param name="metadata">Run-Metadaten (Track, Land, Disziplin).</param>
-    /// <param name="lapDistancesPerRun">GPS-Distanz je Runde, je Run.</param>
-    /// <param name="origin">Herkunft für den Vorschlag (Run-/Rider-Ordner).</param>
+    /// <param name="known">Result of <see cref="ResolveKnown"/>.</param>
+    /// <param name="metadata">Run metadata (track, country, discipline).</param>
+    /// <param name="lapDistancesPerRun">GPS distance per lap, per run.</param>
+    /// <param name="origin">Origin for the suggestion (run/rider folder).</param>
     /// <param name="eventLapDistances">
-    /// Optional: Rundendistanzen bereits verarbeiteter Runs desselben Events; werden nur genutzt, wenn die eigenen
-    /// Runden für eine Schätzung nicht reichen (z.B. kurzer Run im KRAKEN-Einzel-Run-Modus).
+    /// Optional: lap distances of already processed runs of the same event; only used if the own
+    /// laps are not sufficient for an estimate (e.g. a short run in KRAKEN single-run mode).
     /// </param>
     public TrackLengthDecision Complete(TrackLengthDecision known, RunMetadata metadata,
         IEnumerable<IReadOnlyList<double>> lapDistancesPerRun, string origin,
@@ -200,7 +200,7 @@ public sealed class TrackLengthGate
 
         var finalLength = decision.LengthMeters!.Value;
 
-        // MotoDB vergleicht exakt mit CIRCUITS: dort muss genau diese Länge stehen.
+        // MotoDB compares exactly with CIRCUITS: exactly this length must be stored there.
         if (File.Exists(_workbookPath)
             && Circuits().FirstOrDefault(c => TrackNames.Same(c.Name, metadata.TrackName))?.LengthMeters != finalLength)
         {
@@ -220,7 +220,7 @@ public sealed class TrackLengthGate
                     break;
                 default:
                     _circuits = null;
-                    // Nur Konflikte zu diesem Track melden; Konflikte anderer Tracks meldet sync-motodb.
+                    // Only report conflicts for this track; conflicts of other tracks are reported by sync-motodb.
                     var relevant = result.Warnings.Where(w => w.Contains(metadata.TrackName, StringComparison.OrdinalIgnoreCase)).ToList();
                     warnings.AddRange(relevant);
                     if (result.Warnings.Count > relevant.Count)
@@ -269,12 +269,12 @@ public sealed class TrackLengthGate
         }
     }
 
-    /// <summary>Der Untergrund des Tracks laut KOMPASS (leer, wenn unbekannt).</summary>
+    /// <summary>The track surface according to KOMPASS (empty if unknown).</summary>
     public string KompassSurface(string trackName) =>
         KompassTracks().FirstOrDefault(t => TrackNames.Same(t.Name, trackName) && !string.IsNullOrWhiteSpace(t.Surface))?.Surface.Trim()
         ?? string.Empty;
 
-    /// <summary>Die in KODE abgelehnten Längen eines Tracks (leer ohne Vorschlagsordner).</summary>
+    /// <summary>The lengths of a track rejected in KODE (empty without a suggestions folder).</summary>
     private IReadOnlySet<int> RejectedLengths(string trackName)
     {
         try

@@ -4,19 +4,19 @@ using KtmDataHandler.Models.Channels;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Liest die für die Start-Erkennung nötigen Kanäle eines Runs über die WinTAX-API und wendet
-    /// <see cref="StartDetector"/> an (read-only). Zum Vergleich wird der bisherige VCH-Start
-    /// (<c>StartTrigger</c>: erstes Mal Gas ≥ Kupplung, Gang ≠ N, kein Begrenzer) mit ausgegeben.
+    /// Reads the channels of a run needed for start detection via the WinTAX API and applies
+    /// <see cref="StartDetector"/> (read-only). For comparison, the previous VCH start
+    /// (<c>StartTrigger</c>: first time throttle ≥ clutch, gear ≠ N, no limiter) is printed as well.
     /// </summary>
     public sealed class StartAnalyzer
     {
-        private const double Step = 0.01; // 100 Hz Raster
+        private const double Step = 0.01; // 100 Hz grid
 
         private readonly IMarelliDataBrowse _browse;
 
         public StartAnalyzer(IMarelliDataBrowse browse) => _browse = browse;
 
-        /// <summary>Analysiert alle Runs unter <paramref name="path"/> und gibt eine Tabelle aus.</summary>
+        /// <summary>Analyzes all runs under <paramref name="path"/> and prints a table.</summary>
         public OracleExitCode Run(string path, StartDetectionOptions? options = null)
         {
             var runs = _browse.IsRunLocation(path)
@@ -24,7 +24,7 @@ namespace Ktm.Racing.Oracle
                 : RunFolders.InOrder(_browse.FindRuns(path) ?? Enumerable.Empty<string>());
             if (runs.Count == 0)
             {
-                Console.WriteLine($"Keine gültigen Runs gefunden in: {path}");
+                Console.WriteLine($"No valid runs found in: {path}");
                 return OracleExitCode.DataNotFound;
             }
 
@@ -35,7 +35,7 @@ namespace Ktm.Racing.Oracle
                 var (signals, missing, legacyStart) = Load(run);
                 if (signals is null)
                 {
-                    Console.WriteLine($"{name,-24} – Kanäle fehlen: {missing}");
+                    Console.WriteLine($"{name,-24} – channels missing: {missing}");
                     continue;
                 }
 
@@ -46,7 +46,7 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{name,-24} – Analyse fehlgeschlagen: {ex.Message}");
+                    Console.WriteLine($"{name,-24} – analysis failed: {ex.Message}");
                     continue;
                 }
 
@@ -56,7 +56,7 @@ namespace Ktm.Racing.Oracle
                 var line = $"{name,-24} legacy StartTrigger: {(legacyStart is { } l ? $"{l,7:0.00} s" : "      –")}";
                 if (starts.Count == 0)
                 {
-                    Console.WriteLine($"{line} | kein Start-Kandidat");
+                    Console.WriteLine($"{line} | no start candidate");
                     if (legacyStart is not null) legacyOnly++;
                     continue;
                 }
@@ -70,7 +70,7 @@ namespace Ktm.Racing.Oracle
                 }
             }
 
-            Console.WriteLine($"[detect-start] {runs.Count} Run(s): {valid} gültige Start(s), {rejected} verworfene Kandidaten, {legacyOnly} Run(s) mit altem StartTrigger aber ohne Startkandidat.");
+            Console.WriteLine($"[detect-start] {runs.Count} run(s): {valid} valid start(s), {rejected} rejected candidate(s), {legacyOnly} run(s) with legacy StartTrigger but no start candidate.");
             return OracleExitCode.Success;
         }
 
@@ -81,7 +81,7 @@ namespace Ktm.Racing.Oracle
             {
                 reader.SetDataLocation([run]);
                 if (reader.LoadRun() <= 0)
-                    return (null, "LoadRun fehlgeschlagen", null);
+                    return (null, "LoadRun failed", null);
 
                 var names = reader.GetChannelsNames() ?? [];
                 string? Find(params string[] candidates) => ChannelResolver.Find(names, candidates);
@@ -117,7 +117,7 @@ namespace Ktm.Racing.Oracle
                 var rpmValues = On(Channel(rpm));
                 var throttleValues = On(Channel(throttle));
                 if (speedKph is null || gearValues is null || rpmValues is null || throttleValues is null)
-                    return (null, "Kanaldaten nicht im erwarteten Format", null);
+                    return (null, "channel data not in the expected format", null);
 
                 var signals = new StartSignals
                 {
@@ -142,7 +142,7 @@ namespace Ktm.Racing.Oracle
             }
         }
 
-        /// <summary>Diagnose (Umgebungsvariable ORACLE_START_DEBUG=&lt;Zeit s&gt;): Signale ±4 s um den Zeitpunkt.</summary>
+        /// <summary>Diagnostics (environment variable ORACLE_START_DEBUG=&lt;time s&gt;): signals ±4 s around the given time.</summary>
         private static void DumpWindow(string name, StartSignals s, double around)
         {
             Console.WriteLine($"    --- {name} signals around {around:0.00} s");
@@ -154,7 +154,7 @@ namespace Ktm.Racing.Oracle
             }
         }
 
-        /// <summary>Bisherige VCH-Definition: erstes Sample mit Gas ≥ Kupplung, Gang ≠ 0, kein Begrenzer (bei Kupplungsdaten).</summary>
+        /// <summary>Previous VCH definition: first sample with throttle ≥ clutch, gear ≠ 0, no limiter (when clutch data is present).</summary>
         private static double? LegacyStart(StartSignals s)
         {
             if (s.Clutch is null || s.Clutch.All(c => c == 0))

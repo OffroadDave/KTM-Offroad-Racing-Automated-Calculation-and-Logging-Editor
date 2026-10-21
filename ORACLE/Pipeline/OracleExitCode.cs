@@ -1,75 +1,75 @@
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Exit-Codes für ORACLE, kompatibel mit KRAKEN EXE-Job-Auswertung.
+    /// Exit codes for ORACLE, compatible with KRAKEN EXE job evaluation.
     /// 
-    /// KRAKEN prüft den Rückgabewert des Prozesses:
+    /// KRAKEN checks the process return value:
     /// <list type="bullet">
-    ///   <item>0 = Erfolg → nächsten Job starten (z.B. MotoDB)</item>
-    ///   <item>≠ 0 = Fehler → Pipeline abhängig vom Code behandeln</item>
+    ///   <item>0 = success → start next job (e.g. MotoDB)</item>
+    ///   <item>≠ 0 = error → handle pipeline depending on the code</item>
     /// </list>
     /// 
-    /// <para><b>Konvention:</b> Codes 0–9 sind reserviert für ORACLE.
-    /// Höhere Codes können für zukünftige Tools im gleichen Prozess genutzt werden.</para>
+    /// <para><b>Convention:</b> codes 0–9 are reserved for ORACLE.
+    /// Higher codes can be used by future tools in the same process.</para>
     /// </summary>
     public enum OracleExitCode
     {
         /// <summary>
-        /// Alle Schritte erfolgreich abgeschlossen.
-        /// KRAKEN-Reaktion: Nächsten abhängigen Job starten.
+        /// All steps completed successfully.
+        /// KRAKEN reaction: start the next dependent job.
         /// </summary>
         Success = 0,
 
         /// <summary>
-        /// Allgemeiner Fehler (unerwartete Exception, API-Fehler).
-        /// KRAKEN-Reaktion: Pipeline abbrechen, Logs prüfen.
+        /// General error (unexpected exception, API error).
+        /// KRAKEN reaction: abort pipeline, check logs.
         /// </summary>
         GeneralError = 1,
 
         /// <summary>
-        /// Ungültige oder fehlende Kommandozeilen-Argumente.
-        /// KRAKEN-Reaktion: Job-Konfiguration (ExePath/Arguments) prüfen.
+        /// Invalid or missing command-line arguments.
+        /// KRAKEN reaction: check job configuration (ExePath/Arguments).
         /// </summary>
         InvalidArguments = 2,
 
         /// <summary>
-        /// Benötigte Daten nicht gefunden (Pfad existiert nicht, keine Runs, keine Metadaten).
-        /// KRAKEN-Reaktion: Ggf. Retry — Daten könnten noch synchronisiert werden.
+        /// Required data not found (path does not exist, no runs, no metadata).
+        /// KRAKEN reaction: retry if appropriate — data may still be syncing.
         /// </summary>
         DataNotFound = 3,
 
         /// <summary>
-        /// Verarbeitung teilweise erfolgreich (z.B. beschädigte Run-Ordner übersprungen, Details im Status <c>discovery</c>).
-        /// KRAKEN-Reaktion: Warnung loggen, weitermachen (MotoDB starten); Runs reparieren und mit --force nachholen.
+        /// Processing partially successful (e.g. corrupt run folders skipped, details in status <c>discovery</c>).
+        /// KRAKEN reaction: log a warning, continue (start MotoDB); repair the runs and catch up with --force.
         /// </summary>
         PartialSuccess = 4,
 
         /// <summary>
-        /// Benötigte Ressource gesperrt (z.B. loadChannels.xlsx offen in Excel).
-        /// KRAKEN-Reaktion: Retry — die Sperre ist i.d.R. transient; NICHT mit veralteten Inputs weiterlaufen.
+        /// Required resource locked (e.g. loadChannels.xlsx open in Excel).
+        /// KRAKEN reaction: retry — the lock is usually transient; do NOT continue with stale inputs.
         /// </summary>
         ResourceLocked = 5,
 
         /// <summary>
-        /// Für den Track ist keine eindeutige Länge bekannt (KOMPASS, loadChannels CIRCUITS, .HED und
-        /// offene Vorschläge leer/mehrdeutig) und sie konnte nicht aus den GPS-Rundendistanzen geschätzt werden.
-        /// MotoDB identifiziert die Strecke über einen exakten Längenvergleich und würde fehlschlagen.
-        /// KRAKEN-Reaktion: MotoDB NICHT starten; Länge in KODE eintragen, dann erneut ausführen.
+        /// No unambiguous length is known for the track (KOMPASS, loadChannels CIRCUITS, .HED and
+        /// open suggestions empty/ambiguous) and it could not be estimated from the GPS lap distances.
+        /// MotoDB identifies the track via an exact length comparison and would fail.
+        /// KRAKEN reaction: do NOT start MotoDB; enter the length in KODE, then run again.
         /// </summary>
         TrackLengthMissing = 6,
 
         /// <summary>
-        /// Daten vorhanden, aber unbrauchbar: beschädigter Run-Ordner (z.B. Lap-Ordner ohne cableData.ztx,
-        /// mehrfach gesplittete Laps) oder ungültige KOMPASS.json. Ein Retry ändert daran nichts.
-        /// KRAKEN-Reaktion: NICHT wiederholen; Daten reparieren (WinTAX / KODE), dann erneut ausführen.
+        /// Data present but unusable: corrupt run folder (e.g. lap folder without cableData.ztx,
+        /// laps split multiple times) or invalid KOMPASS.json. A retry will not change this.
+        /// KRAKEN reaction: do NOT retry; repair the data (WinTAX / KODE), then run again.
         /// </summary>
         InvalidData = 7,
     }
 
-    /// <summary>Hilfsfunktionen für <see cref="OracleExitCode"/>.</summary>
+    /// <summary>Helper functions for <see cref="OracleExitCode"/>.</summary>
     public static class OracleExitCodes
     {
-        // Reihenfolge = Priorität: der gravierendste Code bestimmt das Gesamtergebnis mehrerer Teilverarbeitungen.
+        // Order = priority: the most severe code determines the overall result of multiple partial runs.
         private static readonly OracleExitCode[] Priority =
         [
             OracleExitCode.GeneralError,
@@ -82,7 +82,7 @@ namespace Ktm.Racing.Oracle
             OracleExitCode.Success,
         ];
 
-        /// <summary>Fasst die Exit-Codes mehrerer Teilverarbeitungen (z.B. je Geräteordner) zusammen.</summary>
+        /// <summary>Combines the exit codes of multiple partial runs (e.g. per device folder).</summary>
         public static OracleExitCode Combine(IEnumerable<OracleExitCode> codes)
         {
             var list = codes.ToList();

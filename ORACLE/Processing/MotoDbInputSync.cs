@@ -4,19 +4,19 @@ using Ktm.Racing.Domain.MotoDb;
 namespace Ktm.Racing.Oracle;
 
 /// <summary>
-/// Synchronisiert die MotoDB-<c>loadChannels.xlsx</c> (Sheets CIRCUITS + HED) aus der KOMPASS-Stammdaten-DB.
-/// Headless-Einstieg für KRAKEN, damit die MotoDB-Inputs vor jedem Lauf aktuell sind.
+/// Synchronizes the MotoDB <c>loadChannels.xlsx</c> (sheets CIRCUITS + HED) from the KOMPASS master data DB.
+/// Headless entry point for KRAKEN so that the MotoDB inputs are up to date before every run.
 ///
-/// <para>Bewusst <b>ohne</b> KtmDataHandler/native Abhängigkeit (nur <c>Ktm.Racing.Domain</c> + ClosedXML):
-/// der Sync-Job benötigt keinen HASP-Dongle und keine WinTAX-Runtime und läuft daher auf jeder Maschine.
-/// Reuse des getesteten <see cref="LoadChannelsWriter"/>; ein gesperrtes Workbook ist non-fatal.</para>
+/// <para>Deliberately <b>without</b> KtmDataHandler/native dependency (only <c>Ktm.Racing.Domain</c> + ClosedXML):
+/// the sync job needs no HASP dongle and no WinTAX runtime and therefore runs on any machine.
+/// Reuses the tested <see cref="LoadChannelsWriter"/>; a locked workbook is non-fatal.</para>
 /// </summary>
 public static class MotoDbInputSync
 {
     /// <summary>
-    /// Führt die Synchronisierung aus. Pfade sind optional und fallen auf die Konfiguration zurück.
+    /// Performs the synchronization. Paths are optional and fall back to the configuration.
     /// </summary>
-    /// <param name="config">ORACLE-Konfiguration (liefert die Default-Pfade).</param>
+    /// <param name="config">ORACLE configuration (provides the default paths).</param>
     /// <param name="kompassPath">KOMPASS.json; <c>null</c> → <see cref="OracleConfig.DatabaseFilePath"/>.</param>
     /// <param name="workbookPath">loadChannels.xlsx; <c>null</c> → <see cref="OracleConfig.MotoDbLoadChannelsPath"/>.</param>
     public static OracleExitCode Run(OracleConfig config, string? kompassPath = null, string? workbookPath = null)
@@ -29,12 +29,12 @@ public static class MotoDbInputSync
 
         if (!File.Exists(kompassPath))
         {
-            Console.WriteLine($"KOMPASS-Datei nicht gefunden: {kompassPath}");
+            Console.WriteLine($"KOMPASS file not found: {kompassPath}");
             return OracleExitCode.DataNotFound;
         }
         if (!File.Exists(workbookPath))
         {
-            Console.WriteLine($"loadChannels-Workbook nicht gefunden: {workbookPath}");
+            Console.WriteLine($"loadChannels workbook not found: {workbookPath}");
             return OracleExitCode.DataNotFound;
         }
 
@@ -45,17 +45,17 @@ public static class MotoDbInputSync
         }
         catch (Exception ex) when (ex is not IOException)
         {
-            Console.WriteLine($"KOMPASS ist ungültig und kann nicht gelesen werden: {ex.Message}");
+            Console.WriteLine($"KOMPASS is invalid and cannot be read: {ex.Message}");
             return OracleExitCode.InvalidData;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"KOMPASS konnte nicht geladen werden: {ex.Message}");
+            Console.WriteLine($"KOMPASS could not be loaded: {ex.Message}");
             return OracleExitCode.GeneralError;
         }
 
-        Console.WriteLine($"[sync-motodb] KOMPASS-Stand:  {InputFingerprint.Describe(kompassPath)}");
-        Console.WriteLine($"[sync-motodb] Workbook-Stand: {InputFingerprint.Describe(workbookPath)}");
+        Console.WriteLine($"[sync-motodb] KOMPASS state:  {InputFingerprint.Describe(kompassPath)}");
+        Console.WriteLine($"[sync-motodb] Workbook state: {InputFingerprint.Describe(workbookPath)}");
 
         var result = WorkbookGuard.WriteWithRetry(
             () => new LoadChannelsWriter().Sync(database, new LoadChannelsOptions { WorkbookPath = workbookPath }),
@@ -65,8 +65,8 @@ public static class MotoDbInputSync
         return result.Status switch
         {
             LoadChannelsSyncStatus.Updated => OracleExitCode.Success,
-            LoadChannelsSyncStatus.Skipped => OracleExitCode.Success,        // sauberer Skip (non-fatal)
-            LoadChannelsSyncStatus.Locked => OracleExitCode.ResourceLocked,  // gesperrt -> Retry statt veraltete Inputs zu verwenden
+            LoadChannelsSyncStatus.Skipped => OracleExitCode.Success,                    // clean skip (non-fatal)
+                        LoadChannelsSyncStatus.Locked => OracleExitCode.ResourceLocked,  // locked -> retry instead of using stale inputs
             _ => OracleExitCode.GeneralError,
         };
     }

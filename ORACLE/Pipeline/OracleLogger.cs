@@ -1,25 +1,25 @@
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Leichtgewichtiges Dual-Output-Logging: Schreibt gleichzeitig auf Console UND in eine Log-Datei.
+    /// Lightweight dual-output logging: writes to the console AND a log file at the same time.
     /// 
-    /// <para><b>Funktionsweise:</b></para>
-    /// Wird via <see cref="Console.SetOut"/> als Standard-Output gesetzt. Danach schreiben
-    /// alle <c>Console.WriteLine</c>-Aufrufe im gesamten Programm automatisch auch in die Log-Datei —
-    /// ohne Änderungen an bestehenden Services (OraclePipeline, ImportDataCalculator, etc.).
+    /// <para><b>How it works:</b></para>
+    /// Set as standard output via <see cref="Console.SetOut"/>. After that,
+    /// all <c>Console.WriteLine</c> calls throughout the program automatically also write to the log file —
+    /// without changes to existing services (OraclePipeline, ImportDataCalculator, etc.).
     /// 
-    /// <para><b>Log-Datei:</b></para>
+    /// <para><b>Log file:</b></para>
     /// <c>{AppDir}/logs/oracle-{yyyyMMdd-HHmmss}-{PID}.log</c>
     /// 
-    /// <para><b>Verwendung in Program.cs:</b></para>
+    /// <para><b>Usage in Program.cs:</b></para>
     /// <code>
     /// using var logger = OracleLogger.Initialize();
-    /// // Ab hier: Console.WriteLine → Console + Datei
+    /// // From here on: Console.WriteLine → console + file
     /// </code>
     /// 
-    /// <para><b>KRAKEN-Kontext:</b></para>
-    /// Wenn ORACLE als EXE-Job von KRAKEN gestartet wird, geht die Console-Ausgabe verloren.
-    /// Die Log-Datei bewahrt alle Diagnose-Informationen für spätere Analyse.
+    /// <para><b>KRAKEN context:</b></para>
+    /// When ORACLE is started as an EXE job by KRAKEN, the console output is lost.
+    /// The log file preserves all diagnostic information for later analysis.
     /// </summary>
     public sealed class OracleLogger : TextWriter, IDisposable
     {
@@ -27,7 +27,7 @@ namespace Ktm.Racing.Oracle
         private readonly StreamWriter _fileWriter;
         private bool _disposed;
 
-        /// <summary>Pfad zur aktuellen Log-Datei</summary>
+        /// <summary>Path to the current log file</summary>
         public string LogFilePath { get; }
 
         public override System.Text.Encoding Encoding => _consoleWriter.Encoding;
@@ -39,15 +39,15 @@ namespace Ktm.Racing.Oracle
             LogFilePath = logFilePath;
         }
 
-        /// <summary>
-        /// Initialisiert das Dual-Logging und setzt <see cref="Console.Out"/> um.
-        /// Gibt eine <see cref="IDisposable"/>-Instanz zurück, die bei Programmende
-        /// die Log-Datei schließt und Console.Out wiederherstellt.
-        /// </summary>
-        /// <returns>OracleLogger-Instanz (IDisposable)</returns>
-        /// <summary>Logdateien älter als diese Anzahl Tage werden beim Start gelöscht (Hintergrundbetrieb ohne Wartung).</summary>
+        /// <summary>Log files older than this number of days are deleted at startup (unattended background operation).</summary>
         public const int RetentionDays = 60;
 
+        /// <summary>
+        /// Initializes dual logging and redirects <see cref="Console.Out"/>.
+        /// Returns an <see cref="IDisposable"/> instance that, at program end,
+        /// closes the log file and restores Console.Out.
+        /// </summary>
+        /// <returns>OracleLogger instance (IDisposable)</returns>
         public static OracleLogger Initialize()
         {
             try
@@ -56,18 +56,18 @@ namespace Ktm.Racing.Oracle
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                // Programmordner nicht beschreibbar (z.B. unter Program Files): ins Benutzer-Temp ausweichen statt abzustürzen.
+                // Program folder not writable (e.g. under Program Files): fall back to the user temp folder instead of crashing.
                 return Initialize(Path.Combine(Path.GetTempPath(), "ORACLE", "logs"));
             }
         }
 
-        /// <summary>Initialisiert das Dual-Logging mit einer Log-Datei in <paramref name="logDir"/>.</summary>
+        /// <summary>Initializes dual logging with a log file in <paramref name="logDir"/>.</summary>
         public static OracleLogger Initialize(string logDir)
         {
             Directory.CreateDirectory(logDir);
             DeleteOldLogs(logDir, TimeSpan.FromDays(RetentionDays));
 
-            // Prozess-ID im Namen: zwei Aufrufe in derselben Sekunde schreiben nie in dieselbe Datei.
+            // Process ID in the name: two calls within the same second never write to the same file.
             var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
             var logFilePath = Path.Combine(logDir, $"oracle-{timestamp}-{Environment.ProcessId}.log");
 
@@ -84,7 +84,7 @@ namespace Ktm.Racing.Oracle
             return logger;
         }
 
-        /// <summary>Löscht <c>oracle-*.log</c> älter als <paramref name="maxAge"/>. Non-fatal.</summary>
+        /// <summary>Deletes <c>oracle-*.log</c> older than <paramref name="maxAge"/>. Non-fatal.</summary>
         public static int DeleteOldLogs(string logDir, TimeSpan maxAge)
         {
             var deleted = 0;
@@ -95,12 +95,12 @@ namespace Ktm.Racing.Oracle
                     if (DateTime.Now - File.GetLastWriteTime(file) <= maxAge)
                         continue;
                     try { File.Delete(file); deleted++; }
-                    catch (IOException) { /* in Benutzung – beim nächsten Start */ }
+                    catch (IOException) { /* in use – on next start */ }
                 }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                // Aufräumen ist optional.
+                // Cleanup is optional.
             }
             return deleted;
         }

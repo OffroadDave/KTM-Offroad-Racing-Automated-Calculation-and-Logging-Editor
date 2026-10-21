@@ -5,29 +5,29 @@ using System.Runtime.InteropServices;
 namespace Ktm.Racing.Oracle;
 
 /// <summary>
-/// Macht die KtmDataHandler-Laufzeitabhängigkeiten auffindbar, ohne dass die vielen
-/// Companion-Dateien (log4net, Newtonsoft.Json, Microsoft.Bcl.AsyncInterfaces, die nativen
-/// KtmSharedUtilsCpp/TelDataZTX/HASP-Lizenz-DLLs) ins Build-Output kopiert werden müssen.
+/// Makes the KtmDataHandler runtime dependencies discoverable without having to copy the many
+/// companion files (log4net, Newtonsoft.Json, Microsoft.Bcl.AsyncInterfaces, the native
+/// KtmSharedUtilsCpp/TelDataZTX/HASP license DLLs) into the build output.
 ///
-/// Ursache: Referenziert werden nur KtmDataHandler.dll und KtmSharedUtils.dll; deren
-/// Laufzeit-Abhängigkeiten liegen ausschließlich im "KTM Utils Software Suite"-Ordner.
-/// Ohne diesen Bootstrap schlägt die Autofac-Aktivierung von MarelliDataAccess fehl
-/// (z.B. MarelliDataXmlProcessingConstants) bzw. eine Companion-Assembly wird nicht gefunden.
+/// Cause: only KtmDataHandler.dll and KtmSharedUtils.dll are referenced; their
+/// runtime dependencies reside exclusively in the "KTM Utils Software Suite" folder.
+/// Without this bootstrap, the Autofac activation of MarelliDataAccess fails
+/// (e.g. MarelliDataXmlProcessingConstants) or a companion assembly is not found.
 /// </summary>
 public static class KtmRuntime
 {
     private static readonly object _lock = new();
-    // volatile: garantiert, dass der Double-Checked-Lock-Read außerhalb des Locks die Schreibung sieht.
+    // volatile: guarantees that the double-checked-lock read outside the lock sees the write.
     private static volatile bool _initialized;
 
     /// <summary>
-    /// Pfad zum KTM Utils Software Suite-Ordner. Auswahl-Reihenfolge: Umgebungsvariable KTM_UTILS_SUITE,
-    /// dann ein neben der App mitgeliefertes "KtmSuite"-Verzeichnis, sonst der Standard-Installationspfad.
-    /// Kann auch direkt vor dem ersten KtmDataHandler-Zugriff gesetzt werden.
+    /// Path to the KTM Utils Software Suite folder. Selection order: environment variable KTM_UTILS_SUITE,
+    /// then a "KtmSuite" directory shipped next to the app, otherwise the default installation path.
+    /// Can also be set directly before the first KtmDataHandler access.
     /// </summary>
     public static string SuiteDirectory { get; set; } = ResolveDefaultSuiteDirectory();
 
-    // Priorität: KTM_UTILS_SUITE → "KtmSuite"-Ordner neben der Exe (mitgeliefert) → Standard-Installationspfad.
+    // Priority: KTM_UTILS_SUITE → "KtmSuite" folder next to the exe (shipped) → default installation path.
     private static string ResolveDefaultSuiteDirectory()
     {
         var env = Environment.GetEnvironmentVariable("KTM_UTILS_SUITE");
@@ -43,15 +43,15 @@ public static class KtmRuntime
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetDllDirectory(string lpPathName);
 
-    // Läuft beim Laden des Core-Moduls (vor dem ersten Zugriff auf KtmDataHandler-Typen),
-    // damit der Assembly-Resolver bereitsteht, bevor KtmDataHandler.dll aufgelöst wird.
-#pragma warning disable CA2255 // ModuleInitializer ist hier bewusst gewählt (Integrations-Bootstrap), kein Source-Generator.
+    // Runs when the core module is loaded (before the first access to KtmDataHandler types),
+    // so that the assembly resolver is ready before KtmDataHandler.dll is resolved.
+#pragma warning disable CA2255 // ModuleInitializer is chosen deliberately here (integration bootstrap), not a source generator.
     [ModuleInitializer]
     internal static void ModuleInit() => EnsureInitialized();
 #pragma warning restore CA2255
 
     /// <summary>
-    /// Einmalig (thread-safe) die Assembly- und Native-DLL-Auflösung aus dem Suite-Ordner aktivieren.
+    /// Activates the assembly and native DLL resolution from the suite folder once (thread-safe).
     /// </summary>
     public static void EnsureInitialized()
     {
@@ -63,19 +63,19 @@ public static class KtmRuntime
             var dir = SuiteDirectory;
             if (Directory.Exists(dir))
             {
-                // Native DLLs (KtmSharedUtilsCpp, TelDataZTXx64, HASP-Stack) über OS-Loader auffindbar machen.
+                // Make native DLLs (KtmSharedUtilsCpp, TelDataZTXx64, HASP stack) discoverable via the OS loader.
                 if (!SetDllDirectory(dir))
                     Console.Error.WriteLine($"Warning: SetDllDirectory failed for {dir} (error {Marshal.GetLastWin32Error()}).");
                 var path = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
                 if (!path.Split(';').Any(p => string.Equals(p.TrimEnd('\\'), dir.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)))
                     Environment.SetEnvironmentVariable("PATH", dir + ";" + path);
 
-                // Verwaltete Companion-Assemblies bei Bedarf aus dem Suite-Ordner nachladen.
+                // Load managed companion assemblies from the suite folder on demand.
                 AppDomain.CurrentDomain.AssemblyResolve += ResolveFromSuite;
             }
             else
             {
-                // Früh und deutlich melden: sonst folgt später nur eine schwer deutbare FileNotFoundException.
+                // Report early and clearly: otherwise only a hard-to-interpret FileNotFoundException follows later.
                 Console.Error.WriteLine($"Warning: KTM Utils Software Suite not found at {dir} (set KTM_UTILS_SUITE). " +
                                         "Commands that read WinTAX data will fail.");
             }
@@ -98,8 +98,8 @@ public static class KtmRuntime
             var candidate = Path.Combine(SuiteDirectory, simpleName + ".dll");
             if (!File.Exists(candidate)) return null;
 
-            // Version bewusst ignorieren: KtmDataHandler fordert teils exakte Alt-Versionen an,
-            // die Suite liefert die tatsächlich kompatible DLL.
+            // Deliberately ignore the version: KtmDataHandler sometimes requests exact old versions,
+            // the suite provides the actually compatible DLL.
             var asm = Assembly.LoadFrom(candidate);
             _cache[simpleName] = asm;
             return asm;

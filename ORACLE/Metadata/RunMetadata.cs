@@ -1,70 +1,70 @@
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Datenmodell für alle extrahierten Metadaten eines WinTAX4-Runs.
-    /// Wird entweder aus einer .HED-Datei oder aus dem Pfad + KOMPASS-Datenbank befüllt.
+    /// Data model for all extracted metadata of a WinTAX4 run.
+    /// Populated either from a .HED file or from the path + KOMPASS database.
     /// 
-    /// Kern-Metadaten (BikeName, TrackName, TrackLength, RiderName) werden immer gesetzt.
-    /// Erweiterte Metadaten werden nur beim KOMPASS-Fallback befüllt und für die .HED-Generierung verwendet.
+    /// Core metadata (BikeName, TrackName, TrackLength, RiderName) is always set.
+    /// Extended metadata is only populated in the KOMPASS fallback and used for .HED generation.
     /// </summary>
     public class RunMetadata
     {
-        // --- Kern-Metadaten (für den XmlRunEditor benötigt) ---
+        // --- Core metadata (required by the XmlRunEditor) ---
 
-        /// <summary>Bike/Fahrer-Alias, z.B. "JP01"</summary>
+        /// <summary>Bike/rider alias, e.g. "JP01"</summary>
         public string BikeName { get; set; } = "";
 
-        /// <summary>Track-Name, z.B. "Maggiora"</summary>
+        /// <summary>Track name, e.g. "Maggiora"</summary>
         public string TrackName { get; set; } = "";
 
-        /// <summary>Track-Länge in Metern</summary>
+        /// <summary>Track length in meters</summary>
         public string TrackLength { get; set; } = "";
 
-        /// <summary>Track-Untergrund (z.B. Hardpack, Sand); wird in die HED-Sektion [TRACK] geschrieben.</summary>
+        /// <summary>Track surface (e.g. Hardpack, Sand); written to the HED section [TRACK].</summary>
         public string Surface { get; set; } = "";
 
-        /// <summary>Vollständiger Fahrername, z.B. "Jorge Prado"</summary>
+        /// <summary>Full rider name, e.g. "Jorge Prado"</summary>
         public string RiderName { get; set; } = "";
 
-        // --- Erweiterte Metadaten (bei KOMPASS-Fallback befüllt, für .HED-Generierung) ---
+        // --- Extended metadata (populated in KOMPASS fallback, for .HED generation) ---
 
-        /// <summary>Disziplin-Kürzel, z.B. "MX", "EN"</summary>
+        /// <summary>Discipline abbreviation, e.g. "MX", "EN"</summary>
         public string DisciplineName { get; set; } = "";
 
-        /// <summary>Saison, z.B. "2025"</summary>
+        /// <summary>Season, e.g. "2025"</summary>
         public string SeasonName { get; set; } = "";
 
-        /// <summary>Vollständiger Teamname, z.B. "KTM Factory Racing"</summary>
+        /// <summary>Full team name, e.g. "KTM Factory Racing"</summary>
         public string TeamName { get; set; } = "";
 
-        /// <summary>Fahrer-Abkürzung ohne Bike-Nummer, z.B. "JP"</summary>
+        /// <summary>Rider abbreviation without bike number, e.g. "JP"</summary>
         public string RiderAbbreviation { get; set; } = "";
 
-        /// <summary>Bike-Nummer, z.B. "01"</summary>
+        /// <summary>Bike number, e.g. "01"</summary>
         public string BikeNumber { get; set; } = "";
 
-        /// <summary>Event-Typ, z.B. "Racetrack", "Testtrack"</summary>
+        /// <summary>Event type, e.g. "Racetrack", "Testtrack"</summary>
         public string TypeName { get; set; } = "";
 
-        /// <summary>Motorklasse/Hubraum aus dem Pfad, z.B. "250" oder "450"</summary>
+        /// <summary>Engine class/displacement from the path, e.g. "250" or "450"</summary>
         public string EngineClass { get; set; } = "";
 
-        /// <summary>ISO-Ländercode, z.B. "AT", "IT"</summary>
+        /// <summary>ISO country code, e.g. "AT", "IT"</summary>
         public string CountryCode { get; set; } = "";
 
-        /// <summary>Vollständiger Ländername</summary>
+        /// <summary>Full country name</summary>
         public string CountryName { get; set; } = "";
 
-        /// <summary>Kalenderwoche, z.B. "01"</summary>
+        /// <summary>Calendar week, e.g. "01"</summary>
         public string CalendarWeek { get; set; } = "";
 
-        /// <summary>Event-Name (Ordnername), z.B. "RT01_AT-RedBull"</summary>
+        /// <summary>Event name (folder name), e.g. "RT01_AT-RedBull"</summary>
         public string EventName { get; set; } = "";
 
-        /// <summary>Session-Name (Ordnername), z.B. "FP1"</summary>
+        /// <summary>Session name (folder name), e.g. "FP1"</summary>
         public string SessionName { get; set; } = "";
 
-        /// <summary>Run-Nummer oder Ordnername, z.B. "Run_001"</summary>
+        /// <summary>Run number or folder name, e.g. "Run_001"</summary>
         public string RunNumber { get; set; } = "";
     }
 }

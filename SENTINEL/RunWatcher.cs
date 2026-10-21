@@ -1,15 +1,15 @@
 namespace SENTINEL
 {
     /// <summary>
-    /// Kernkomponente: Überwacht konfigurierte Verzeichnisse, erkennt neue Runs
-    /// und generiert download.done sobald ein Run stabil ist.
+    /// Core component: watches configured directories, detects new runs
+    /// and generates download.done as soon as a run is stable.
     /// 
-    /// <para><b>Ablauf pro Scan-Zyklus:</b></para>
+    /// <para><b>Sequence per scan cycle:</b></para>
     /// <list type="number">
-    ///   <item>Alle WatchPaths rekursiv nach Run_*-Ordnern durchsuchen</item>
-    ///   <item>Runs mit existierender download.done überspringen</item>
-    ///   <item>Für verbleibende Runs: Snapshot erstellen → StabilityTracker füttern</item>
-    ///   <item>Stabile Runs: download.done generieren → aus Tracking entfernen</item>
+    ///   <item>Search all WatchPaths recursively for Run_* folders</item>
+    ///   <item>Skip runs with an existing download.done</item>
+    ///   <item>For remaining runs: create snapshot → feed StabilityTracker</item>
+    ///   <item>Stable runs: generate download.done → remove from tracking</item>
     /// </list>
     /// </summary>
     public sealed class RunWatcher
@@ -24,10 +24,10 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Führt einen kompletten Scan-Zyklus durch.
-        /// Wird vom Polling-Loop in Program.cs aufgerufen.
+        /// Performs a complete scan cycle.
+        /// Called by the polling loop in Program.cs.
         /// </summary>
-        /// <returns>Anzahl der in diesem Zyklus generierten download.done Dateien</returns>
+        /// <returns>Number of download.done files generated in this cycle</returns>
         public int RunScanCycle()
         {
             var pendingRuns = DiscoverPendingRuns();
@@ -49,7 +49,7 @@ namespace SENTINEL
                         if (latestSnapshot is not null)
                         {
                             var donePath = DownloadDoneWriter.Write(latestSnapshot);
-                            Console.WriteLine($"  ✅ download.done generiert: {donePath}");
+                            Console.WriteLine($"  ✅ download.done generated: {donePath}");
                             _tracker.Remove(runPath);
                             generatedCount++;
                         }
@@ -57,7 +57,7 @@ namespace SENTINEL
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"  ⚠️ Fehler bei {runPath}: {ex.Message}");
+                    Console.WriteLine($"  ⚠️ Error for {runPath}: {ex.Message}");
                 }
             }
 
@@ -65,9 +65,9 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Durchsucht alle WatchPaths rekursiv nach Run_*-Ordnern ohne download.done.
-        /// Unzugängliche Unterordner werden übersprungen statt den ganzen WatchPath abzubrechen.
-        /// Bei <see cref="SentinelConfig.MaxRunAgeDays"/> &gt; 0 werden länger unveränderte Runs ignoriert.
+        /// Searches all WatchPaths recursively for Run_* folders without download.done.
+        /// Inaccessible subfolders are skipped instead of aborting the entire WatchPath.
+        /// If <see cref="SentinelConfig.MaxRunAgeDays"/> &gt; 0, runs unchanged for longer are ignored.
         /// </summary>
         public List<string> DiscoverPendingRuns()
         {
@@ -81,7 +81,7 @@ namespace SENTINEL
             {
                 if (!Directory.Exists(watchPath))
                 {
-                    Console.WriteLine($"  ⚠️ WatchPath existiert nicht: {watchPath}");
+                    Console.WriteLine($"  ⚠️ WatchPath does not exist: {watchPath}");
                     continue;
                 }
 
@@ -103,7 +103,7 @@ namespace SENTINEL
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"  ⚠️ Fehler beim Scannen von {watchPath}: {ex.Message}");
+                    Console.WriteLine($"  ⚠️ Error while scanning {watchPath}: {ex.Message}");
                 }
             }
 
@@ -117,8 +117,8 @@ namespace SENTINEL
         };
 
         /// <summary>
-        /// Jüngster Schreibzeitpunkt des Run-Ordners und seiner Lap-Ordner (Downloads legen neue Laps an,
-        /// ohne zwingend den Run-Ordner selbst zu ändern).
+        /// Most recent write time of the run folder and its lap folders (downloads create new laps
+        /// without necessarily modifying the run folder itself).
         /// </summary>
         private static DateTime LastActivityUtc(string runDir)
         {
@@ -131,24 +131,24 @@ namespace SENTINEL
             return latest;
         }
 
-        /// <summary>Gibt die Anzahl der aktuell getrackten (noch instabilen) Runs zurück.</summary>
+        /// <summary>Returns the number of currently tracked (not yet stable) runs.</summary>
         public int TrackedRunCount => _tracker.TrackedRunCount;
 
         private static void LogSnapshotStatus(RunSnapshot snapshot)
         {
-            var status = snapshot.IsStructurallyValid ? "gültig" : "ungültig";
+            var status = snapshot.IsStructurallyValid ? "valid" : "invalid";
             var issues = new List<string>();
 
-            if (snapshot.HasZeroByteFiles) issues.Add("0-Byte-Dateien");
-            if (snapshot.HasPlaceholderFiles) issues.Add("Cloud-Platzhalter");
-            if (snapshot.HasLockedFiles) issues.Add("gesperrte Dateien");
-            if (snapshot.LapCount == 0) issues.Add("keine Laps");
-            if (!snapshot.IsComplete) issues.Add($"{snapshot.MissingFiles.Count} fehlende Datei(en) laut RunLapHeader.xml");
+            if (snapshot.HasZeroByteFiles) issues.Add("0-byte files");
+            if (snapshot.HasPlaceholderFiles) issues.Add("cloud placeholders");
+            if (snapshot.HasLockedFiles) issues.Add("locked files");
+            if (snapshot.LapCount == 0) issues.Add("no laps");
+            if (!snapshot.IsComplete) issues.Add($"{snapshot.MissingFiles.Count} missing file(s) according to RunLapHeader.xml");
 
             var issueText = issues.Count > 0 ? $" ({string.Join(", ", issues)})" : "";
 
             Console.WriteLine($"  📊 {Path.GetFileName(snapshot.RunPath)}: " +
-                $"{snapshot.FileCount} Dateien, {snapshot.TotalSizeBytes / 1024} KB, " +
+                $"{snapshot.FileCount} files, {snapshot.TotalSizeBytes / 1024} KB, " +
                 $"{snapshot.LapCount} Laps — {status}{issueText}");
         }
     }

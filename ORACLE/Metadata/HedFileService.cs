@@ -1,9 +1,9 @@
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Service für .HED-Datei-Operationen: Suchen, Kopieren, Lesen und Schreiben.
+    /// Service for .HED file operations: finding, copying, reading and writing.
     /// 
-    /// .HED-Dateien enthalten Metadaten im INI-ähnlichen Format:
+    /// .HED files contain metadata in an INI-like format:
     ///   [KTM_NAMING]
     ///   bikeName = JP01
     ///   trackName = Maggiora
@@ -13,27 +13,27 @@ namespace Ktm.Racing.Oracle
     public class HedFileService
     {
         /// <summary>
-        /// Sucht eine .HED-Datei im Rider- und Run-Ordner.
-        /// Falls im Rider-Ordner gefunden, wird die Datei in den Run-Ordner kopiert.
+        /// Searches for a .HED file in the rider and run folders.
+        /// If found in the rider folder, the file is copied to the run folder.
         /// </summary>
-        /// <param name="runPath">Pfad zum Run-Ordner</param>
-        /// <param name="riderPath">Pfad zum Rider-Ordner (eine Ebene über dem Run)</param>
-        /// <returns>Pfad zur .HED-Datei im Run-Ordner, oder null wenn keine gefunden</returns>
+        /// <param name="runPath">Path to the run folder</param>
+        /// <param name="riderPath">Path to the rider folder (one level above the run)</param>
+        /// <returns>Path to the .HED file in the run folder, or null if none was found</returns>
         public string? FindAndPrepareHedFile(string runPath, string riderPath)
         {
-            // 1. Suche im Rider-Ordner (primäre Quelle)
+            // 1. Search in the rider folder (primary source)
             var hedFile = FindFirstHedFile(riderPath);
             if (hedFile != null)
             {
-                Console.WriteLine($".HED-File existiert in Riderordner: {Path.GetFileName(hedFile)}");
+                Console.WriteLine($".HED file exists in rider folder: {Path.GetFileName(hedFile)}");
                 return CopyToRunFolder(hedFile, runPath);
             }
 
-            // 2. Fallback: Suche im Run-Ordner selbst
+            // 2. Fallback: search in the run folder itself
             hedFile = FindFirstHedFile(runPath);
             if (hedFile != null)
             {
-                Console.WriteLine($".HED-File existiert im Runordner: {Path.GetFileName(hedFile)}");
+                Console.WriteLine($".HED file exists in run folder: {Path.GetFileName(hedFile)}");
                 return hedFile;
             }
 
@@ -41,12 +41,12 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Liest die Metadaten aus einer .HED-Datei: Fahrer-, Team-, Saison-, Disziplin- und Event-Stammdaten der Sektion
-        /// <c>[KTM_NAMING]</c> sowie <c>surface</c>. Event, Session und Run kommen immer aus dem Pfad (eine aus dem Rider-Ordner
-        /// kopierte .HED kann zu einem anderen Run gehören).
+        /// Reads the metadata from a .HED file: rider, team, season, discipline and event master data of the section
+        /// <c>[KTM_NAMING]</c> as well as <c>surface</c>. Event, session and run always come from the path (a .HED copied from the
+        /// rider folder may belong to a different run).
         /// </summary>
-        /// <param name="hedFilePath">Vollständiger Pfad zur .HED-Datei</param>
-        /// <returns>RunMetadata mit den gelesenen Werten (leere Strings für fehlende Keys)</returns>
+        /// <param name="hedFilePath">Full path to the .HED file</param>
+        /// <returns>RunMetadata with the values read (empty strings for missing keys)</returns>
         public RunMetadata ReadMetadata(string hedFilePath)
         {
             var values = ParseHedFile(hedFilePath);
@@ -54,7 +54,7 @@ namespace Ktm.Racing.Oracle
 
             var rawBikeName = Value("bikeName");
             if (!BikeAlias.IsCanonical(rawBikeName))
-                Console.WriteLine($"Warnung: bikeName \"{rawBikeName}\" aus .HED enthält Leerzeichen — normalisiere zu \"{BikeAlias.Normalize(rawBikeName)}\".");
+                Console.WriteLine($"Warning: bikeName \"{rawBikeName}\" from .HED contains spaces — normalizing to \"{BikeAlias.Normalize(rawBikeName)}\".");
 
             return new RunMetadata
             {
@@ -77,17 +77,17 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Kanonischer .HED-Dateiname: <c>{SeasonName}{EventName}_{BikeName}{SessionName}.HED</c>
-        /// (ohne Leerzeichen), z.B. <c>2026RT22_GER-Teutschenthal_AA01R1.HED</c>.
+        /// Canonical .HED file name: <c>{SeasonName}{EventName}_{BikeName}{SessionName}.HED</c>
+        /// (without spaces), e.g. <c>2026RT22_GER-Teutschenthal_AA01R1.HED</c>.
         /// </summary>
         public static string BuildHedFileName(RunMetadata metadata)
             => $"{metadata.SeasonName}{metadata.EventName}_{metadata.BikeName}{metadata.SessionName}.HED";
 
         /// <summary>
-        /// Stellt sicher, dass in JEDEM Run-Ordner genau eine .HED-Datei mit dem kanonischen Namen
-        /// (<see cref="BuildHedFileName"/>) und normalisiertem Inhalt liegt. Inhaltsquelle ist die erste
-        /// vorhandene .HED (Run- oder Rider-Ordner), sonst eine aus den Metadaten generierte.
-        /// Abweichend benannte .HED-Dateien im Run-Ordner werden entfernt. Non-fatal je Run-Ordner.
+        /// Ensures that EVERY run folder contains exactly one .HED file with the canonical name
+        /// (<see cref="BuildHedFileName"/>) and normalized content. The content source is the first
+        /// existing .HED (run or rider folder), otherwise one generated from the metadata.
+        /// Differently named .HED files in the run folder are removed. Non-fatal per run folder.
         /// </summary>
         public void EnsureHedInAllRuns(IReadOnlyList<string> runPaths, string riderPath, RunMetadata metadata)
         {
@@ -95,7 +95,7 @@ namespace Ktm.Racing.Oracle
 
             var canonicalName = BuildHedFileName(metadata);
 
-            // Quelle: bevorzugt die kanonische .HED eines Runs, sonst die neueste .HED der Runs, sonst die des Rider-Ordners.
+            // Source: preferably the canonical .HED of a run, otherwise the newest .HED of the runs, otherwise the rider folder's.
             var source = runPaths.Select(r => Path.Combine(r, canonicalName)).FirstOrDefault(File.Exists)
                          ?? runPaths.Select(FindFirstHedFile).OfType<string>().OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault()
                          ?? FindFirstHedFile(riderPath);
@@ -111,10 +111,10 @@ namespace Ktm.Racing.Oracle
             {
                 try
                 {
-                    // runNumber gehört zum einzelnen Run (Konvention: Ordnername, z.B. "Run_885").
+                    // runNumber belongs to the individual run (convention: folder name, e.g. "Run_885").
                     var lines = SetValue((string[])template.Clone(), "runNumber", Path.GetFileName(Path.TrimEndingDirectorySeparator(runPath)));
 
-                    // Erst die neue Datei vollständig schreiben, dann abweichend benannte .HED entfernen.
+                    // First write the new file completely, then remove differently named .HED files.
                     AtomicFile.WriteAllLines(Path.Combine(runPath, canonicalName), lines);
                     foreach (var old in Directory.EnumerateFiles(runPath, "*.HED", SearchOption.TopDirectoryOnly).ToList())
                         if (!string.Equals(Path.GetFileName(old), canonicalName, StringComparison.OrdinalIgnoreCase))
@@ -123,13 +123,13 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[hed] ⚠️ HED für {Path.GetFileName(runPath)} übersprungen: {ex.Message}");
+                    Console.WriteLine($"[hed] ⚠️ HED for {Path.GetFileName(runPath)} skipped: {ex.Message}");
                 }
             }
-            Console.WriteLine($"[hed] .HED in {count}/{runPaths.Count} Run-Ordner(n) sichergestellt: \"{canonicalName}\".");
+            Console.WriteLine($"[hed] .HED ensured in {count}/{runPaths.Count} run folder(s): \"{canonicalName}\".");
         }
 
-        /// <summary>Setzt den Wert eines Schlüssels; fehlt er, wird er am Ende der ersten Sektion eingefügt.</summary>
+        /// <summary>Sets the value of a key; if it is missing, it is inserted at the end of the first section.</summary>
         internal static string[] SetValue(string[] lines, string key, string value)
         {
             for (int i = 0; i < lines.Length; i++)
@@ -150,9 +150,9 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Übernimmt die bekannten (nicht leeren) Metadaten in vorhandene .HED-Zeilen, z.B. den kanonischen
-        /// <c>bikeName</c> oder einen aus KOMPASS ermittelten <c>riderName</c>. Werte, die in den Metadaten leer sind,
-        /// bleiben unverändert; fehlende Schlüssel werden nicht ergänzt (außer über die Track-Helfer).
+        /// Applies the known (non-empty) metadata to existing .HED lines, e.g. the canonical
+        /// <c>bikeName</c> or a <c>riderName</c> determined from KOMPASS. Values that are empty in the metadata
+        /// remain unchanged; missing keys are not added (except via the track helpers).
         /// </summary>
         public static string[] ApplyMetadataToLines(string[] lines, RunMetadata metadata)
         {
@@ -187,7 +187,7 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Setzt <c>surface</c> in allen .HED-Dateien eines Run-Ordners (siehe <see cref="EnsureTrackSurfaceLine"/>). Non-fatal.
+        /// Sets <c>surface</c> in all .HED files of a run folder (see <see cref="EnsureTrackSurfaceLine"/>). Non-fatal.
         /// </summary>
         public void SetTrackSurface(string runPath, string surface)
         {
@@ -201,15 +201,15 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[hed] ⚠️ surface in {Path.GetFileName(file)} nicht gesetzt: {ex.Message}");
+                    Console.WriteLine($"[hed] ⚠️ surface not set in {Path.GetFileName(file)}: {ex.Message}");
                 }
             }
         }
 
         /// <summary>
-        /// Stellt sicher, dass der Track-Untergrund als <c>surface</c>-Zeile (unter einer <c>[TRACK]</c>-Sektion)
-        /// im .HED-Inhalt vorhanden ist: aktualisiert eine vorhandene Zeile, sonst wird die Sektion angehängt.
-        /// Leerer Untergrund lässt den Inhalt unverändert.
+        /// Ensures that the track surface is present as a <c>surface</c> line (under a <c>[TRACK]</c> section)
+        /// in the .HED content: updates an existing line, otherwise the section is appended.
+        /// An empty surface leaves the content unchanged.
         /// </summary>
         private static string[] EnsureTrackSurfaceLine(string[] lines, string surface)
         {
@@ -226,7 +226,7 @@ namespace Ktm.Racing.Oracle
                 }
             }
 
-            // Vorhandene [TRACK]-Sektion ohne surface-Zeile: Zeile dort einfügen statt eine zweite Sektion anzuhängen.
+            // Existing [TRACK] section without surface line: insert the line there instead of appending a second section.
             var track = Array.FindIndex(lines, l => l.Trim().Equals("[TRACK]", StringComparison.OrdinalIgnoreCase));
             if (track >= 0)
             {
@@ -239,7 +239,7 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Setzt <c>trackLength</c> in allen .HED-Dateien eines Run-Ordners (siehe <see cref="EnsureTrackLengthLine"/>).
+        /// Sets <c>trackLength</c> in all .HED files of a run folder (see <see cref="EnsureTrackLengthLine"/>).
         /// Non-fatal.
         /// </summary>
         public void SetTrackLength(string runPath, string trackLength)
@@ -254,15 +254,15 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[hed] ⚠️ trackLength in {Path.GetFileName(file)} nicht gesetzt: {ex.Message}");
+                    Console.WriteLine($"[hed] ⚠️ trackLength not set in {Path.GetFileName(file)}: {ex.Message}");
                 }
             }
         }
 
         /// <summary>
-        /// Setzt die <c>trackLength</c>-Zeile im .HED-Inhalt auf die geprüfte Länge (MotoDB vergleicht sie exakt mit
-        /// CIRCUITS): aktualisiert eine vorhandene Zeile, sonst wird sie nach <c>trackName</c> eingefügt.
-        /// Leere Länge lässt den Inhalt unverändert.
+        /// Sets the <c>trackLength</c> line in the .HED content to the validated length (MotoDB compares it exactly with
+        /// CIRCUITS): updates an existing line, otherwise it is inserted after <c>trackName</c>.
+        /// An empty length leaves the content unchanged.
         /// </summary>
         public static string[] EnsureTrackLengthLine(string[] lines, string trackLength)
         {
@@ -288,7 +288,7 @@ namespace Ktm.Racing.Oracle
             var insertAt = trackNameIndex + 1;
             if (trackNameIndex < 0)
             {
-                // Ans Ende der ersten Sektion ([KTM_NAMING]), d.h. vor die nächste Sektionsüberschrift.
+                // At the end of the first section ([KTM_NAMING]), i.e. before the next section header.
                 var nextSection = list.FindIndex(l => l.TrimStart().StartsWith('['));
                 if (nextSection >= 0)
                     nextSection = list.FindIndex(nextSection + 1, l => l.TrimStart().StartsWith('['));
@@ -299,11 +299,11 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Parst eine .HED-Datei und gibt alle Key-Value-Paare zurück.
-        /// Ignoriert Sektionsheader ([...]) und leere Zeilen.
+        /// Parses a .HED file and returns all key-value pairs.
+        /// Ignores section headers ([...]) and empty lines.
         /// </summary>
-        /// <param name="hedFilePath">Vollständiger Pfad zur .HED-Datei</param>
-        /// <returns>Dictionary mit Key-Value-Paaren (case-insensitive Keys)</returns>
+        /// <param name="hedFilePath">Full path to the .HED file</param>
+        /// <returns>Dictionary with key-value pairs (case-insensitive keys)</returns>
         public Dictionary<string, string> ParseHedFile(string hedFilePath)
         {
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -311,12 +311,12 @@ namespace Ktm.Racing.Oracle
             foreach (var line in File.ReadLines(hedFilePath))
             {
                 var trimmed = line.Trim();
-                // Leere Zeilen und Sektionsheader ([KTM_NAMING]) überspringen
+                // Skip empty lines and section headers ([KTM_NAMING])
                 if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('['))
                     continue;
 
                 var idx = trimmed.IndexOf('=');
-                // Ungültige Zeilen überspringen (kein '=', leerer Key oder leerer Value)
+                // Skip invalid lines (no '=', empty key or empty value)
                 if (idx <= 0 || idx == trimmed.Length - 1)
                     continue;
 
@@ -331,19 +331,19 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Erzeugt eine .HED-Datei im Run-Ordner mit vollständigen Metadaten.
-        /// Dateiname: <c>{SeasonName}{EventName}_{BikeName}{SessionName}.HED</c> (siehe <see cref="BuildHedFileName"/>).
+        /// Creates a .HED file in the run folder with complete metadata.
+        /// File name: <c>{SeasonName}{EventName}_{BikeName}{SessionName}.HED</c> (see <see cref="BuildHedFileName"/>).
         /// </summary>
-        /// <param name="runPath">Pfad zum Run-Ordner</param>
-        /// <param name="metadata">Vollständige Metadaten für die .HED-Datei</param>
+        /// <param name="runPath">Path to the run folder</param>
+        /// <param name="metadata">Complete metadata for the .HED file</param>
         public void WriteHedFile(string runPath, RunMetadata metadata)
         {
             var hedFilePath = Path.Combine(runPath, BuildHedFileName(metadata));
             AtomicFile.WriteAllText(hedFilePath, BuildHedContent(metadata));
-            Console.WriteLine($"Neues .HED-File erstellt: {hedFilePath}");
+            Console.WriteLine($"New .HED file created: {hedFilePath}");
         }
 
-        /// <summary>Erzeugt den vollständigen .HED-Inhalt (INI-Format) aus den Metadaten.</summary>
+        /// <summary>Builds the complete .HED content (INI format) from the metadata.</summary>
         private static string BuildHedContent(RunMetadata metadata) =>
 $@"[KTM_NAMING]
 disciplineName = {metadata.DisciplineName}
@@ -366,10 +366,10 @@ runNumber = {metadata.RunNumber}
 [TRACK]
 surface = {metadata.Surface}";
 
-        // --- Private Hilfsmethoden ---
+        // --- Private helper methods ---
 
         /// <summary>
-        /// Sucht die .HED-Datei eines Verzeichnisses (keine Rekursion); bei mehreren die zuletzt geänderte.
+        /// Finds the .HED file of a directory (no recursion); if there are several, the most recently modified one.
         /// </summary>
         private static string? FindFirstHedFile(string directory)
         {
@@ -383,30 +383,30 @@ surface = {metadata.Surface}";
         }
 
         /// <summary>
-        /// Kopiert eine .HED-Datei in den Run-Ordner, falls noch nicht vorhanden.
+        /// Copies a .HED file to the run folder if it is not already there.
         /// </summary>
-        /// <returns>Pfad zur Zieldatei, oder null bei Fehler</returns>
+        /// <returns>Path to the target file, or null on error</returns>
         private static string? CopyToRunFolder(string sourceHedFile, string runPath)
         {
             var fileName = Path.GetFileName(sourceHedFile);
             var destFile = Path.Combine(runPath, fileName);
 
-            // Datei bereits vorhanden → direkt verwenden
+            // File already exists → use it directly
             if (File.Exists(destFile))
             {
-                Console.WriteLine($"Datei {fileName} ist bereits im Runordner vorhanden.");
+                Console.WriteLine($"File {fileName} already exists in the run folder.");
                 return destFile;
             }
 
             try
             {
                 File.Copy(sourceHedFile, destFile);
-                Console.WriteLine($"Datei {fileName} wurde in den Runordner kopiert.");
+                Console.WriteLine($"File {fileName} was copied to the run folder.");
                 return destFile;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Kopieren der Datei: {ex.Message}");
+                Console.WriteLine($"Error copying the file: {ex.Message}");
                 return null;
             }
         }

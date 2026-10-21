@@ -26,6 +26,6 @@ public sealed class CleanupTests
     [Fact]
     public void Removed_merge_command_is_reported()
     {
-        Assert.Equal("Der Befehl 'merge' wurde entfernt.", CommandLine.Validate(["merge", @"C:\x"]));
+        Assert.Equal("The 'merge' command has been removed.", CommandLine.Validate(["merge", @"C:\x"]));
     }
 }
