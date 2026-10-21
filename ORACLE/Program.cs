@@ -1,20 +1,20 @@
 using Ktm.Racing.Oracle;
 
 /// <summary>
-/// ORACLE Entry-Point — Command-basierter Router.
+/// ORACLE entry point — command-based router.
 /// 
-/// <para><b>Verwendung:</b></para>
+/// <para><b>Usage:</b></para>
 /// <code>
-/// ORACLE.exe process  &lt;runPath&gt;   [--force]  → Metadata + Properties + Berechnungen
-/// ORACLE.exe validate &lt;runPath&gt;              → Dateistruktur + Ladbarkeit + Channels
-/// ORACLE.exe &lt;runPath&gt;            [--force]  → Legacy (= process, rückwärtskompatibel)
+/// ORACLE.exe process  &lt;runPath&gt;   [--force]  → metadata + properties + calculations
+/// ORACLE.exe validate &lt;runPath&gt;              → file structure + loadability + channels
+/// ORACLE.exe &lt;runPath&gt;            [--force]  → legacy (= process, backward compatible)
 /// </code>
 /// 
-/// <para><b>Idempotenz:</b> ORACLE erstellt <c>oracle.status.json</c> nach erfolgreicher
-/// Verarbeitung. Bei erneutem Aufruf wird der Run übersprungen (Exit-Code 0).
-/// Mit <c>--force</c> wird die Prüfung ignoriert und erneut verarbeitet.</para>
+/// <para><b>Idempotency:</b> ORACLE creates <c>oracle.status.json</c> after successful
+/// processing. On a repeated call the run is skipped (exit code 0).
+/// With <c>--force</c> the check is ignored and the run is processed again.</para>
 /// 
-/// <para><b>KRAKEN-Integration:</b> Jeder Command kann als eigener EXE-Job konfiguriert werden:</para>
+/// <para><b>KRAKEN integration:</b> each command can be configured as a separate EXE job:</para>
 /// <code>
 /// &lt;Arguments&gt;validate %RUN_PATH%&lt;/Arguments&gt;
 /// &lt;Arguments&gt;process %RUN_PATH%&lt;/Arguments&gt;
@@ -24,10 +24,10 @@ class Program
 {
     static async Task<int> Main(string[] args)
     {
-        // --- Dual-Logging initialisieren (Console + Datei) ---
+        // --- Initialize dual logging (console + file) ---
         using var logger = OracleLogger.Initialize();
-        Console.WriteLine($"ORACLE gestartet. Log-Datei: {logger.LogFilePath}");
-        Console.WriteLine($"Argumente: {string.Join(" ", args)}");
+        Console.WriteLine($"ORACLE started. Log file: {logger.LogFilePath}");
+        Console.WriteLine($"Arguments: {string.Join(" ", args)}");
 
         if (args.Length == 0)
         {
@@ -37,9 +37,9 @@ class Program
 
         if (CommandLine.Validate(args) is { } argumentError)
         {
-            Console.WriteLine($"Fehler: {argumentError}");
-            Console.WriteLine("Aufruf ohne Argumente zeigt die Verwendung.");
-            Console.WriteLine($"ORACLE beendet. Exit-Code: {(int)OracleExitCode.InvalidArguments} ({OracleExitCode.InvalidArguments})");
+            Console.WriteLine($"Error: {argumentError}");
+            Console.WriteLine("Run without arguments to show usage.");
+            Console.WriteLine($"ORACLE finished. Exit code: {(int)OracleExitCode.InvalidArguments} ({OracleExitCode.InvalidArguments})");
             return (int)OracleExitCode.InvalidArguments;
         }
 
@@ -47,14 +47,14 @@ class Program
 
         try
         {
-            // sync-motodb braucht KEIN KtmDataHandler/native (kein HASP-Dongle) → vor der Pipeline-Erzeugung behandeln.
+            // sync-motodb needs NO KtmDataHandler/native (no HASP dongle) → handle before creating the pipeline.
             if (args[0].Equals("sync-motodb", StringComparison.OrdinalIgnoreCase))
             {
                 exitCode = MotoDbInputSync.Run(OracleConfig.Load(), GetOption(args, "--kompass"), GetOption(args, "--workbook"));
             }
             else
             {
-                // Konfiguration und native API (Dongle, Runtime) innerhalb des try: Fehler landen im Log mit definiertem Exit-Code.
+                // Configuration and native API (dongle, runtime) inside the try: errors end up in the log with a defined exit code.
                 var pipeline = OraclePipeline.Create();
                 exitCode = args[0].ToLowerInvariant() switch
                 {
@@ -71,32 +71,32 @@ class Program
         }
         catch (InvalidDataException ex) when (ex.Message.StartsWith("oracle-config.json", StringComparison.Ordinal))
         {
-            Console.WriteLine($"ORACLE: {ex.Message} – bitte oracle-config.json korrigieren.");
+            Console.WriteLine($"ORACLE: {ex.Message} – please fix oracle-config.json.");
             exitCode = OracleExitCode.InvalidData;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ORACLE: Schwerwiegender Fehler: {ex.Message}");
-            // Inner-Exception-Kette ausgeben: die eigentliche Ursache (z.B. fehlende Datei) steckt oft ganz innen.
+            Console.WriteLine($"ORACLE: Fatal error: {ex.Message}");
+            // Print the inner exception chain: the actual cause (e.g. missing file) is often the innermost one.
             for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
                 Console.WriteLine($"  --> {inner.GetType().Name}: {inner.Message}");
             Console.WriteLine(ex.StackTrace);
             exitCode = OracleExitCode.GeneralError;
         }
 
-        Console.WriteLine($"ORACLE beendet. Exit-Code: {(int)exitCode} ({exitCode})");
+        Console.WriteLine($"ORACLE finished. Exit code: {(int)exitCode} ({exitCode})");
         return (int)exitCode;
     }
 
     /// <summary>
-    /// Command: process — Postprocessing-Pipeline für einen Run.
+    /// Command: process — postprocessing pipeline for a run.
     /// </summary>
     private static async Task<OracleExitCode> HandleProcessAsync(string[] args, OraclePipeline pipeline)
     {
         if (args.Length < 2)
         {
-            Console.WriteLine("Fehler: Pfad fehlt.");
-            Console.WriteLine("Verwendung: ORACLE.exe process <runPath> [--force] [--gps-split]");
+            Console.WriteLine("Error: path missing.");
+            Console.WriteLine("Usage: ORACLE.exe process <runPath> [--force] [--gps-split]");
             return OracleExitCode.InvalidArguments;
         }
 
@@ -106,14 +106,14 @@ class Program
     }
 
     /// <summary>
-    /// Command: validate — Datenintegritätsprüfung.
+    /// Command: validate — data integrity check.
     /// </summary>
     private static OracleExitCode HandleValidate(string[] args, OraclePipeline pipeline)
     {
         if (args.Length < 2)
         {
-            Console.WriteLine("Fehler: Pfad fehlt.");
-            Console.WriteLine("Verwendung: ORACLE.exe validate <runPath>");
+            Console.WriteLine("Error: path missing.");
+            Console.WriteLine("Usage: ORACLE.exe validate <runPath>");
             return OracleExitCode.InvalidArguments;
         }
 
@@ -121,24 +121,24 @@ class Program
     }
 
     /// <summary>
-    /// Command: detect — Renn-Erkennung (read-only) über alle Runs eines Ordners.
+    /// Command: detect — race detection (read-only) across all runs of a folder.
     /// </summary>
     private static OracleExitCode HandleDetect(string[] args, OraclePipeline pipeline)
     {
         if (args.Length < 2)
         {
-            Console.WriteLine("Fehler: Pfad fehlt.");
-            Console.WriteLine("Verwendung: ORACLE.exe detect <riderPath|runPath>");
+            Console.WriteLine("Error: path missing.");
+            Console.WriteLine("Usage: ORACLE.exe detect <riderPath|runPath>");
             return OracleExitCode.InvalidArguments;
         }
 
         return pipeline.DetectRaces(args[1]);
     }
 
-    /// <summary><c>true</c>, wenn der Schalter <paramref name="flag"/> übergeben wurde.</summary>
+    /// <summary><c>true</c> if the flag <paramref name="flag"/> was passed.</summary>
     private static bool HasFlag(string[] args, string flag) => args.Any(a => a.Equals(flag, StringComparison.OrdinalIgnoreCase));
 
-    /// <summary>Liest den Wert eines <c>--name value</c>-Arguments; <c>null</c> wenn nicht vorhanden.</summary>
+    /// <summary>Reads the value of a <c>--name value</c> argument; <c>null</c> if not present.</summary>
     private static string? GetOption(string[] args, string name)
     {
         for (int i = 0; i < args.Length - 1; i++)
@@ -149,15 +149,15 @@ class Program
 
     private static OracleExitCode MissingPath(string usage)
     {
-        Console.WriteLine("Fehler: Pfad fehlt.");
-        Console.WriteLine($"Verwendung: ORACLE.exe {usage}");
+        Console.WriteLine("Error: path missing.");
+        Console.WriteLine($"Usage: ORACLE.exe {usage}");
         return OracleExitCode.InvalidArguments;
     }
 
     /// <summary>
-    /// Legacy-Modus: Wenn kein bekannter Command übergeben wird, wird args[0] als
-    /// runPath interpretiert und process ausgeführt.
-    /// Gewährleistet Rückwärtskompatibilität mit bestehender KRAKEN-Konfiguration:
+    /// Legacy mode: if no known command is passed, args[0] is interpreted as
+    /// runPath and process is executed.
+    /// Ensures backward compatibility with the existing KRAKEN configuration:
     /// <c>ORACLE.exe %RUN_PATH%</c>
     /// </summary>
     private static async Task<OracleExitCode> HandleLegacyAsync(string[] args, OraclePipeline pipeline)
@@ -165,9 +165,9 @@ class Program
         var runPath = args[0];
         var force = args.Any(a => a.Equals("--force", StringComparison.OrdinalIgnoreCase));
         var gpsSplit = args.Any(a => a.Equals("--gps-split", StringComparison.OrdinalIgnoreCase));
-        Console.WriteLine($"[legacy] Kein Command erkannt — verwende Legacy-Modus für: {runPath}");
+        Console.WriteLine($"[legacy] No command recognized — using legacy mode for: {runPath}");
 
-        // --- Process (wie "process": inkl. Geräteordner-Normalisierung und Run-Reparatur) ---
+        // --- Process (like "process": incl. device folder normalization and run repair) ---
         var processResult = await pipeline.ProcessPathAsync(runPath, force, gpsSplit);
 
 
@@ -178,30 +178,30 @@ class Program
     {
         Console.WriteLine("ORACLE — KTM Offroad Racing Postprocessing");
         Console.WriteLine();
-        Console.WriteLine("Verwendung:");
-        Console.WriteLine("  ORACLE.exe process  <run|rider> [--force] [--gps-split]  Postprocessing (Rider-Ordner: renn-bewusst, durchgehend)");
-        Console.WriteLine("  ORACLE.exe validate <runPath>                            Datenintegritätsprüfung");
-        Console.WriteLine("  ORACLE.exe detect   <riderPath>                          Renn-Erkennung (read-only)");
-        Console.WriteLine("  ORACLE.exe detect-start <riderPath|runPath>              Gültige Starts erkennen (read-only)");
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  ORACLE.exe process  <run|rider> [--force] [--gps-split]  Postprocessing (rider folder: race-aware, continuous)");
+        Console.WriteLine("  ORACLE.exe validate <runPath>                            Data integrity check");
+        Console.WriteLine("  ORACLE.exe detect   <riderPath>                          Race detection (read-only)");
+        Console.WriteLine("  ORACLE.exe detect-start <riderPath|runPath>              Detect valid starts (read-only)");
         Console.WriteLine("  ORACLE.exe split-laps <event|session|device|run> [--dry-run] [--undo]");
-        Console.WriteLine("                                                           Runs per GPS-Ziellinie in Laps teilen (Probelauf/Rückgängig)");
-        Console.WriteLine("  ORACLE.exe sync-motodb [--kompass <KOMPASS.json>] [--workbook <loadChannels.xlsx>]  MotoDB-Inputs (CIRCUITS+HED) aus KOMPASS");
-        Console.WriteLine("  ORACLE.exe <runPath>            [--force] [--gps-split]  Legacy-Modus (process)");
+        Console.WriteLine("                                                           Split runs into laps at the GPS finish line (dry run/undo)");
+        Console.WriteLine("  ORACLE.exe sync-motodb [--kompass <KOMPASS.json>] [--workbook <loadChannels.xlsx>]  MotoDB inputs (CIRCUITS+HED) from KOMPASS");
+        Console.WriteLine("  ORACLE.exe <runPath>            [--force] [--gps-split]  Legacy mode (process)");
         Console.WriteLine();
-        Console.WriteLine("Optionen:");
-        Console.WriteLine("  --force      Idempotenz-Prüfung ignorieren, erneut verarbeiten");
-        Console.WriteLine("  --gps-split  Runs vor der Verarbeitung per GPS-Ziellinie in Laps teilen (wie split-laps)");
-        Console.WriteLine("  --dry-run    split-laps: nur anzeigen, was geteilt würde");
-        Console.WriteLine("  --undo       split-laps: Original-Laps der letzten Teilung wiederherstellen");
+        Console.WriteLine("Options:");
+        Console.WriteLine("  --force      Ignore idempotency check, process again");
+        Console.WriteLine("  --gps-split  Split runs into laps at the GPS finish line before processing (like split-laps)");
+        Console.WriteLine("  --dry-run    split-laps: only show what would be split");
+        Console.WriteLine("  --undo       split-laps: restore the original laps of the last split");
         Console.WriteLine();
-        Console.WriteLine("Exit-Codes:");
-        Console.WriteLine("  0  Erfolg");
-        Console.WriteLine("  1  Allgemeiner Fehler");
-        Console.WriteLine("  2  Ungültige Argumente");
-        Console.WriteLine("  3  Daten nicht gefunden (Retry)");
-        Console.WriteLine("  4  Teilweise erfolgreich (z.B. beschädigte Run-Ordner übersprungen)");
-        Console.WriteLine("  5  Ressource gesperrt, z.B. loadChannels.xlsx in Excel offen (Retry)");
-        Console.WriteLine("  6  Track-Länge fehlt – MotoDB nicht starten (später erneut / Länge in KODE)");
-        Console.WriteLine("  7  Ungültige Daten (beschädigter Run, ungültige KOMPASS.json) – kein Retry");
+        Console.WriteLine("Exit codes:");
+        Console.WriteLine("  0  Success");
+        Console.WriteLine("  1  General error");
+        Console.WriteLine("  2  Invalid arguments");
+        Console.WriteLine("  3  Data not found (retry)");
+        Console.WriteLine("  4  Partially successful (e.g. corrupt run folders skipped)");
+        Console.WriteLine("  5  Resource locked, e.g. loadChannels.xlsx open in Excel (retry)");
+        Console.WriteLine("  6  Track length missing – do not start MotoDB (retry later / enter length in KODE)");
+        Console.WriteLine("  7  Invalid data (corrupt run, invalid KOMPASS.json) – no retry");
     }
 }

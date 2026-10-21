@@ -1,85 +1,85 @@
 namespace Ktm.Racing.Oracle
 {
-    /// <summary>Verdikt der Renn-Erkennung für einen einzelnen Run.</summary>
+    /// <summary>Race detection verdict for a single run.</summary>
     public enum RaceRunVerdict
     {
-        /// <summary>Run wurde als Rennen (Renntempo) erkannt.</summary>
+        /// <summary>Run was detected as a race (race pace).</summary>
         Race,
 
-        /// <summary>Run ist kein Rennen (Stillstand, Rollen, Auslauf, Sichtungsrunde).</summary>
+        /// <summary>Run is not a race (standstill, rolling, cool-down, sighting lap).</summary>
         NoRace,
 
-        /// <summary>Run konnte nicht klassifiziert werden (Ladefehler, kein Zugriff).</summary>
+        /// <summary>Run could not be classified (load error, no access).</summary>
         Error,
     }
 
     /// <summary>
-    /// Berechnete Kennzahlen und Klassifikations-Ergebnis eines einzelnen Runs.
-    /// Read-only Momentaufnahme — verändert keine Daten.
+    /// Computed metrics and classification result of a single run.
+    /// Read-only snapshot — does not modify any data.
     /// </summary>
     public sealed class RunRaceFeatures
     {
-        /// <summary>Vollständiger Pfad zum Run-Ordner.</summary>
+        /// <summary>Full path to the run folder.</summary>
         public string RunPath { get; init; } = "";
 
-        /// <summary>Run-Ordnername (z.B. "Run_1083").</summary>
+        /// <summary>Run folder name (e.g. "Run_1083").</summary>
         public string RunFolderName { get; init; } = "";
 
-        /// <summary>Laufzeit des Runs [s] (<c>GetLastSampleTime</c>).</summary>
+        /// <summary>Duration of the run [s] (<c>GetLastSampleTime</c>).</summary>
         public double DurationSeconds { get; init; }
 
-        /// <summary>Zurückgelegte GPS-Distanz [m] (aus Lat_dez/Lon_dez, aufbereitet durch GpsCleaner).</summary>
+        /// <summary>GPS distance covered [m] (from Lat_dez/Lon_dez, cleaned by GpsCleaner).</summary>
         public double GpsDistanceMeters { get; init; }
 
-        /// <summary>Durchschnittsgeschwindigkeit [kph] = GPS-Distanz / Laufzeit.</summary>
+        /// <summary>Average speed [kph] = GPS distance / duration.</summary>
         public double MeanGpsSpeedKph { get; init; }
 
-        /// <summary>Durchschnittliche Gasstellung [%] (<c>rThrottle1</c>).</summary>
+        /// <summary>Average throttle position [%] (<c>rThrottle1</c>).</summary>
         public double MeanThrottlePercent { get; init; }
 
-        /// <summary>Durchschnittliche Motordrehzahl [rpm] (<c>nEngine720</c>) — nur Guard.</summary>
+        /// <summary>Average engine RPM [rpm] (<c>nEngine720</c>) — guard only.</summary>
         public double MeanEngineRpm { get; init; }
 
-        /// <summary>Mittelwert <c>ValidSat</c> — GPS-Verfügbarkeits-Guard.</summary>
+        /// <summary>Mean of <c>ValidSat</c> — GPS availability guard.</summary>
         public double MeanValidSat { get; init; }
 
-        /// <summary>Anzahl gültiger GPS-Punkte (Lat/Lon ≠ 0).</summary>
+        /// <summary>Number of valid GPS points (Lat/Lon ≠ 0).</summary>
         public int ValidGpsSamples { get; init; }
 
-        /// <summary>True wenn GPS als vertrauenswürdig gilt (sonst greift der Fallback).</summary>
+        /// <summary>True if GPS is considered trustworthy (otherwise the fallback applies).</summary>
         public bool GpsUsable { get; init; }
 
-        /// <summary>Klassifikations-Verdikt.</summary>
+        /// <summary>Classification verdict.</summary>
         public RaceRunVerdict Verdict { get; init; }
 
-        /// <summary>Menschlich lesbare Begründung des Verdikts.</summary>
+        /// <summary>Human-readable reason for the verdict.</summary>
         public string Reason { get; init; } = "";
 
-        /// <summary>True wenn das Verdikt über den GPS-Fallback zustande kam (geringere Konfidenz).</summary>
+        /// <summary>True if the verdict was reached via the GPS fallback (lower confidence).</summary>
         public bool LowConfidence { get; init; }
 
         /// <summary>
-        /// Bereits gelesene Run-Daten (Kanalliste, Lap-Grenzen, GPS) für die anschließende Berechnung – vermeidet ein zweites
-        /// Laden des Runs. <c>null</c> bei Fehlern.
+        /// Already loaded run data (channel list, lap boundaries, GPS) for the subsequent calculation – avoids loading
+        /// the run a second time. <c>null</c> on errors.
         /// </summary>
         public RunGpsData? Data { get; init; }
     }
 
     /// <summary>
-    /// Ergebnis der Renn-Erkennung über einen Rider-/Session-Ordner (oder einen einzelnen Run).
+    /// Result of race detection over a rider/session folder (or a single run).
     /// </summary>
     public sealed class RaceDetectionResult
     {
-        /// <summary>Analysierter Eingabepfad.</summary>
+        /// <summary>Analyzed input path.</summary>
         public string RiderPath { get; init; } = "";
 
-        /// <summary>Kennzahlen/Verdikt pro entdecktem Run (in Run-Reihenfolge).</summary>
+        /// <summary>Metrics/verdict per discovered run (in run order).</summary>
         public IReadOnlyList<RunRaceFeatures> Runs { get; init; } = [];
 
-        /// <summary>Pfade der als Rennen erkannten Runs.</summary>
+        /// <summary>Paths of the runs detected as races.</summary>
         public IReadOnlyList<string> RaceRunPaths { get; init; } = [];
 
-        /// <summary>Anzahl als Rennen erkannter Runs.</summary>
+        /// <summary>Number of runs detected as races.</summary>
         public int RaceCount => RaceRunPaths.Count;
     }
 }

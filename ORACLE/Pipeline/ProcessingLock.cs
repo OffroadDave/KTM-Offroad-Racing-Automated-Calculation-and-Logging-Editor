@@ -1,13 +1,13 @@
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Exklusive Sperre eines Geräte-/Run-Ordners während der Verarbeitung (<c>oracle.lock</c>, vom Betriebssystem gehalten).
-    /// Verhindert, dass zwei ORACLE-Prozesse (z.B. parallele KRAKEN-Jobs) denselben Ordner gleichzeitig bearbeiten. Stürzt
-    /// ORACLE ab, gibt Windows die Sperre frei; die Datei wird beim Schließen gelöscht.
+    /// Exclusive lock of a device/run folder during processing (<c>oracle.lock</c>, held by the operating system).
+    /// Prevents two ORACLE processes (e.g. parallel KRAKEN jobs) from working on the same folder at the same time. If
+    /// ORACLE crashes, Windows releases the lock; the file is deleted on close.
     /// </summary>
     public sealed class ProcessingLock : IDisposable
     {
-        /// <summary>Dateiname der Sperre im Ordner.</summary>
+        /// <summary>File name of the lock in the folder.</summary>
         public const string FileName = "oracle.lock";
 
         private readonly FileStream? _stream;
@@ -15,10 +15,10 @@ namespace Ktm.Racing.Oracle
         private ProcessingLock(FileStream? stream) => _stream = stream;
 
         /// <summary>
-        /// Versucht die Sperre zu erhalten; <c>null</c>, wenn ein anderer Prozess den Ordner verarbeitet.
-        /// Kurze Verzögerungen (Datei wird gerade von einem beendeten Prozess gelöscht) werden abgewartet.
+        /// Tries to acquire the lock; <c>null</c> if another process is processing the folder.
+        /// Short delays (file is just being deleted by a terminated process) are waited out.
         /// </summary>
-        /// <exception cref="DirectoryNotFoundException">Der Ordner existiert nicht.</exception>
+        /// <exception cref="DirectoryNotFoundException">The folder does not exist.</exception>
         public static ProcessingLock? TryAcquire(string folder)
         {
             if (!Directory.Exists(folder))
@@ -44,8 +44,8 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    // Ordner nicht beschreibbar: ohne Sperre weiter (Schreibfehler zeigen sich später konkret).
-                    Console.WriteLine($"Warnung: {folder} ist nicht beschreibbar – Verarbeitung ohne Sperre.");
+                    // Folder not writable: continue without lock (write errors will surface concretely later).
+                    Console.WriteLine($"Warning: {folder} is not writable – processing without lock.");
                     return new ProcessingLock(null);
                 }
             }

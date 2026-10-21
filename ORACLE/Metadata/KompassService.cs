@@ -5,8 +5,8 @@ using Ktm.Racing.Domain.Geo;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Service für den Zugriff auf die KOMPASS-Datenbank (JSON) über die geteilte
-    /// Ktm.Racing.Domain-Bibliothek. Löst Track- und Rider-Metadaten für die Telemetrie auf.
+    /// Service for accessing the KOMPASS database (JSON) via the shared
+    /// Ktm.Racing.Domain library. Resolves track and rider metadata for the telemetry.
     /// </summary>
     public class KompassService
     {
@@ -14,25 +14,25 @@ namespace Ktm.Racing.Oracle
         private KompassDatabase _database = new();
         private IKompassLookup _lookup = new KompassLookup(new KompassDatabase());
 
-        /// <summary><c>true</c>, wenn die letzte <see cref="LoadAsync"/> an einer vorhandenen, aber ungültigen Datei scheiterte.</summary>
+        /// <summary><c>true</c> if the last <see cref="LoadAsync"/> failed on an existing but invalid file.</summary>
         public bool LastLoadInvalid { get; private set; }
 
         /// <summary>
-        /// Lädt die KOMPASS-Datenbank aus der angegebenen JSON-Datei.
+        /// Loads the KOMPASS database from the specified JSON file.
         /// </summary>
-        /// <param name="databaseFile">Vollständiger Pfad zur KOMPASS.json</param>
-        /// <returns>True bei Erfolg, false bei Fehler oder leerer Datenbank</returns>
+        /// <param name="databaseFile">Full path to KOMPASS.json</param>
+        /// <returns>True on success, false on error or empty database</returns>
         public async Task<bool> LoadAsync(string databaseFile)
         {
             LastLoadInvalid = false;
             if (!File.Exists(databaseFile))
             {
-                Console.WriteLine($"Datenbankdatei nicht gefunden: {databaseFile}");
+                Console.WriteLine($"Database file not found: {databaseFile}");
                 return false;
             }
 
-            // KODE kann die Datei gerade schreiben: ein halb geschriebenes JSON nach kurzer Pause erneut lesen,
-            // bevor es als ungültig gilt (Exit 7, kein Retry durch KRAKEN).
+            // KODE may currently be writing the file: re-read a half-written JSON after a short pause
+            // before treating it as invalid (exit 7, no retry by KRAKEN).
             Exception? lastError = null;
             for (var attempt = 0; attempt < 3; attempt++)
             {
@@ -53,40 +53,40 @@ namespace Ktm.Racing.Oracle
 
             if (lastError is not null)
             {
-                Console.WriteLine($"Fehler beim Laden der Datenbank: {lastError.Message}");
+                Console.WriteLine($"Error loading the database: {lastError.Message}");
                 LastLoadInvalid = lastError is not (IOException or UnauthorizedAccessException);
                 return false;
             }
 
             if (_database.DisciplineKeys.Count == 0)
             {
-                Console.WriteLine("Keine Disziplinen in der Datenbank gefunden oder alle Disziplinen fehlerhaft.");
+                Console.WriteLine("No disciplines found in the database or all disciplines are invalid.");
                 LastLoadInvalid = true;
                 return false;
             }
 
-            Console.WriteLine($"KOMPASS geladen: {_database.DisciplineKeys.Count} Disziplin(en).");
+            Console.WriteLine($"KOMPASS loaded: {_database.DisciplineKeys.Count} discipline(s).");
             return true;
         }
 
         /// <summary>
-        /// Extrahiert vollständige Metadaten aus Pfad, IMarelliDataBrowse API und KOMPASS-Datenbank.
+        /// Extracts complete metadata from the path, the IMarelliDataBrowse API and the KOMPASS database.
         /// 
-        /// Verwendet IMarelliDataBrowse für: EventName, SessionName, DeviceName (BikeName), RunName.
-        /// Verwendet Pfad-Parsing für KTM-spezifische Teile: Team, Season, Discipline.
-        /// Verwendet KOMPASS für: Track-Länge, Land, Rider-Name.
+        /// Uses IMarelliDataBrowse for: EventName, SessionName, DeviceName (BikeName), RunName.
+        /// Uses path parsing for KTM-specific parts: team, season, discipline.
+        /// Uses KOMPASS for: track length, country, rider name.
         /// </summary>
-        /// <param name="runPath">Pfad zum Run-Ordner</param>
-        /// <param name="ztxBrowse">IMarelliDataBrowse-Instanz für standardisiertes Pfad-Parsing</param>
-        /// <param name="teamMappings">Mapping von Team-Abkürzungen zu vollständigen Namen</param>
-        /// <returns>Vollständig befülltes RunMetadata-Objekt</returns>
+        /// <param name="runPath">Path to the run folder</param>
+        /// <param name="ztxBrowse">IMarelliDataBrowse instance for standardized path parsing</param>
+        /// <param name="teamMappings">Mapping of team abbreviations to full names</param>
+        /// <returns>Fully populated RunMetadata object</returns>
         public RunMetadata BuildMetadata(string runPath, IMarelliDataBrowse ztxBrowse,
             Dictionary<string, string> teamMappings)
         {
             var metadata = new RunMetadata();
 
-            // --- Pfad-Metadaten über IMarelliDataBrowse API extrahieren ---
-            // Die API parst die WinTAX4-Ordnerstruktur: Event/Session/Device/Run_xxx
+            // --- Extract path metadata via the IMarelliDataBrowse API ---
+            // The API parses the WinTAX4 folder structure: Event/Session/Device/Run_xxx
             metadata.EventName = ztxBrowse.GetEventName(runPath) ?? "";
             metadata.SessionName = ztxBrowse.GetSessionName(runPath) ?? "";
             metadata.BikeName = NormalizeBikeName(ztxBrowse.GetDeviceName(runPath) ?? "");
@@ -97,9 +97,9 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Ergänzt Metadaten, deren Event-/Session-/Bike-Name bereits gesetzt sind, aus dem Pfad (Team, Saison,
-        /// Disziplin, Motorklasse – per Muster, nicht per Position) und aus KOMPASS (Track, Rider).
-        /// Ohne native Abhängigkeit (testbar).
+        /// Completes metadata whose event/session/bike name is already set, from the path (team, season,
+        /// discipline, engine class – by pattern, not by position) and from KOMPASS (track, rider).
+        /// Without native dependency (testable).
         /// </summary>
         public void CompleteFromPathAndKompass(RunMetadata metadata, string runPath, IReadOnlyDictionary<string, string> teamMappings)
         {
@@ -108,36 +108,36 @@ namespace Ktm.Racing.Oracle
             metadata.SeasonName = path.SeasonName;
             metadata.EngineClass = path.EngineClass;
 
-            // --- Bike-/Rider-Abkürzung aus BikeName ableiten ---
-            // Format: Buchstaben + Ziffern, "JP01" → RiderAbbreviation="JP", BikeNumber="01"; "AA101" → "AA" / "101".
+            // --- Derive bike/rider abbreviation from BikeName ---
+            // Format: letters + digits, "JP01" → RiderAbbreviation="JP", BikeNumber="01"; "AA101" → "AA" / "101".
             (metadata.RiderAbbreviation, metadata.BikeNumber) = SplitBikeName(metadata.BikeName);
 
-            // --- Event-Name parsen ---
+            // --- Parse event name ---
             // Format: "RT01_AT-RedBull" → Type=Racetrack, CW=01, CC=AT, Track=RedBull
             ParseEventName(metadata);
 
-            // Disziplin: aus dem Pfad, sonst die Disziplin, die den Track enthält (der Pfad enthält meist keine).
+            // Discipline: from the path, otherwise the discipline that contains the track (the path usually contains none).
             metadata.DisciplineName = !string.IsNullOrEmpty(path.DisciplineName)
                 ? path.DisciplineName
                 : FindDisciplineOfTrack(metadata.CountryCode, metadata.TrackName);
 
             if (string.IsNullOrEmpty(metadata.TeamName))
-                Console.WriteLine("Warnung: Kein Team-Ordner aus TeamMappings im Pfad gefunden – Rider wird ohne Team gesucht.");
+                Console.WriteLine("Warning: No team folder from TeamMappings found in the path – rider is searched without team.");
             if (string.IsNullOrEmpty(metadata.SeasonName))
-                Console.WriteLine("Warnung: Keine Saison (vierstelliges Jahr) im Pfad gefunden.");
+                Console.WriteLine("Warning: No season (four-digit year) found in the path.");
 
-            // --- Track und Rider aus KOMPASS-Datenbank nachschlagen ---
+            // --- Look up track and rider in the KOMPASS database ---
             LookupTrackAndRider(metadata);
 
-            // Debug-Ausgabe der extrahierten Werte
+            // Debug output of the extracted values
             LogMetadata(metadata);
         }
 
         /// <summary>
-        /// Sucht die Ziellinien-Koordinate (Track-Punkt) eines Tracks über alle Disziplinen hinweg. Der Name wird
-        /// schreibweisen-tolerant verglichen (<see cref="TrackNames.Same"/>: Groß/Klein, Akzente, Satzzeichen); bei
-        /// mehreren Treffern gewinnt der Track mit passendem <paramref name="countryCode"/>. Gibt <c>null</c> zurück, wenn
-        /// der Track fehlt oder keine gültigen Lat/Lon-Werte hat. Erfordert vorheriges <see cref="LoadAsync"/>.
+        /// Finds the finish line coordinate (track point) of a track across all disciplines. The name is
+        /// compared spelling-tolerantly (<see cref="TrackNames.Same"/>: case, accents, punctuation); with
+        /// multiple matches, the track with matching <paramref name="countryCode"/> wins. Returns <c>null</c> if
+        /// the track is missing or has no valid lat/lon values. Requires a prior <see cref="LoadAsync"/>.
         /// </summary>
         public GeoCoordinate? FindFinishLineByTrack(string trackName, string? countryCode = null)
         {
@@ -156,9 +156,9 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Sucht den Untergrund (Surface) eines Tracks über alle Disziplinen hinweg anhand des Tracknamens.
-        /// Gibt <c>null</c> zurück, wenn der Track fehlt oder keinen Untergrund gesetzt hat.
-        /// Erfordert vorheriges <see cref="LoadAsync"/>.
+        /// Finds the surface of a track across all disciplines by track name.
+        /// Returns <c>null</c> if the track is missing or has no surface set.
+        /// Requires a prior <see cref="LoadAsync"/>.
         /// </summary>
         public string? FindTrackSurface(string trackName)
         {
@@ -174,12 +174,12 @@ namespace Ktm.Racing.Oracle
             return null;
         }
 
-        // --- Private Hilfsmethoden ---
+        // --- Private helper methods ---
 
         /// <summary>
-        /// Teilt einen Bike-Namen in Fahrerkürzel und Bike-Nummer: führende Buchstaben + folgende Ziffern
-        /// ("AA01" → "AA"/"01", "AA101" → "AA"/"101", "AA1" → "AA"/"1"). Andere Formate fallen auf die frühere Regel
-        /// (letzte zwei Zeichen = Nummer) zurück.
+        /// Splits a bike name into rider abbreviation and bike number: leading letters + following digits
+        /// ("AA01" → "AA"/"01", "AA101" → "AA"/"101", "AA1" → "AA"/"1"). Other formats fall back to the previous rule
+        /// (last two characters = number).
         /// </summary>
         public static (string Abbreviation, string Number) SplitBikeName(string bikeName)
         {
@@ -192,8 +192,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Liest Track und Ländercode ohne Seiteneffekte aus dem Event-Ordner im Pfad (z.B. <c>…\RT37_CHN-Shanghai\R1\AA01\Run_885</c>
-        /// → Shanghai, CHN). <c>null</c>, wenn kein Ordner im Format <c>XXnn_CC-Track</c> im Pfad liegt.
+        /// Reads track and country code without side effects from the event folder in the path (e.g. <c>…\RT37_CHN-Shanghai\R1\AA01\Run_885</c>
+        /// → Shanghai, CHN). <c>null</c> if there is no folder in the format <c>XXnn_CC-Track</c> in the path.
         /// </summary>
         public static RunMetadata? ParseEventFromPath(string path)
         {
@@ -211,14 +211,14 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Parst den EventName und extrahiert Typ, Kalenderwoche, Ländercode und Track.
+        /// Parses the EventName and extracts type, calendar week, country code and track.
         /// Format: "RT01_AT-RedBull" → Type=Racetrack, CW=01, CC=AT, Track=RedBull
         /// </summary>
         private static void ParseEventName(RunMetadata metadata)
         {
             var eventName = metadata.EventName;
 
-            // Typ-Code (erste 2 Zeichen): "RT" = Racetrack, "TT" = Testtrack
+            // Type code (first 2 characters): "RT" = Racetrack, "TT" = Testtrack
             string typeCode = eventName.Length >= 2 ? eventName[..2] : "";
             metadata.TypeName = typeCode switch
             {
@@ -227,10 +227,10 @@ namespace Ktm.Racing.Oracle
                 _ => "Unknown Type"
             };
 
-            // Kalenderwoche (Zeichen 3-4)
+            // Calendar week (characters 3-4)
             metadata.CalendarWeek = eventName.Length >= 4 ? eventName.Substring(2, 2) : "";
 
-            // Ländercode und Track-Name aus "XX_CC-Track" Format extrahieren
+            // Extract country code and track name from the "XX_CC-Track" format
             int underscoreIdx = eventName.IndexOf('_');
             int dashIdx = eventName.IndexOf('-');
             metadata.CountryCode = (underscoreIdx != -1 && dashIdx > underscoreIdx)
@@ -242,8 +242,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Sucht Track-Informationen (Länge, Land, Untergrund) und den Rider in der KOMPASS-Datenbank.
-        /// Rider: exakt (Disziplin, Kürzel, Saison, Team); sonst eindeutig über Kürzel + Saison (Team dann aus KOMPASS).
+        /// Looks up track information (length, country, surface) and the rider in the KOMPASS database.
+        /// Rider: exact (discipline, abbreviation, season, team); otherwise unambiguously via abbreviation + season (team then from KOMPASS).
         /// </summary>
         private void LookupTrackAndRider(RunMetadata metadata)
         {
@@ -252,7 +252,7 @@ namespace Ktm.Racing.Oracle
             metadata.CountryName = track?.Country ?? "";
             metadata.Surface = track?.Surface ?? "";
             if (track is null)
-                Console.WriteLine($"Warnung: Track \"{metadata.TrackName}\" ({metadata.CountryCode}) nicht in KOMPASS ({metadata.DisciplineName}) gefunden.");
+                Console.WriteLine($"Warning: Track \"{metadata.TrackName}\" ({metadata.CountryCode}) not found in KOMPASS ({metadata.DisciplineName}).");
 
             var rider = _lookup.FindRider(metadata.DisciplineName, metadata.RiderAbbreviation, metadata.SeasonName, metadata.TeamName);
             if (rider is null && !string.IsNullOrEmpty(metadata.DisciplineName))
@@ -265,18 +265,18 @@ namespace Ktm.Racing.Oracle
                 {
                     rider = candidates[0];
                     if (!string.Equals(metadata.TeamName, rider.Team, StringComparison.OrdinalIgnoreCase))
-                        Console.WriteLine($"Warnung: Team aus dem Pfad (\"{metadata.TeamName}\") passt nicht zu KOMPASS – verwende \"{rider.Team}\" für {rider.Name}.");
+                        Console.WriteLine($"Warning: Team from the path (\"{metadata.TeamName}\") does not match KOMPASS – using \"{rider.Team}\" for {rider.Name}.");
                     metadata.TeamName = rider.Team;
                 }
             }
 
             metadata.RiderName = rider?.Name ?? "";
             if (rider is null)
-                Console.WriteLine($"Warnung: Rider \"{metadata.RiderAbbreviation}\" (Saison {metadata.SeasonName}, Team \"{metadata.TeamName}\") nicht in KOMPASS gefunden.");
+                Console.WriteLine($"Warning: Rider \"{metadata.RiderAbbreviation}\" (season {metadata.SeasonName}, team \"{metadata.TeamName}\") not found in KOMPASS.");
         }
 
         /// <summary>
-        /// Die Disziplin, die den Track enthält (Ländercode + Name); sonst die Standard-Disziplin MX bzw. die einzige vorhandene.
+        /// The discipline that contains the track (country code + name); otherwise the default discipline MX or the only existing one.
         /// </summary>
         private string FindDisciplineOfTrack(string countryCode, string trackName)
         {
@@ -294,8 +294,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Normalisiert den Device-/Bike-Namen (z.B. "AA 01" → "AA01") und warnt bei nicht-kanonischer Form.
-        /// Verhindert eine fehlerhafte RiderAbbreviation und Leerzeichen in den Name-/Alias-Properties.
+        /// Normalizes the device/bike name (e.g. "AA 01" → "AA01") and warns about a non-canonical form.
+        /// Prevents an incorrect RiderAbbreviation and spaces in the Name/Alias properties.
         /// </summary>
         private static string NormalizeBikeName(string rawDeviceName)
         {
@@ -303,7 +303,7 @@ namespace Ktm.Racing.Oracle
                 return rawDeviceName;
 
             var normalized = BikeAlias.Normalize(rawDeviceName);
-            Console.WriteLine($"Warnung: Device-/Bike-Name \"{rawDeviceName}\" enthält Leerzeichen — normalisiere zu \"{normalized}\".");
+            Console.WriteLine($"Warning: Device/bike name \"{rawDeviceName}\" contains spaces — normalizing to \"{normalized}\".");
             return normalized;
         }
 

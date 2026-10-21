@@ -153,26 +153,23 @@ C:\MXTrackData\Testdata\
 2. Breakpoints setzen (siehe [Breakpoint-Strategie](#5-breakpoint-strategie))
 3. F5 drücken
 
-**Erwarteter Ablauf:**
+**Erwarteter Ablauf** (gekürzt, Meldungen auf Englisch):
 ```
-ORACLE gestartet. Log-Datei: ...
-Argumente: process C:\...\Run_205
+ORACLE started. Log file: ...
+Arguments: process C:\...\Run_205
 [process] Run Path: C:\...\Run_205
-  → Metadaten (HED oder KOMPASS)
-  → X gültige(r) Run(s) gefunden
-  → Properties gesetzt
-  → [calc] Starte Berechnungspipeline für X Run(s)...
-  → [calc] ── Run 1/X: Run_205
-  → Berechnung von sVehicle erfolgreich abgeschlossen.
-  → 1 berechnete(r) Channel(s) gespeichert.
-  → [calc] Abgeschlossen: X/X Run(s) erfolgreich.
-[process] Abgeschlossen.
-ORACLE beendet. Exit-Code: 0 (Success)
+  … Metadaten (.HED oder KOMPASS), .HED-Normalisierung, Properties
+sVehicle calculation completed (offset 0 m, +12345 m).
+1 calculated channel(s) saved.
+  … [trackLength] …
+[process] Completed.
+ORACLE finished. Exit code: 0 (Success)
 ```
 
-**Idempotenz-Sperre:** Wenn `oracle.status.json` im Run-Ordner existiert und `ExitCode == 0`:
+**Idempotenz-Sperre:** Wenn `oracle.status.json` den Run bereits als erfolgreich verarbeitet führt:
 ```
-[process] Run bereits erfolgreich verarbeitet (oracle.status.json). Überspringe.
+[process] Run already processed successfully (oracle.status.json). Skipping.
+[process] Use --force to process again.
 ```
 → Lösung: `--force` Flag hinzufügen oder `oracle.status.json` manuell löschen.
 
@@ -186,11 +183,11 @@ ORACLE beendet. Exit-Code: 0 (Success)
 **Erwarteter Ablauf:**
 ```
 [validate] Run Path: C:\...\Run_205
-  X Lap-Ordner gefunden.
-  X gültige cableData.ztx Datei(en), 0 leer.
-  Y Channel(s) verfügbar.
-[validate] Alle Prüfungen bestanden.
-ORACLE beendet. Exit-Code: 0 (Success)
+  X lap folder(s) found.
+  X valid cableData.ztx file(s), 0 empty.
+  Y channel(s) available.
+[validate] All checks passed.
+ORACLE finished. Exit code: 0 (Success)
 ```
 
 ### 4.3 `legacy` debuggen
@@ -395,16 +392,16 @@ Get-ChildItem "C:\MXTrackData\...\AA01\Run_*\oracle.status.json" | Remove-Item
 
 | Fehlermeldung | Ursache | Lösung |
 |---------------|---------|--------|
-| `Datensatz konnte nicht geladen werden.` | `SetDataLocation` oder `LoadRun` gescheitert | Pfad prüfen, cableData.ztx vorhanden und > 0 Bytes? |
-| `Fehlende Kanäle: Lat_dez, Lon_dez` | GPS-Channels nicht im Datensatz | Testdaten haben keine GPS-Daten → sVehicle wird übersprungen (kein Fehler) |
-| `Keine gültigen Runs gefunden` | `IMarelliDataBrowse.FindRuns()` liefert nichts | Pfad ist kein gültiger WinTAX4-Run, Ordnerstruktur prüfen |
-| `Metadaten konnten nicht ermittelt werden.` | Kein .HED-File und KOMPASS nicht erreichbar | .HED-Datei im Run- oder Rider-Ordner ablegen, oder `DatabaseDirectory` in `oracle-config.json` prüfen |
-| `Datenbankverzeichnis nicht gefunden` | KOMPASS-Pfad in Config falsch | `oracle-config.json` → `DatabaseDirectory` anpassen |
-| `Kein gültiger WinTAX4-Run` | `IsRunLocation()` gibt false zurück | Ordner hat keine `Lap_*`-Unterordner mit cableData.ztx |
-| `Run bereits erfolgreich verarbeitet` | `oracle.status.json` blockiert | `--force` verwenden oder Status-Datei löschen |
+| `LoadRun failed (result …)` / `Data could not be loaded` | `SetDataLocation` oder `LoadRun` gescheitert (auch: Dongle/Runtime fehlt) | Pfad prüfen, cableData.ztx vorhanden und > 0 Bytes? |
+| `Missing channels: Lat_dez, Lon_dez. Calculation aborted.` | GPS-Channels nicht im Datensatz | Kanalnamen prüfen (`Gps.LatitudeChannel`/`LongitudeChannel`) |
+| `No valid runs found in: …` | `IMarelliDataBrowse.FindRuns()` liefert nichts | Pfad ist kein gültiger WinTAX4-Run, Ordnerstruktur prüfen |
+| `Metadata could not be determined.` | Kein .HED-File und KOMPASS nicht erreichbar | .HED-Datei im Run- oder Rider-Ordner ablegen, oder `DatabaseDirectory` in `oracle-config.json` prüfen |
+| `Database directory not found: …` | KOMPASS-Pfad in Config falsch | `oracle-config.json` → `DatabaseDirectory` anpassen |
+| `Warning: the path is not a valid WinTAX4 run: …` | `IsRunLocation()` gibt false zurück | Ordner hat keine `Lap_*`-Unterordner mit cableData.ztx |
+| `Run already processed successfully` | `oracle.status.json` blockiert | `--force` verwenden oder Status-Datei löschen |
 | `System.NullReferenceException` in KtmDataHandler | `new MarelliDataAccess()` statt Factory | **Immer** `KtmDataHandlerFactory.CreateReader()` / `.CreateWriter()` verwenden |
 | `Autofac.Core.DependencyResolutionException` | DI-Container kann Typ nicht auflösen | KtmDataHandler.dll und KtmSharedUtils.dll Version prüfen |
-| `Channel-Daten sind nicht im erwarteten Format.` | `SignalData.Data` ist nicht `double[]` | Channel hat unerwarteten Datentyp → im Debugger inspizieren |
+| `Channel data is not in the expected format.` | `SignalData.Data` ist nicht `double[]` | Channel hat unerwarteten Datentyp → im Debugger inspizieren |
 
 ### NullReferenceException in KtmDataHandler
 
@@ -560,7 +557,7 @@ unverändert ist (0 = aus).
 
 Danach muss der Snapshot `StabilityThreshold`-mal unverändert bleiben. `download.done` wird über eine `.tmp`-Datei geschrieben
 und dann umbenannt, damit KRAKEN nie ein halbes XML liest. Das Konsolenlog nennt bei ungültigen Runs den Grund (z.B.
-„1 fehlende Datei(en) laut RunLapHeader.xml“, „Cloud-Platzhalter“).
+`1 missing file(s) according to RunLapHeader.xml`, `cloud placeholders`).
 
 ### Tests
 

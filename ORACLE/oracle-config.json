@@ -1,13 +1,13 @@
 {
-  // ORACLE Konfiguration
-  // Pfade und Mappings für die KTM Offroad Racing Telemetrie-Verarbeitung
+  // ORACLE configuration
+  // Paths and mappings for KTM Offroad Racing telemetry processing
   //
-  // Falls diese Datei fehlt, werden die Standardwerte aus OracleConfig.cs verwendet.
+  // If this file is missing, the defaults from OracleConfig.cs are used.
 
   "DatabaseDirectory": "C:\\KTM Tools\\KTM Offroad Racing Shared Resources\\DistributedTools\\resources",
   "DatabaseFileName": "KOMPASS.json",
 
-  // MotoDB loadChannels.xlsx: dessen CIRCUITS/HED-Sheets werden aus KOMPASS synchronisiert (ORACLE.exe sync-motodb).
+  // MotoDB loadChannels.xlsx: its CIRCUITS/HED sheets are synchronized from KOMPASS (ORACLE.exe sync-motodb).
   "MotoDbLoadChannelsPath": "C:\\KTM Tools\\KTM MotoDB\\loadChannels.xlsx",
 
   "TeamMappings": {
@@ -19,22 +19,22 @@
     "KTM-DC": "KTM De Carli Racing"
   },
 
-  // Benennt Geräteordner mit Leerzeichen kanonisch um ("AA 01" -> "AA01"), damit der
-  // bikeName in Ordnern und XML durchgängig ohne Leerzeichen ist. Non-fatal + guarded.
-  // Auf false setzen, falls nachgelagerte Tools (z.B. KRAKEN) die Originalordnernamen erwarten.
+  // Canonically renames device folders containing spaces ("AA 01" -> "AA01") so that the
+  // bikeName is consistently space-free in folders and XML. Non-fatal + guarded.
+  // Set to false if downstream tools (e.g. KRAKEN) expect the original folder names.
   "NormalizeDeviceFolderName": true,
 
-  // Verwaiste, leere Lap-Ordner (Reste eines WinTAX-Lap-Splits, ohne cableData.ztx und nicht in RunLapHeader.xml)
-  // nach Run_x\\_ORACLE_removed verschieben, damit WinTAX den Run wieder erkennt. Es wird nichts gelöscht.
+  // Move orphaned, empty lap folders (leftovers of a WinTAX lap split, without cableData.ztx and not in RunLapHeader.xml)
+  // to Run_x\\_ORACLE_removed so that WinTAX recognizes the run again. Nothing is deleted.
   "RepairOrphanLapFolders": true,
 
-  // true = vorhandene .HED-Werte (Rider, Team, Saison ...) haben Vorrang vor KOMPASS (Abweichung nur warnen).
-  // false (Default) = KOMPASS-Stammdaten ersetzen abweichende .HED-Werte, z.B. einen Platzhalter-Rider.
+  // true = existing .HED values (rider, team, season ...) take precedence over KOMPASS (only warn on mismatch).
+  // false (default) = KOMPASS master data replaces mismatching .HED values, e.g. a placeholder rider.
   "PreferHedMetadata": false,
 
-  // Schwellen für die Renn-Erkennung (RaceSegmentDetector).
-  // Rein GPS-basiert (Lat/Lon-Distanz + abgeleitete Geschwindigkeit) + Gasstellung;
-  // Drehzahl und GPS-Qualität nur als Guards. vRearnEng wird bewusst NICHT verwendet.
+  // Thresholds for race detection (RaceSegmentDetector).
+  // Purely GPS-based (lat/lon distance + derived speed) + throttle position;
+  // RPM and GPS quality only as guards. vRearnEng is deliberately NOT used.
   "RaceDetection": {
     "EngineOnMinRpm": 2000,
     "DistanceMinMeters": 1000,
@@ -46,10 +46,10 @@
     "MinValidGpsSamples": 10
   },
 
-  // GPS-Kanäle und Aufbereitung – gilt für sVehicle, Lap-Distanzen/Track-Länge, Renn-Erkennung und GPS-Lap-Split.
-  // Wie Lat_Valid/Lon_Valid in der VCH: Samples ohne Fix (0) entfernen, über Aussetzer verbinden. Zusätzlich:
-  // wiederholte Fixes zusammenfassen, GPS-Sprünge (>= MinJumpMeters schneller als MaxSpeedKph) nicht mitzählen,
-  // Fragmente < MinSegmentSeconds zwischen zwei Sprüngen als Ausreißer verwerfen.
+  // GPS channels and preprocessing – applies to sVehicle, lap distances/track length, race detection and GPS lap split.
+  // Like Lat_Valid/Lon_Valid in the VCH: remove samples without fix (0), bridge dropouts. Additionally:
+  // merge repeated fixes, do not count GPS jumps (>= MinJumpMeters faster than MaxSpeedKph),
+  // discard fragments < MinSegmentSeconds between two jumps as outliers.
   "Gps": {
     "LatitudeChannel": "Lat_dez",
     "LongitudeChannel": "Lon_dez",
@@ -58,9 +58,9 @@
     "MinSegmentSeconds": 2
   },
 
-  // GPS-Lap-Split (ORACLE split-laps <pfad> [--dry-run|--undo] bzw. process <pfad> --gps-split).
-  // Ziellinie = KOMPASS-Track-Koordinate, auf die Ideallinie gelegt, quer zur Fahrachse (Richtung egal).
-  // Bereits geteilte Runs (WinTAX/ORACLE _Def_, Logger-Runden) werden erkannt und nicht erneut geteilt.
+  // GPS lap split (ORACLE split-laps <path> [--dry-run|--undo] or process <path> --gps-split).
+  // Finish line = KOMPASS track coordinate, snapped onto the racing line, perpendicular to the riding direction (either direction).
+  // Already split runs (WinTAX/ORACLE _Def_, logger laps) are detected and not split again.
   "GpsLapSplit": {
     "MinLapSeconds": 60,
     "MaxSampleGapSeconds": 1,
@@ -74,10 +74,10 @@
     "MaxTimeShiftSamples": 1
   },
 
-  // Track-Längen-Prüfung vor MotoDB (MotoDB vergleicht trackLength EXAKT mit CIRCUITS; gleiche Längen = Fehler).
-  // Reihenfolge: KOMPASS -> CIRCUITS -> .HED -> offener Vorschlag -> Schätzung aus den GPS-Rundendistanzen.
-  // Enforce = true: ohne eindeutige Länge Exit-Code 6 (TrackLengthMissing) -> KRAKEN startet MotoDB nicht.
-  // Vorläufige Längen werden als Vorschlag in SuggestionsDirectory abgelegt und in KODE bestätigt.
+  // Track length check before MotoDB (MotoDB compares trackLength EXACTLY with CIRCUITS; identical lengths = error).
+  // Order: KOMPASS -> CIRCUITS -> .HED -> open suggestion -> estimate from the GPS lap distances.
+  // Enforce = true: without an unambiguous length, exit code 6 (TrackLengthMissing) -> KRAKEN does not start MotoDB.
+  // Provisional lengths are stored as a suggestion in SuggestionsDirectory and confirmed in KODE.
   "TrackLength": {
     "Enforce": true,
     "SuggestionsDirectory": "%OneDriveCommercial%\\Workstation - OffroadSync\\DevProjects\\KTM Internal Software Tools\\resources\\suggestions",

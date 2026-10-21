@@ -3,20 +3,20 @@ using Ktm.Racing.Domain.MotoDb;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Schützt Schreibzugriffe auf <c>loadChannels.xlsx</c>: ein systemweiter Mutex verhindert, dass parallele ORACLE-Jobs
-    /// (KRAKEN) gleichzeitig lesen-ändern-schreiben (verlorene Updates), und ein gesperrtes Workbook (Excel) wird
-    /// bis zu einer Wartezeit erneut versucht, statt sofort mit Exit-Code 5 aufzugeben.
+    /// Protects write access to <c>loadChannels.xlsx</c>: a system-wide mutex prevents parallel ORACLE jobs
+    /// (KRAKEN) from reading-modifying-writing at the same time (lost updates), and a locked workbook (Excel) is
+    /// retried up to a wait time instead of giving up immediately with exit code 5.
     /// </summary>
     public static class WorkbookGuard
     {
         private const string MutexName = @"Global\KTM.ORACLE.loadChannels";
 
-        /// <summary>Intervall zwischen zwei Versuchen bei gesperrtem Workbook.</summary>
+        /// <summary>Interval between two attempts when the workbook is locked.</summary>
         public static TimeSpan RetryInterval { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Führt <paramref name="write"/> exklusiv aus und wiederholt es, solange das Workbook gesperrt ist und
-        /// <paramref name="maxWait"/> nicht überschritten ist.
+        /// Executes <paramref name="write"/> exclusively and retries it as long as the workbook is locked and
+        /// <paramref name="maxWait"/> has not been exceeded.
         /// </summary>
         public static LoadChannelsSyncResult WriteWithRetry(Func<LoadChannelsSyncResult> write, TimeSpan maxWait)
         {
@@ -31,14 +31,14 @@ namespace Ktm.Racing.Oracle
 
                 if (!announced)
                 {
-                    Console.WriteLine($"[loadChannels] Workbook gesperrt (z.B. in Excel offen) – warte bis zu {maxWait.TotalSeconds:0} s …");
+                    Console.WriteLine($"[loadChannels] Workbook locked (e.g. open in Excel) – waiting up to {maxWait.TotalSeconds:0} s …");
                     announced = true;
                 }
                 Thread.Sleep(RetryInterval);
             }
         }
 
-        /// <summary>Führt <paramref name="action"/> unter dem systemweiten loadChannels-Mutex aus.</summary>
+        /// <summary>Executes <paramref name="action"/> under the system-wide loadChannels mutex.</summary>
         public static T Exclusive<T>(Func<T> action, TimeSpan timeout)
         {
             using var mutex = new Mutex(false, MutexName);
@@ -51,12 +51,12 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (AbandonedMutexException)
                 {
-                    // Ein anderer ORACLE-Prozess ist abgestürzt, während er den Mutex hielt – wir übernehmen.
+                    // Another ORACLE process crashed while holding the mutex – we take over.
                     acquired = true;
                 }
 
                 if (!acquired)
-                    Console.WriteLine("[loadChannels] ⚠️ Anderer ORACLE-Prozess schreibt seit langem – fahre ohne Mutex fort.");
+                    Console.WriteLine("[loadChannels] ⚠️ Another ORACLE process has been writing for a long time – continuing without mutex.");
                 return action();
             }
             finally

@@ -4,14 +4,14 @@ using System.Xml.Linq;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Liest die von ORACLE in <c>LapHeader.xml</c> geschriebenen GPS-Rundendistanzen (<c>LapDistance</c>) bereits
-    /// verarbeiteter Runs eines Events. So kann die Track-Länge auch für kurze Runs (Warm-up, Bike-Check) bestimmt
-    /// werden, wenn ein anderer Run desselben Events genug Runden hatte.
+    /// Reads the GPS lap distances (<c>LapDistance</c>) written by ORACLE to <c>LapHeader.xml</c> of already
+    /// processed runs of an event. This allows the track length to be determined even for short runs (warm-up, bike check)
+    /// if another run of the same event had enough laps.
     /// </summary>
     public static class LapHistory
     {
         /// <summary>
-        /// Der Event-Ordner (Name = <paramref name="eventName"/>) oberhalb von <paramref name="path"/>, oder <c>null</c>.
+        /// The event folder (name = <paramref name="eventName"/>) above <paramref name="path"/>, or <c>null</c>.
         /// </summary>
         public static string? FindEventFolder(string path, string eventName)
         {
@@ -26,9 +26,9 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Rundendistanzen je Run (Lap-Reihenfolge) aller von ORACLE verarbeiteten Runs (mit <c>oracle.status.json</c>
-        /// im Run- oder Geräteordner) unter <paramref name="eventFolder"/> außer <paramref name="excludeRuns"/>.
-        /// Werte ≤ 0 (WinTAX-Rohdaten ohne GPS-Distanz) werden ignoriert.
+        /// Lap distances per run (lap order) of all runs processed by ORACLE (with <c>oracle.status.json</c>
+        /// in the run or device folder) under <paramref name="eventFolder"/> except <paramref name="excludeRuns"/>.
+        /// Values ≤ 0 (WinTAX raw data without GPS distance) are ignored.
         /// </summary>
         public static IReadOnlyList<IReadOnlyList<double>> ReadProcessedLapDistances(string eventFolder, IEnumerable<string> excludeRuns)
         {
@@ -55,7 +55,7 @@ namespace Ktm.Racing.Oracle
             File.Exists(Path.Combine(run, "oracle.status.json"))
             || File.Exists(Path.Combine(Path.GetDirectoryName(run) ?? run, "oracle.status.json"));
 
-        /// <summary>Die von ORACLE geschriebenen Rundendistanzen (&gt; 0) der angegebenen Runs.</summary>
+        /// <summary>The lap distances (&gt; 0) written by ORACLE for the specified runs.</summary>
         public static IReadOnlyList<IReadOnlyList<double>> ReadLapDistances(IEnumerable<string> runs)
         {
             var result = new List<IReadOnlyList<double>>();

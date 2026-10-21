@@ -1,23 +1,23 @@
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Normalisiert Bike-/Rider-Aliasse auf die kanonische Form ohne Leerzeichen
-    /// (z.B. <c>"AA 01"</c> → <c>"AA01"</c>).
+    /// Normalizes bike/rider aliases to the canonical form without spaces
+    /// (e.g. <c>"AA 01"</c> → <c>"AA01"</c>).
     ///
-    /// <para>Ein Leerzeichen im Device-Ordnernamen ist ein bekannter Datenfehler: Er führt sonst zu
-    /// einer fehlerhaften <c>RiderAbbreviation</c> (<c>"AA "</c> statt <c>"AA"</c>) — wodurch die
-    /// KOMPASS-Fahrersuche fehlschlägt — und zu Leerzeichen in den geschriebenen
-    /// <c>Name</c>/<c>Alias</c>-Properties, die downstream (MotoDB/Tableau) Probleme verursachen.</para>
+    /// <para>A space in the device folder name is a known data error: otherwise it leads to
+    /// an incorrect <c>RiderAbbreviation</c> (<c>"AA "</c> instead of <c>"AA"</c>) — causing the
+    /// KOMPASS rider lookup to fail — and to spaces in the written
+    /// <c>Name</c>/<c>Alias</c> properties, which cause problems downstream (MotoDB/Tableau).</para>
     /// </summary>
     public static class BikeAlias
     {
-        /// <summary>Entfernt alle Leerraum-Zeichen aus dem Alias (<c>"AA 01"</c> → <c>"AA01"</c>).</summary>
+        /// <summary>Removes all whitespace characters from the alias (<c>"AA 01"</c> → <c>"AA01"</c>).</summary>
         public static string Normalize(string? alias)
             => string.IsNullOrEmpty(alias)
                 ? string.Empty
                 : new string(alias.Where(c => !char.IsWhiteSpace(c)).ToArray());
 
-        /// <summary>True, wenn der Alias bereits kanonisch ist (leer oder ohne Leerraum).</summary>
+        /// <summary>True if the alias is already canonical (empty or without whitespace).</summary>
         public static bool IsCanonical(string? alias)
             => string.IsNullOrEmpty(alias) || !alias.Any(char.IsWhiteSpace);
     }

@@ -213,11 +213,11 @@ public sealed class E2EFixTests
 
     [Theory]
     [InlineData(new[] { "process", "C:\\Run_1", "--force", "--gps-split" }, null)]
-    [InlineData(new[] { "process", "C:\\Run_1", "--bogus" }, "Unbekannte Option: --bogus")]
-    [InlineData(new[] { "process", "C:\\Session", "AA", "01" }, "Unerwartetes Argument: AA")]
+    [InlineData(new[] { "process", "C:\\Run_1", "--bogus" }, "Unknown option: --bogus")]
+    [InlineData(new[] { "process", "C:\\Session", "AA", "01" }, "Unexpected argument: AA")]
     [InlineData(new[] { "sync-motodb", "--workbook", "C:\\x.xlsx" }, null)]
-    [InlineData(new[] { "sync-motodb", "--workbook" }, "Option --workbook erwartet einen Wert.")]
-    [InlineData(new[] { "validate", "C:\\Run_1", "--force" }, "Unbekannte Option: --force")]
+    [InlineData(new[] { "sync-motodb", "--workbook" }, "Option --workbook expects a value.")]
+    [InlineData(new[] { "validate", "C:\\Run_1", "--force" }, "Unknown option: --force")]
     [InlineData(new[] { "C:\\Run_1", "--force" }, null)]
     public void CommandLine_rejects_unknown_options(string[] args, string? expected)
     {

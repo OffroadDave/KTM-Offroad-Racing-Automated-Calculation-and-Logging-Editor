@@ -5,23 +5,23 @@ using KtmDataHandler.Models.Channels;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Erkennt, welche Runs eines Rider-/Session-Ordners tatsächlich ein <b>Rennen</b> (Renntempo)
-    /// sind – im Gegensatz zu Motor-Blips, Standgas, langsamem Rollen, Sichtungsrunden oder Auslauf.
+    /// Detects which runs of a rider/session folder are actually a <b>race</b> (race pace)
+    /// – as opposed to engine blips, idling, slow rolling, sighting laps or cool-down laps.
     ///
-    /// <para><b>Hintergrund:</b> Bei jedem Motorstart erhöht der Logger den Zähler, sodass ein
-    /// durch Sturz/Abwürgen unterbrochenes Rennen über mehrere <c>Run_xxx</c>-Ordner fragmentiert.
-    /// Zeitlücken allein trennen Rennen nicht zuverlässig von Auslaufrunden (diese folgen mit
-    /// Sekundenabstand). Bewegungs-/Intensitäts-Signale trennen dagegen scharf.</para>
+    /// <para><b>Background:</b> The logger increments its counter on every engine start, so a
+    /// race interrupted by a crash/stall is fragmented across several <c>Run_xxx</c> folders.
+    /// Time gaps alone do not reliably separate races from cool-down laps (these follow
+    /// seconds later). Motion/intensity signals, on the other hand, separate them sharply.</para>
     ///
-    /// <para><b>Signale (rein antriebsstrang-unabhängig):</b></para>
+    /// <para><b>Signals (fully powertrain-independent):</b></para>
     /// <list type="bullet">
-    ///   <item><c>Lat_dez</c>/<c>Lon_dez</c> → GPS-Distanz (aufbereitet durch GpsCleaner) und daraus abgeleitete Geschwindigkeit</item>
-    ///   <item><c>rThrottle1</c> → mittlere Gasstellung (Fahr-Intensität, schließt Touring/Sichtung aus)</item>
-    ///   <item><c>ValidSat</c> → GPS-Qualitäts-Guard</item>
-    ///   <item><c>nEngine720</c> → Motor-an-Guard (fängt tote Blips ab)</item>
+    ///   <item><c>Lat_dez</c>/<c>Lon_dez</c> → GPS distance (cleaned by GpsCleaner) and the speed derived from it</item>
+    ///   <item><c>rThrottle1</c> → mean throttle position (riding intensity, rules out touring/sighting)</item>
+    ///   <item><c>ValidSat</c> → GPS quality guard</item>
+    ///   <item><c>nEngine720</c> → engine-on guard (catches dead blips)</item>
     /// </list>
-    /// <c>vRearnEng</c> wird bewusst NICHT genutzt (aus Drehzahl × Getriebeübersetzung berechnet,
-    /// unzuverlässig bei gezogener Kupplung, durchdrehendem oder blockiertem Rad).
+    /// <c>vRearnEng</c> is deliberately NOT used (computed from RPM × gear ratio,
+    /// unreliable with the clutch pulled, a spinning or a locked wheel).
     /// </summary>
     public class RaceSegmentDetector
     {
@@ -30,7 +30,7 @@ namespace Ktm.Racing.Oracle
         private readonly GpsSettings _gps;
 
         /// <summary>
-        /// Erstellt einen Detektor mit expliziten Abhängigkeiten (für Unit-Tests).
+        /// Creates a detector with explicit dependencies (for unit tests).
         /// </summary>
         public RaceSegmentDetector(IMarelliDataBrowse browse, RaceDetectionThresholds thresholds, GpsSettings? gps = null)
         {
@@ -41,14 +41,14 @@ namespace Ktm.Racing.Oracle
             _gps = gps ?? new GpsSettings();
         }
 
-        /// <summary>GPS-Kanäle und Aufbereitung, die auch für die Berechnungen der Renn-Runs gelten.</summary>
+        /// <summary>GPS channels and cleaning settings that also apply to the calculations of the race runs.</summary>
         public GpsSettings Gps => _gps;
 
         /// <summary>
-        /// Klassifiziert alle Runs unterhalb eines Rider-/Session-Ordners (oder einen einzelnen Run).
+        /// Classifies all runs below a rider/session folder (or a single run).
         /// </summary>
-        /// <param name="folderPath">Rider-/Session-Ordner oder direkter Run-Ordner.</param>
-        /// <param name="trackLengthMeters">Optionale Track-Länge aus KOMPASS für die relative Distanzschwelle (0 = nur absolut).</param>
+        /// <param name="folderPath">Rider/session folder or a direct run folder.</param>
+        /// <param name="trackLengthMeters">Optional track length from KOMPASS for the relative distance threshold (0 = absolute only).</param>
         public RaceDetectionResult DetectRaces(string folderPath, double trackLengthMeters = 0)
         {
             if (!Directory.Exists(folderPath))
@@ -78,8 +78,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Lädt die notwendigen Kanäle eines einzelnen Runs, berechnet die Kennzahlen und klassifiziert ihn.
-        /// Fehler führen zu <see cref="RaceRunVerdict.Error"/> statt zu einer Exception (Fail-Forward).
+        /// Loads the required channels of a single run, computes the metrics and classifies it.
+        /// Errors result in <see cref="RaceRunVerdict.Error"/> instead of an exception (fail-forward).
         /// </summary>
         public RunRaceFeatures ClassifyRun(string runPath, double trackLengthMeters = 0)
         {
@@ -87,7 +87,7 @@ namespace Ktm.Racing.Oracle
                 runPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
             if (!Directory.Exists(runPath))
-                return ErrorResult(runPath, folder, "Run-Ordner existiert nicht");
+                return ErrorResult(runPath, folder, "Run folder does not exist");
 
             var reader = KtmDataHandlerFactory.CreateAccess();
             try
@@ -95,7 +95,7 @@ namespace Ktm.Racing.Oracle
                 reader.SetDataLocation([runPath]);
                 int loadResult = reader.LoadRun();
                 if (loadResult <= 0)
-                    return ErrorResult(runPath, folder, $"LoadRun fehlgeschlagen (Rückgabe {loadResult})");
+                    return ErrorResult(runPath, folder, $"LoadRun failed (return value {loadResult})");
 
                 var names = reader.GetChannelsNames() ?? Array.Empty<string>();
 
@@ -126,11 +126,11 @@ namespace Ktm.Racing.Oracle
                 var rpm = GetData(ds, rpmName);
                 var sat = GetData(ds, satName);
 
-                // Fehlende Kanäle sind "unbekannt" (NaN), nicht 0: ein anderes Kanal-Setup darf ein Rennen nicht verwerfen.
+                // Missing channels are "unknown" (NaN), not 0: a different channel setup must not discard a race.
                 var missing = new[] { ("nEngine720", rpm), ("rThrottle1", thr), ("ValidSat", sat) }
                     .Where(c => c.Item2 is null).Select(c => c.Item1).ToList();
                 if (missing.Count > 0)
-                    Console.WriteLine($"[detect] {folder}: Kanal fehlt ({string.Join(", ", missing)}) – Kriterium wird übersprungen.");
+                    Console.WriteLine($"[detect] {folder}: channel missing ({string.Join(", ", missing)}) – criterion skipped.");
 
                 double distance = GpsDistance(ds, latName, lonName, out int validGps);
                 double meanSpeedKph = duration > 1.0 ? distance / duration * 3.6 : 0.0;
@@ -176,12 +176,12 @@ namespace Ktm.Racing.Oracle
         }
 
         // =====================================================================
-        //  Klassifikation & Hilfsmethoden
+        //  Classification & helper methods
         // =====================================================================
 
         /// <summary>
-        /// Dreistufige Klassifikation: Motor-Guard → GPS-Pfad → Fallback bei GPS-Ausfall.
-        /// Fehlende Kanäle werden als <see cref="double.NaN"/> übergeben; ein unbekanntes Kriterium verwirft nicht.
+        /// Three-stage classification: engine guard → GPS path → fallback on GPS loss.
+        /// Missing channels are passed as <see cref="double.NaN"/>; an unknown criterion does not reject.
         /// </summary>
         public static (RaceRunVerdict Verdict, string Reason, bool LowConfidence) Classify(RaceDetectionThresholds thresholds,
             double distanceM, double speedKph, double throttlePct, double rpm, bool gpsUsable, double minDistanceM)
@@ -191,40 +191,40 @@ namespace Ktm.Racing.Oracle
             bool rpmKnown = !double.IsNaN(rpm);
             bool throttleKnown = !double.IsNaN(throttlePct);
 
-            // Guard: Motor aus → niemals Rennen (fängt Blips/Stillstand ab).
+            // Guard: engine off → never a race (catches blips/standstill).
             if (rpm < thresholds.EngineOnMinRpm)
-                return (RaceRunVerdict.NoRace, "Motor aus", false);
+                return (RaceRunVerdict.NoRace, "Engine off", false);
 
-            // Primärpfad: GPS gültig → Distanz + Geschwindigkeit + Gas (UND-verknüpft).
+            // Primary path: GPS valid → distance + speed + throttle (AND-combined).
             if (gpsUsable)
             {
                 if (distanceM <= minDistanceM)
-                    return (RaceRunVerdict.NoRace, $"Distanz {distanceM:F0} m <= {minDistanceM:F0} m", false);
+                    return (RaceRunVerdict.NoRace, $"Distance {distanceM:F0} m <= {minDistanceM:F0} m", false);
                 if (speedKph <= thresholds.SpeedMinKph)
-                    return (RaceRunVerdict.NoRace, $"vGPS {speedKph:F0} kph zu langsam", false);
+                    return (RaceRunVerdict.NoRace, $"vGPS {speedKph:F0} kph too slow", false);
                 if (throttlePct <= thresholds.ThrottleMinPercent)
-                    return (RaceRunVerdict.NoRace, $"Gas {throttlePct:F0} % zu gering", false);
-                return (RaceRunVerdict.Race, "GPS: Distanz+Speed+Gas erfüllt", !rpmKnown || !throttleKnown);
+                    return (RaceRunVerdict.NoRace, $"Throttle {throttlePct:F0} % too low", false);
+                return (RaceRunVerdict.Race, "GPS: distance+speed+throttle met", !rpmKnown || !throttleKnown);
             }
 
-            // Fallback: GPS ausgefallen → nur Gas + Drehzahl (geringere Konfidenz).
-            // Mindest-Evidenz: ohne GPS muss wenigstens Gas oder Drehzahl vorhanden sein; ein fehlender Kanal wird übersprungen.
+            // Fallback: GPS lost → throttle + RPM only (lower confidence).
+            // Minimum evidence: without GPS at least throttle or RPM must be present; a missing channel is skipped.
             if (!rpmKnown && !throttleKnown)
-                return (RaceRunVerdict.NoRace, "GPS ungültig, Gas und Drehzahl fehlen – keine Renn-Evidenz", false);
+                return (RaceRunVerdict.NoRace, "GPS invalid, throttle and RPM missing – no race evidence", false);
 
             bool throttleOk = !throttleKnown || throttlePct > thresholds.ThrottleFallbackPercent;
             bool rpmOk = !rpmKnown || rpm > thresholds.RpmRaceMin;
             if (throttleOk && rpmOk)
             {
                 string reason = rpmKnown && throttleKnown
-                    ? "Fallback Gas+Drehzahl (GPS ungültig)"
+                    ? "Fallback throttle+RPM (GPS invalid)"
                     : rpmKnown
-                        ? "Fallback nur Drehzahl (GPS ungültig, Gas fehlt)"
-                        : "Fallback nur Gas (GPS ungültig, Drehzahl fehlt)";
+                        ? "Fallback RPM only (GPS invalid, throttle missing)"
+                        : "Fallback throttle only (GPS invalid, RPM missing)";
                 return (RaceRunVerdict.Race, reason, true);
             }
 
-            return (RaceRunVerdict.NoRace, "GPS ungültig, kein Renn-Profil", false);
+            return (RaceRunVerdict.NoRace, "GPS invalid, no race profile", false);
         }
 
         private static double[]? GetData(IDataset? ds, string? name)
@@ -243,8 +243,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// GPS-Distanz über die aufbereiteten Fixes (<see cref="GpsCleaner"/>: Aussetzer überbrückt wie Lat_Valid,
-        /// Sprünge nicht mitgezählt). <paramref name="validSamples"/> = Samples mit gültigem Fix.
+        /// GPS distance over the cleaned fixes (<see cref="GpsCleaner"/>: dropouts bridged like Lat_Valid,
+        /// jumps not counted). <paramref name="validSamples"/> = samples with a valid fix.
         /// </summary>
         private double GpsDistance(IDataset? ds, string? latName, string? lonName, out int validSamples)
         {

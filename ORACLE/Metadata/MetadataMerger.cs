@@ -1,22 +1,22 @@
 namespace Ktm.Racing.Oracle
 {
-    /// <summary>Ein Feld, dessen .HED-Wert durch KOMPASS/Pfad ersetzt wurde (oder bei <c>PreferHedMetadata</c> behalten).</summary>
-    /// <param name="Field">.HED-Schlüssel, z.B. <c>riderName</c>.</param>
-    /// <param name="HedValue">Wert aus der .HED.</param>
-    /// <param name="KompassValue">Wert aus KOMPASS bzw. dem Pfad.</param>
+    /// <summary>A field whose .HED value was replaced by KOMPASS/path (or kept with <c>PreferHedMetadata</c>).</summary>
+    /// <param name="Field">.HED key, e.g. <c>riderName</c>.</param>
+    /// <param name="HedValue">Value from the .HED.</param>
+    /// <param name="KompassValue">Value from KOMPASS or the path.</param>
     public sealed record MetadataDifference(string Field, string HedValue, string KompassValue);
 
     /// <summary>
-    /// Führt die aus einer vorhandenen .HED gelesenen Metadaten mit den aus Pfad + KOMPASS ermittelten zusammen.
-    /// <para><b>Stammdaten gewinnen:</b> Felder, die KOMPASS bzw. der Pfad eindeutig liefern (Rider, Team, Saison,
-    /// Disziplin, Motorklasse, Kürzel, Ländername), ersetzen abweichende .HED-Werte – sonst bliebe z.B. ein alter
-    /// Platzhalter wie „Test Rider“ für immer stehen. Felder aus dem Event-Namen (Track, Ländercode, Typ, KW) werden nur
-    /// ergänzt, wenn sie in der .HED fehlen. Mit <c>preferHed</c> (bewusste manuelle Einträge, z.B. Ersatzfahrer) bleiben
-    /// alle vorhandenen .HED-Werte erhalten.</para>
+    /// Merges the metadata read from an existing .HED with the metadata derived from path + KOMPASS.
+    /// <para><b>Master data wins:</b> fields that KOMPASS or the path provide unambiguously (rider, team, season,
+    /// discipline, engine class, abbreviation, country name) replace differing .HED values – otherwise e.g. an old
+    /// placeholder such as "Test Rider" would remain forever. Fields from the event name (track, country code, type, CW) are only
+    /// filled in if they are missing in the .HED. With <c>preferHed</c> (deliberate manual entries, e.g. substitute riders) all
+    /// existing .HED values are kept.</para>
     /// </summary>
     public static class MetadataMerger
     {
-        /// <summary>Übernimmt <paramref name="derived"/> in <paramref name="hed"/> und liefert die abweichenden Felder.</summary>
+        /// <summary>Applies <paramref name="derived"/> to <paramref name="hed"/> and returns the differing fields.</summary>
         public static IReadOnlyList<MetadataDifference> Merge(RunMetadata hed, RunMetadata derived, bool preferHed)
         {
             ArgumentNullException.ThrowIfNull(hed);
@@ -38,7 +38,7 @@ namespace Ktm.Racing.Oracle
             static string Fill(string current, string candidate) =>
                 string.IsNullOrWhiteSpace(current) ? candidate : current;
 
-            // Rider und Team nur aus einem in KOMPASS gefundenen Rider (derived.RiderName gesetzt).
+            // Rider and team only from a rider found in KOMPASS (derived.RiderName set).
             if (!string.IsNullOrWhiteSpace(derived.RiderName))
             {
                 hed.RiderName = Authoritative("riderName", hed.RiderName, derived.RiderName);

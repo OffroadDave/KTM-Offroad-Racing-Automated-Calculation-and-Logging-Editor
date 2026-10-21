@@ -2,25 +2,25 @@ using System.Xml.Linq;
 
 namespace Ktm.Racing.Oracle
 {
-    /// <summary>Ergebnis einer Run-Reparatur.</summary>
-    /// <param name="RunPath">Run-Ordner.</param>
-    /// <param name="MovedLaps">Verschobene, verwaiste Lap-Ordner (Namen).</param>
+    /// <summary>Result of a run repair.</summary>
+    /// <param name="RunPath">Run folder.</param>
+    /// <param name="MovedLaps">Moved, orphaned lap folders (names).</param>
     public sealed record RunRepairResult(string RunPath, IReadOnlyList<string> MovedLaps);
 
     /// <summary>
-    /// Repariert Runs, die WinTAX wegen verwaister Lap-Ordner nicht als gültig erkennt: Beim Teilen/Anhängen von Laps
-    /// (<c>_Def_</c>/<c>_App_</c>) bleibt der ursprüngliche Lap-Ordner manchmal ohne <c>cableData.ztx</c> zurück. WinTAX
-    /// referenziert ihn in <c>RunLapHeader.xml</c> nicht mehr, verwirft aber den ganzen Run.
-    /// <para>Verschoben wird nur, was <b>keine Daten</b> hat (<c>cableData.ztx</c> fehlt) <b>und</b> in <c>RunLapHeader.xml</c>
-    /// nicht referenziert ist – und nur, wenn der Run mindestens eine referenzierte Lap mit Daten besitzt. Ziel ist
-    /// <c>&lt;Run&gt;\_ORACLE_removed\</c> (umkehrbar, nichts wird gelöscht).</para>
+    /// Repairs runs that WinTAX does not recognize as valid because of orphaned lap folders: when splitting/appending laps
+    /// (<c>_Def_</c>/<c>_App_</c>), the original lap folder is sometimes left behind without <c>cableData.ztx</c>. WinTAX
+    /// no longer references it in <c>RunLapHeader.xml</c>, but discards the whole run.
+    /// <para>Only what has <b>no data</b> (<c>cableData.ztx</c> missing) <b>and</b> is not referenced in <c>RunLapHeader.xml</c>
+    /// is moved – and only if the run has at least one referenced lap with data. The target is
+    /// <c>&lt;Run&gt;\_ORACLE_removed\</c> (reversible, nothing is deleted).</para>
     /// </summary>
     public static class RunRepair
     {
-        /// <summary>Unterordner im Run, in den verwaiste Lap-Ordner verschoben werden.</summary>
+        /// <summary>Subfolder in the run into which orphaned lap folders are moved.</summary>
         public const string RemovedFolderName = "_ORACLE_removed";
 
-        /// <summary>Die verwaisten Lap-Ordner eines Runs, die gefahrlos verschoben werden können (leer, wenn keine).</summary>
+        /// <summary>The orphaned lap folders of a run that can safely be moved (empty if none).</summary>
         public static IReadOnlyList<string> FindOrphanLaps(string runFolder)
         {
             if (!Directory.Exists(runFolder))
@@ -41,7 +41,7 @@ namespace Ktm.Racing.Oracle
                 .ToList();
         }
 
-        /// <summary>Verschiebt die verwaisten Lap-Ordner eines Runs; <c>null</c>, wenn nichts zu tun ist.</summary>
+        /// <summary>Moves the orphaned lap folders of a run; <c>null</c> if there is nothing to do.</summary>
         public static RunRepairResult? Repair(string runFolder)
         {
             var orphans = FindOrphanLaps(runFolder);
@@ -64,7 +64,7 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    Console.WriteLine($"[repair] ⚠️ {name} konnte nicht verschoben werden: {ex.Message}");
+                    Console.WriteLine($"[repair] ⚠️ {name} could not be moved: {ex.Message}");
                 }
             }
 
@@ -78,7 +78,7 @@ namespace Ktm.Racing.Oracle
             return moved.Count == 0 ? null : new RunRepairResult(runFolder, moved);
         }
 
-        /// <summary>Repariert alle Runs unter <paramref name="root"/> (inkl. <paramref name="root"/> selbst, falls ein Run).</summary>
+        /// <summary>Repairs all runs under <paramref name="root"/> (incl. <paramref name="root"/> itself, if it is a run).</summary>
         public static IReadOnlyList<RunRepairResult> RepairAll(string root)
         {
             var results = new List<RunRepairResult>();
@@ -86,15 +86,15 @@ namespace Ktm.Racing.Oracle
             {
                 if (Repair(run) is { } result)
                 {
-                    Console.WriteLine($"[repair] {Path.GetFileName(run)}: {result.MovedLaps.Count} verwaiste(r) Lap-Ordner ohne Daten nach " +
-                                      $"{RemovedFolderName} verschoben ({string.Join(", ", result.MovedLaps)}).");
+                    Console.WriteLine($"[repair] {Path.GetFileName(run)}: moved {result.MovedLaps.Count} orphaned lap folder(s) without data to " +
+                                      $"{RemovedFolderName} ({string.Join(", ", result.MovedLaps)}).");
                     results.Add(result);
                 }
             }
             return results;
         }
 
-        /// <summary>Die in <c>RunLapHeader.xml</c> referenzierten Lap-Ordner; <c>null</c>, wenn die Datei fehlt/ungültig ist.</summary>
+        /// <summary>The lap folders referenced in <c>RunLapHeader.xml</c>; <c>null</c> if the file is missing/invalid.</summary>
         public static HashSet<string>? ReferencedLaps(string runFolder)
         {
             var file = Path.Combine(runFolder, "RunLapHeader.xml");
