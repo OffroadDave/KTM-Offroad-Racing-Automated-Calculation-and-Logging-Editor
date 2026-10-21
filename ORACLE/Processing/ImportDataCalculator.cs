@@ -45,19 +45,15 @@ namespace Ktm.Racing.Oracle
             runGps = null;
 
             // Frische Reader/Writer-Instanzen pro Run (vermeidet State-Leaks nach ReleaseObjects)
-            ztxAccessRead = KtmDataHandlerFactory.CreateReader();
+            ztxAccessRead = KtmDataHandlerFactory.CreateAccess();
             ztxAccessWrite = KtmDataHandlerFactory.CreateWriter();
 
             double runDistance = 0.0;
             double[] lapDistances = [];
             try
             {
-                // 1. Datensatz laden
-                if (!LoadDataSet(runPath))
-                {
-                    Console.WriteLine("Datensatz konnte nicht geladen werden.");
-                    return new RunCalcResult();
-                }
+                // 1. Datensatz laden (Fehler werfen, damit der Aufrufer den Run als fehlgeschlagen zählt)
+                LoadDataSet(runPath);
 
                 // 2. Berechnungsfunktionen der Reihe nach ausführen
                 runDistance = SVehicleCalc(distanceOffsetMeters);
@@ -125,29 +121,20 @@ namespace Ktm.Racing.Oracle
         /// Lädt den Datensatz aus dem angegebenen Run-Ordner.
         /// </summary>
         /// <param name="runPath">Pfad zum Run-Ordner</param>
-        /// <returns>True bei Erfolg, false bei Fehler</returns>
-        private bool LoadDataSet(string runPath)
+        /// <exception cref="InvalidDataException">Der Run kann nicht geladen werden.</exception>
+        private void LoadDataSet(string runPath)
         {
-            try
-            {
-                // Setze den Datenpfad und lade den Run
-                ztxAccessRead.SetDataLocation([runPath]);
-                ztxAccessRead.LoadRun();
-                Console.WriteLine($"Datensatz erfolgreich geladen aus: {runPath}");
+            ztxAccessRead.SetDataLocation([runPath]);
+            var result = ztxAccessRead.LoadRun();
+            if (result <= 0)
+                throw new InvalidDataException($"LoadRun failed (result {result}): {runPath}");
+            Console.WriteLine($"Datensatz erfolgreich geladen aus: {runPath}");
 
-                // Channel-Namen abfragen und speichern
-                var names = ztxAccessRead.GetChannelsNames();
-                if (names != null)
-                    channelNames = names.ToList();
+            var names = ztxAccessRead.GetChannelsNames();
+            if (names != null)
+                channelNames = names.ToList();
 
-                Console.WriteLine("Channelliste aus Datensatz extrahiert.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Fehler beim Laden des Datensatzes: {ex.Message}");
-                return false;
-            }
+            Console.WriteLine("Channelliste aus Datensatz extrahiert.");
         }
 
         /// <summary>
@@ -217,30 +204,33 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Speichert die berechneten Ergebnisse.
+        /// Speichert die berechneten Ergebnisse als importData.ztx im Run.
         /// </summary>
         /// <param name="dataSet">Datensatz mit Ergebnissen</param>
+        /// <exception cref="IOException">Die Write-API meldet Fehler (sVehicle wurde nicht vollständig geschrieben).</exception>
         private void SaveResults(IDataset dataSet)
         {
             Console.WriteLine("Speichere Ergebnisse...");
             if (currentRunPath == null)
-            {
-                Console.WriteLine("Fehler: runPath ist nicht gesetzt.");
-                return;
-            }
+                throw new InvalidOperationException("runPath is not set.");
             ztxAccessWrite.SetDataLocation([currentRunPath]);
-            ztxAccessWrite.AddImportDataToRun(dataSet);
+            var errors = KtmWriteErrors.Describe(ztxAccessWrite.AddImportDataToRun(dataSet));
+            if (errors.Count > 0)
+                throw new IOException($"AddImportDataToRun reported errors: {string.Join("; ", errors.Take(3))}");
         }
 
         /// <summary>
         /// GPS-Distanz [m] je Lap (1-basiert). Primär aus der aufbereiteten Run-Distanz an den Lap-Grenzen – dadurch ist die
         /// Summe der Laps exakt die sVehicle-Distanz, und Aussetzer/Sprünge an einer Lap-Grenze werden wie im Run behandelt.
-        /// Ohne Lap-Grenzen: je Lap über die per-Lap-Kanalabfrage, ebenfalls aufbereitet.
+        /// Ohne Lap-Grenzen: je Lap über die per-Lap-Kanalabfrage, ebenfalls aufbereitet. Ohne GPS-Fix ist die Distanz
+        /// unbekannt (<see cref="double.NaN"/>) – dann wird eine vorhandene LapDistance entfernt statt „0 m“ zu schreiben.
         /// </summary>
         private double[] ComputeLapDistances(string runPath)
         {
-            int lapCount = Directory.GetDirectories(runPath, "Lap_*", SearchOption.TopDirectoryOnly).Length;
-            var distances = new double[lapCount];
+            int lapCount = XmlRunEditor.OrderedLapFolders(runPath).Count;
+            var distances = Enumerable.Repeat(double.NaN, lapCount).ToArray();
+            if (runGps is { HasFix: false })
+                return distances;
 
             if (runGps is not null && (ztxAccessRead as MarelliDataAccess)?.GetLapMarks() is { } marks && marks.Length == lapCount + 1)
             {
@@ -269,16 +259,17 @@ namespace Ktm.Racing.Oracle
                     var lat = ds?.GetElement(latName)?.SignalData?.Data as double[];
                     var lon = ds?.GetElement(lonName)?.SignalData?.Data as double[];
                     var time = ds?.GetElement(latName)?.SignalData?.Time as double[];
-                    distances[n - 1] = lat is null || lon is null || time is null
-                        ? 0.0
-                        : GpsCleaner.Clean(new GpsTrace(time, lat, lon), _gps.ToCleanOptions()).TotalMeters;
+                    var lapGps = lat is null || lon is null || time is null
+                        ? null
+                        : GpsCleaner.Clean(new GpsTrace(time, lat, lon), _gps.ToCleanOptions());
+                    distances[n - 1] = lapGps is { HasFix: true } ? lapGps.TotalMeters : double.NaN;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Lap-Distanz für Lap {n} fehlgeschlagen: {ex.Message}");
-                    distances[n - 1] = 0.0;
                 }
             }
             return distances;
-        }    }
+        }
+    }
 }

@@ -123,6 +123,7 @@ public sealed class GpsLapSplitService
     private readonly ISplitDataAccess _access;
     private readonly Func<string, long?> _freeSpace;
     private readonly bool _lockRuns;
+    private readonly Action<string>? _beforeSwap;
     private readonly GpsLapSplitter _splitter = new();
 
     /// <summary>Creates the service.</summary>
@@ -133,21 +134,38 @@ public sealed class GpsLapSplitService
     /// Lock each run folder (<c>oracle.lock</c>) while writing – for the stand-alone command; <c>process</c> already holds the lock.
     /// </param>
     /// <param name="gps">GPS channels and preparation (oracle-config.json, section Gps).</param>
+    /// <param name="beforeSwap">
+    /// Called with the run path under the run lock right before the laps are swapped (e.g. to persist the invalidation of
+    /// processing statuses). If it throws, the run is left unchanged and the split fails.
+    /// </param>
     public GpsLapSplitService(GpsLapSplitSettings? settings = null, ISplitDataAccess? access = null, Func<string, long?>? freeSpace = null,
-        bool lockRuns = false, GpsSettings? gps = null)
+        bool lockRuns = false, GpsSettings? gps = null, Action<string>? beforeSwap = null)
     {
         _settings = settings ?? new GpsLapSplitSettings();
         _gps = gps ?? new GpsSettings();
         _access = access ?? new KtmSplitDataAccess();
         _freeSpace = freeSpace ?? FreeSpace;
         _lockRuns = lockRuns;
+        _beforeSwap = beforeSwap;
     }
 
-    /// <summary>Phase 1: reads GPS (prepared by <see cref="GpsCleaner"/>) and lap structure of a run. Never throws.</summary>
+    /// <summary>
+    /// Phase 1: reads GPS (prepared by <see cref="GpsCleaner"/>) and lap structure of a run. Never throws and never writes: a run
+    /// with an interrupted lap swap is only reported – callers recover it beforehand under the processing locks
+    /// (<see cref="LapSplitStore.RecoverInterruptedLocked"/>).
+    /// </summary>
     public RunSplitAnalysis Analyze(string runPath)
     {
         try
         {
+            if (LapSplitStore.HasInterruptedSplit(runPath))
+                return new RunSplitAnalysis
+                {
+                    RunPath = runPath,
+                    Problem = "an interrupted lap split must be recovered first (originals in " +
+                              $"{LapSplitStore.BackupFolderName}) – run 'process' or 'split-laps' without --dry-run",
+                };
+
             var (marks, raw, problem) = _access.ReadGps(runPath, _gps.LatitudeChannel, _gps.LongitudeChannel);
             var cleaned = raw is null ? null : GpsCleaner.Clean(raw, _gps.ToCleanOptions());
             var gps = cleaned is { HasFix: true } ? cleaned.Trace : null;
@@ -251,8 +269,12 @@ public sealed class GpsLapSplitService
         using var runLock = _lockRuns ? ProcessingLock.TryAcquire(run) : null;
         if (_lockRuns && runLock is null)
             return Failed(run, detection.Verdict, "the run is being processed by another ORACLE process – try again later");
+        var committed = false;
         try
         {
+            if (LapSplitStore.HasInterruptedSplit(run))
+                return Failed(run, detection.Verdict, "an interrupted lap split must be recovered first – nothing changed");
+
             if (LapSplitStore.CleanupTemp(run))
                 Console.WriteLine($"[gps-split] {Path.GetFileName(run)}: leftover {LapSplitStore.TempFolderName} from an aborted split removed.");
 
@@ -274,6 +296,15 @@ public sealed class GpsLapSplitService
             if (verify.Error is not null)
                 return Failed(run, detection.Verdict, $"verification of the written laps failed – nothing changed: {verify.Error}");
 
+            try
+            {
+                _beforeSwap?.Invoke(run);
+            }
+            catch (Exception ex)
+            {
+                return Failed(run, detection.Verdict, $"processing status could not be invalidated – nothing changed: {ex.Message}");
+            }
+
             var manifest = LapSplitStore.Commit(run, written, split.LapMarks, analysis.Laps, new SplitManifest
             {
                 Tool = $"ORACLE {typeof(GpsLapSplitService).Assembly.GetName().Version}",
@@ -282,6 +313,7 @@ public sealed class GpsLapSplitService
                 MaxTimeShiftMs = verify.MaxShiftMs,
                 MaxSampleDelta = verify.MaxSampleDelta,
             });
+            committed = true;
             var (backup, _) = LapSplitStore.FindLatestSplit(run);
 
             var after = _access.ReadBack(run, []);
@@ -309,7 +341,22 @@ public sealed class GpsLapSplitService
         }
         catch (Exception ex)
         {
-            return Failed(run, detection.Verdict, $"{ex.Message} – run unchanged");
+            if (!committed)
+                return Failed(run, detection.Verdict, $"{ex.Message} – run unchanged");
+
+            // The new laps are already in place: undo them so the run is never left in an unverified state.
+            SplitUndoResult undo;
+            try
+            {
+                undo = LapSplitStore.Undo(run);
+            }
+            catch (Exception undoError)
+            {
+                undo = new SplitUndoResult(false, undoError.Message);
+            }
+
+            return Failed(run, detection.Verdict, $"{ex.Message} after the laps were swapped – " +
+                                                  (undo.Success ? "rolled back" : $"ROLLBACK FAILED ({undo.Message}), originals in {LapSplitStore.BackupFolderName}"));
         }
         finally
         {
@@ -408,7 +455,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         try
         {
             access.SetDataLocation([runPath]);
-            if (access.LoadRun() < 0)
+            if (access.LoadRun() <= 0)
                 return ([], null, "LoadRun failed");
 
             var marks = access.GetLapMarks() ?? [];
@@ -442,7 +489,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         try
         {
             reader.SetDataLocation([runPath]);
-            if (reader.LoadRun() < 0)
+            if (reader.LoadRun() <= 0)
                 return new SplitWriteResult(["LoadRun failed"], []);
 
             var names = reader.GetChannelsNames() ?? [];
@@ -457,12 +504,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
                 .Select(m => (ushort)Math.Clamp((int)Math.Round((m - Math.Floor(m)) * 1000.0), 0, 999))
                 .ToArray();
             writer.SetDataLocation([outputDirectory]);
-            var results = writer.SetChannelsSplitByLap(dataset, [.. marks], startOffsets) ?? [];
-            var errors = results
-                .Select((r, i) => (r, i))
-                .Where(x => x.r.Item1 != 0 || x.r.Item3 != 0)
-                .Select(x => $"lap {x.i + 1}: {Clean(x.r.Item4)} ({x.r.Item3} channel(s))")
-                .ToList();
+            var errors = KtmWriteErrors.Describe(writer.SetChannelsSplitByLap(dataset, [.. marks], startOffsets), "lap");
             return new SplitWriteResult(errors, stats);
         }
         finally
@@ -479,7 +521,7 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         try
         {
             access.SetDataLocation([runPath]);
-            if (access.LoadRun() < 0)
+            if (access.LoadRun() <= 0)
                 return new SplitReadBack([], 0, []);
 
             var marks = access.GetLapMarks() ?? [];
@@ -508,16 +550,5 @@ public sealed class KtmSplitDataAccess : ISplitDataAccess
         }
 
         return result;
-    }
-
-    /// <summary>The native message may carry garbage after the text; keep the printable part.</summary>
-    private static string Clean(string? message)
-    {
-        if (string.IsNullOrEmpty(message))
-            return "unknown error";
-        var end = 0;
-        while (end < message.Length && message[end] >= ' ' && message[end] < 0x7F)
-            end++;
-        return message[..end].Trim();
     }
 }

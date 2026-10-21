@@ -75,12 +75,15 @@ namespace Ktm.Racing.Oracle
 
         /// <summary>
         /// Lädt die Konfiguration aus oracle-config.json im Anwendungsverzeichnis.
-        /// Falls keine Datei existiert oder ein Fehler auftritt, werden Standardwerte verwendet.
+        /// Fehlt die Datei, werden Standardwerte verwendet.
         /// </summary>
-        public static OracleConfig Load()
-        {
-            var configPath = Path.Combine(AppContext.BaseDirectory, "oracle-config.json");
+        /// <exception cref="InvalidDataException">Die Datei existiert, ist aber ungültig (ORACLE soll dann nicht mit Standardwerten weiterlaufen).</exception>
+        public static OracleConfig Load() => Load(Path.Combine(AppContext.BaseDirectory, "oracle-config.json"));
 
+        /// <summary>Lädt die Konfiguration aus <paramref name="configPath"/>; ohne Datei Standardwerte.</summary>
+        /// <exception cref="InvalidDataException">Die Datei existiert, ist aber ungültig.</exception>
+        public static OracleConfig Load(string configPath)
+        {
             if (!File.Exists(configPath))
             {
                 Console.WriteLine("Keine oracle-config.json gefunden, verwende Standardkonfiguration.");
@@ -97,21 +100,24 @@ namespace Ktm.Racing.Oracle
                     ReadCommentHandling = JsonCommentHandling.Skip,
                 };
 
-                var config = JsonSerializer.Deserialize<OracleConfig>(json, options) ?? new OracleConfig();
+                var config = JsonSerializer.Deserialize<OracleConfig>(json, options)
+                             ?? throw new InvalidDataException("oracle-config.json is empty.");
 
                 // JSON-Deserialisierung erzeugt Standard-Dictionary ohne custom Comparer.
                 // Daher TeamMappings explizit mit case-insensitivem Comparer neu erstellen.
                 config.TeamMappings = new Dictionary<string, string>(
-                    config.TeamMappings, StringComparer.OrdinalIgnoreCase);
+                    config.TeamMappings ?? new Dictionary<string, string>(), StringComparer.OrdinalIgnoreCase);
+                config.RaceDetection ??= new RaceDetectionThresholds();
+                config.Gps ??= new GpsSettings();
+                config.GpsLapSplit ??= new GpsLapSplitSettings();
+                config.TrackLength ??= new TrackLengthSettings();
 
                 Console.WriteLine("Konfiguration aus oracle-config.json geladen.");
                 return config;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is JsonException or NotSupportedException or ArgumentException)
             {
-                Console.WriteLine($"Warnung: oracle-config.json konnte nicht geladen werden: {ex.Message}");
-                Console.WriteLine("Verwende Standardkonfiguration.");
-                return new OracleConfig();
+                throw new InvalidDataException($"oracle-config.json is invalid ({configPath}): {ex.Message}", ex);
             }
         }
     }

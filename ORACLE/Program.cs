@@ -45,32 +45,38 @@ class Program
             return (int)OracleExitCode.InvalidArguments;
         }
 
-        // sync-motodb braucht KEIN KtmDataHandler/native (kein HASP-Dongle) → vor der Pipeline-Erzeugung behandeln.
-        if (args[0].Equals("sync-motodb", StringComparison.OrdinalIgnoreCase))
-        {
-            var syncCode = MotoDbInputSync.Run(OracleConfig.Load(), GetOption(args, "--kompass"), GetOption(args, "--workbook"));
-            Console.WriteLine($"ORACLE beendet. Exit-Code: {(int)syncCode} ({syncCode})");
-            return (int)syncCode;
-        }
-
-        var pipeline = OraclePipeline.Create();
         OracleExitCode exitCode;
 
         try
         {
-            exitCode = args[0].ToLowerInvariant() switch
+            // sync-motodb braucht KEIN KtmDataHandler/native (kein HASP-Dongle) → vor der Pipeline-Erzeugung behandeln.
+            if (args[0].Equals("sync-motodb", StringComparison.OrdinalIgnoreCase))
             {
-                "process" => await HandleProcessAsync(args, pipeline),
-                // "merge" temporär deaktiviert – wird separat überarbeitet.
-                // "merge" => HandleMerge(args, pipeline),
-                "validate" => HandleValidate(args, pipeline),
-                "detect" => HandleDetect(args, pipeline),
-                "detect-start" => args.Length < 2 ? MissingPath("detect-start <riderPath|runPath>") : pipeline.DetectStarts(args[1]),
-                "split-laps" => args.Length < 2
-                    ? MissingPath("split-laps <event|session|device|run> [--dry-run] [--undo]")
-                    : await pipeline.SplitLapsAsync(args[1], HasFlag(args, "--dry-run"), HasFlag(args, "--undo")),
-                _ => await HandleLegacyAsync(args, pipeline),
-            };
+                exitCode = MotoDbInputSync.Run(OracleConfig.Load(), GetOption(args, "--kompass"), GetOption(args, "--workbook"));
+            }
+            else
+            {
+                // Konfiguration und native API (Dongle, Runtime) innerhalb des try: Fehler landen im Log mit definiertem Exit-Code.
+                var pipeline = OraclePipeline.Create();
+                exitCode = args[0].ToLowerInvariant() switch
+                {
+                    "process" => await HandleProcessAsync(args, pipeline),
+                    // "merge" temporär deaktiviert – wird separat überarbeitet.
+                    // "merge" => HandleMerge(args, pipeline),
+                    "validate" => HandleValidate(args, pipeline),
+                    "detect" => HandleDetect(args, pipeline),
+                    "detect-start" => args.Length < 2 ? MissingPath("detect-start <riderPath|runPath>") : pipeline.DetectStarts(args[1]),
+                    "split-laps" => args.Length < 2
+                        ? MissingPath("split-laps <event|session|device|run> [--dry-run] [--undo]")
+                        : await pipeline.SplitLapsAsync(args[1], HasFlag(args, "--dry-run"), HasFlag(args, "--undo")),
+                    _ => await HandleLegacyAsync(args, pipeline),
+                };
+            }
+        }
+        catch (InvalidDataException ex) when (ex.Message.StartsWith("oracle-config.json", StringComparison.Ordinal))
+        {
+            Console.WriteLine($"ORACLE: {ex.Message} – bitte oracle-config.json korrigieren.");
+            exitCode = OracleExitCode.InvalidData;
         }
         catch (Exception ex)
         {

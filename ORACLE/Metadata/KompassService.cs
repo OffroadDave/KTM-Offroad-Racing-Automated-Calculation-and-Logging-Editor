@@ -31,15 +31,30 @@ namespace Ktm.Racing.Oracle
                 return false;
             }
 
-            try
+            // KODE kann die Datei gerade schreiben: ein halb geschriebenes JSON nach kurzer Pause erneut lesen,
+            // bevor es als ungültig gilt (Exit 7, kein Retry durch KRAKEN).
+            Exception? lastError = null;
+            for (var attempt = 0; attempt < 3; attempt++)
             {
-                _database = await _repository.LoadAsync(databaseFile).ConfigureAwait(false);
-                _lookup = new KompassLookup(_database);
+                try
+                {
+                    _database = await _repository.LoadAsync(databaseFile).ConfigureAwait(false);
+                    _lookup = new KompassLookup(_database);
+                    lastError = null;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                    if (attempt < 2)
+                        await Task.Delay(500 * (attempt + 1)).ConfigureAwait(false);
+                }
             }
-            catch (Exception ex)
+
+            if (lastError is not null)
             {
-                Console.WriteLine($"Fehler beim Laden der Datenbank: {ex.Message}");
-                LastLoadInvalid = ex is not IOException;
+                Console.WriteLine($"Fehler beim Laden der Datenbank: {lastError.Message}");
+                LastLoadInvalid = lastError is not (IOException or UnauthorizedAccessException);
                 return false;
             }
 
@@ -94,11 +109,8 @@ namespace Ktm.Racing.Oracle
             metadata.EngineClass = path.EngineClass;
 
             // --- Bike-/Rider-Abkürzung aus BikeName ableiten ---
-            // Format: "JP01" → RiderAbbreviation="JP", BikeNumber="01"
-            metadata.RiderAbbreviation = metadata.BikeName.Length > 2
-                ? metadata.BikeName[..^2] : "";
-            metadata.BikeNumber = metadata.BikeName.Length >= 2
-                ? metadata.BikeName[^2..] : metadata.BikeName;
+            // Format: Buchstaben + Ziffern, "JP01" → RiderAbbreviation="JP", BikeNumber="01"; "AA101" → "AA" / "101".
+            (metadata.RiderAbbreviation, metadata.BikeNumber) = SplitBikeName(metadata.BikeName);
 
             // --- Event-Name parsen ---
             // Format: "RT01_AT-RedBull" → Type=Racetrack, CW=01, CC=AT, Track=RedBull
@@ -163,6 +175,21 @@ namespace Ktm.Racing.Oracle
         }
 
         // --- Private Hilfsmethoden ---
+
+        /// <summary>
+        /// Teilt einen Bike-Namen in Fahrerkürzel und Bike-Nummer: führende Buchstaben + folgende Ziffern
+        /// ("AA01" → "AA"/"01", "AA101" → "AA"/"101", "AA1" → "AA"/"1"). Andere Formate fallen auf die frühere Regel
+        /// (letzte zwei Zeichen = Nummer) zurück.
+        /// </summary>
+        public static (string Abbreviation, string Number) SplitBikeName(string bikeName)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(bikeName ?? string.Empty, @"^([A-Za-z]+)(\d+)$");
+            if (match.Success)
+                return (match.Groups[1].Value, match.Groups[2].Value);
+            if (string.IsNullOrEmpty(bikeName))
+                return (string.Empty, string.Empty);
+            return bikeName.Length > 2 ? (bikeName[..^2], bikeName[^2..]) : (string.Empty, bikeName);
+        }
 
         /// <summary>
         /// Liest Track und Ländercode ohne Seiteneffekte aus dem Event-Ordner im Pfad (z.B. <c>…\RT37_CHN-Shanghai\R1\AA01\Run_885</c>

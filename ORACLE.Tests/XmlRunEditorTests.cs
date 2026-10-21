@@ -101,6 +101,46 @@ public sealed class XmlRunEditorTests
     }
 
     [Fact]
+    public void SetRunProperties_without_lapDistances_keeps_existing_LapDistance()
+    {
+        using var tmp = new TempDir();
+        var run = MakeRun(tmp, "Run_1", "Lap_0001");
+        File.WriteAllText(Path.Combine(run, "Lap_0001", "LapHeader.xml"), "<LapHeader><LapDistance>1500</LapDistance></LapHeader>");
+
+        new XmlRunEditor().SetRunProperties(run, "AA01", "T", "1000", "R");
+
+        Assert.Equal("1500", LapRoot(run, "Lap_0001").Element("LapDistance")!.Value);
+    }
+
+    [Fact]
+    public void SetRunProperties_unknown_lapDistance_removes_stale_value_on_reprocessing()
+    {
+        using var tmp = new TempDir();
+        var run = tmp.CreateDir("Run_1083");
+        foreach (var lap in new[] { "Lap_0001", "Lap_0002" })
+        {
+            Directory.CreateDirectory(Path.Combine(run, lap));
+            File.WriteAllText(Path.Combine(run, lap, "LapHeader.xml"), "<LapHeader><Lap>0</Lap><LapDistance>0</LapDistance></LapHeader>");
+        }
+        File.WriteAllText(Path.Combine(run, "RunLapHeader.xml"),
+            "<RunLapHeader><Run><LapArray>" +
+            "  <Lap><LapInfo><Path>Lap_0001\\cableData.ztx</Path></LapInfo>" +
+            "    <Infos><Info><Name>LapDistance</Name><Data>0</Data><Infos/></Info></Infos></Lap>" +
+            "  <Lap><LapInfo><Path>Lap_0002\\cableData.ztx</Path></LapInfo>" +
+            "    <Infos><Info><Name>LapDistance</Name><Data>1234</Data><Infos/></Info></Infos></Lap>" +
+            "</LapArray></Run></RunLapHeader>");
+
+        new XmlRunEditor().SetRunProperties(run, "AA01", "T", "1000", "R",
+            lapDistances: new[] { double.NaN, double.NaN });
+
+        Assert.Null(LapRoot(run, "Lap_0001").Element("LapDistance"));
+        Assert.Null(LapRoot(run, "Lap_0002").Element("LapDistance"));
+        var doc = XDocument.Load(Path.Combine(run, "RunLapHeader.xml"));
+        Assert.DoesNotContain(doc.Descendants("Info"), i => (string?)i.Element("Name") == "LapDistance");
+        Assert.Equal(2, doc.Descendants("Info").Count(i => (string?)i.Element("Name") == "Lap"));
+    }
+
+    [Fact]
     public void SetRunProperties_updates_RunLapHeader_infos_and_normalizes_alias_in_paths()
     {
         using var tmp = new TempDir();

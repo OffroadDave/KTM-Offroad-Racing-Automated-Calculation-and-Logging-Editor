@@ -41,26 +41,38 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Liest die Kern-Metadaten (bikeName, trackName, trackLength, riderName) aus einer .HED-Datei.
+        /// Liest die Metadaten aus einer .HED-Datei: Fahrer-, Team-, Saison-, Disziplin- und Event-Stammdaten der Sektion
+        /// <c>[KTM_NAMING]</c> sowie <c>surface</c>. Event, Session und Run kommen immer aus dem Pfad (eine aus dem Rider-Ordner
+        /// kopierte .HED kann zu einem anderen Run gehören).
         /// </summary>
         /// <param name="hedFilePath">Vollständiger Pfad zur .HED-Datei</param>
         /// <returns>RunMetadata mit den gelesenen Werten (leere Strings für fehlende Keys)</returns>
         public RunMetadata ReadMetadata(string hedFilePath)
         {
             var values = ParseHedFile(hedFilePath);
+            string Value(string key) => values.GetValueOrDefault(key, "");
 
-            var rawBikeName = values.GetValueOrDefault("bikeName", "");
+            var rawBikeName = Value("bikeName");
             if (!BikeAlias.IsCanonical(rawBikeName))
                 Console.WriteLine($"Warnung: bikeName \"{rawBikeName}\" aus .HED enthält Leerzeichen — normalisiere zu \"{BikeAlias.Normalize(rawBikeName)}\".");
 
             return new RunMetadata
             {
                 BikeName = BikeAlias.Normalize(rawBikeName),
-                TrackName = values.GetValueOrDefault("trackName", ""),
-                TrackLength = values.GetValueOrDefault("trackLength", ""),
-                RiderName = values.GetValueOrDefault("riderName", ""),
-                EngineClass = values.GetValueOrDefault("engineClass", ""),
-                Surface = values.GetValueOrDefault("surface", ""),
+                TrackName = Value("trackName"),
+                TrackLength = Value("trackLength"),
+                RiderName = Value("riderName"),
+                RiderAbbreviation = Value("riderabbreviationName"),
+                BikeNumber = Value("bikeNumber"),
+                TeamName = Value("teamName"),
+                SeasonName = Value("seasonName"),
+                DisciplineName = Value("disciplineName"),
+                EngineClass = Value("engineClass"),
+                CalendarWeek = Value("calendarweek"),
+                TypeName = Value("typeName"),
+                CountryCode = Value("countrycode"),
+                CountryName = Value("countryName"),
+                Surface = Value("surface"),
             };
         }
 
@@ -83,25 +95,30 @@ namespace Ktm.Racing.Oracle
 
             var canonicalName = BuildHedFileName(metadata);
 
-            var source = runPaths.Select(FindFirstHedFile).FirstOrDefault(p => p != null)
+            // Quelle: bevorzugt die kanonische .HED eines Runs, sonst die neueste .HED der Runs, sonst die des Rider-Ordners.
+            var source = runPaths.Select(r => Path.Combine(r, canonicalName)).FirstOrDefault(File.Exists)
+                         ?? runPaths.Select(FindFirstHedFile).OfType<string>().OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault()
                          ?? FindFirstHedFile(riderPath);
-            var lines = source != null && File.Exists(source)
+            var template = source != null && File.Exists(source)
                 ? ApplyMetadataToLines(File.ReadAllLines(source), metadata)
                 : BuildHedContent(metadata).Split('\n').Select(l => l.TrimEnd('\r')).ToArray();
 
-            lines = EnsureTrackSurfaceLine(lines, metadata.Surface);
-            lines = EnsureTrackLengthLine(lines, metadata.TrackLength);
+            template = EnsureTrackSurfaceLine(template, metadata.Surface);
+            template = EnsureTrackLengthLine(template, metadata.TrackLength);
 
             int count = 0;
             foreach (var runPath in runPaths)
             {
                 try
                 {
+                    // runNumber gehört zum einzelnen Run (Konvention: Ordnername, z.B. "Run_885").
+                    var lines = SetValue((string[])template.Clone(), "runNumber", Path.GetFileName(Path.TrimEndingDirectorySeparator(runPath)));
+
+                    // Erst die neue Datei vollständig schreiben, dann abweichend benannte .HED entfernen.
+                    AtomicFile.WriteAllLines(Path.Combine(runPath, canonicalName), lines);
                     foreach (var old in Directory.EnumerateFiles(runPath, "*.HED", SearchOption.TopDirectoryOnly).ToList())
                         if (!string.Equals(Path.GetFileName(old), canonicalName, StringComparison.OrdinalIgnoreCase))
                             File.Delete(old);
-
-                    File.WriteAllLines(Path.Combine(runPath, canonicalName), lines);
                     count++;
                 }
                 catch (Exception ex)
@@ -110,6 +127,26 @@ namespace Ktm.Racing.Oracle
                 }
             }
             Console.WriteLine($"[hed] .HED in {count}/{runPaths.Count} Run-Ordner(n) sichergestellt: \"{canonicalName}\".");
+        }
+
+        /// <summary>Setzt den Wert eines Schlüssels; fehlt er, wird er am Ende der ersten Sektion eingefügt.</summary>
+        internal static string[] SetValue(string[] lines, string key, string value)
+        {
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var eq = lines[i].IndexOf('=');
+                if (eq > 0 && lines[i][..eq].Trim().Equals(key, StringComparison.OrdinalIgnoreCase))
+                {
+                    lines[i] = $"{lines[i][..eq].TrimEnd()} = {value}";
+                    return lines;
+                }
+            }
+
+            var list = lines.ToList();
+            var firstSection = list.FindIndex(l => l.TrimStart().StartsWith('['));
+            var nextSection = firstSection >= 0 ? list.FindIndex(firstSection + 1, l => l.TrimStart().StartsWith('[')) : -1;
+            list.Insert(nextSection >= 0 ? nextSection : list.Count, $"{key} = {value}");
+            return [.. list];
         }
 
         /// <summary>
@@ -122,15 +159,20 @@ namespace Ktm.Racing.Oracle
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["bikeName"] = metadata.BikeName,
+                ["bikeNumber"] = metadata.BikeNumber,
                 ["riderName"] = metadata.RiderName,
                 ["riderabbreviationName"] = metadata.RiderAbbreviation,
                 ["teamName"] = metadata.TeamName,
                 ["seasonName"] = metadata.SeasonName,
                 ["disciplineName"] = metadata.DisciplineName,
                 ["engineClass"] = metadata.EngineClass,
+                ["calendarweek"] = metadata.CalendarWeek,
+                ["typeName"] = metadata.TypeName,
                 ["countrycode"] = metadata.CountryCode,
                 ["countryName"] = metadata.CountryName,
                 ["trackName"] = metadata.TrackName,
+                ["eventName"] = metadata.EventName,
+                ["sessionName"] = metadata.SessionName,
             };
 
             for (int i = 0; i < lines.Length; i++)
@@ -155,7 +197,7 @@ namespace Ktm.Racing.Oracle
             {
                 try
                 {
-                    File.WriteAllLines(file, EnsureTrackSurfaceLine(File.ReadAllLines(file), surface));
+                    AtomicFile.WriteAllLines(file, EnsureTrackSurfaceLine(File.ReadAllLines(file), surface));
                 }
                 catch (Exception ex)
                 {
@@ -184,6 +226,15 @@ namespace Ktm.Racing.Oracle
                 }
             }
 
+            // Vorhandene [TRACK]-Sektion ohne surface-Zeile: Zeile dort einfügen statt eine zweite Sektion anzuhängen.
+            var track = Array.FindIndex(lines, l => l.Trim().Equals("[TRACK]", StringComparison.OrdinalIgnoreCase));
+            if (track >= 0)
+            {
+                var list = lines.ToList();
+                list.Insert(track + 1, $"surface = {surface}");
+                return [.. list];
+            }
+
             return [.. lines, "[TRACK]", $"surface = {surface}"];
         }
 
@@ -199,7 +250,7 @@ namespace Ktm.Racing.Oracle
             {
                 try
                 {
-                    File.WriteAllLines(file, EnsureTrackLengthLine(File.ReadAllLines(file), trackLength));
+                    AtomicFile.WriteAllLines(file, EnsureTrackLengthLine(File.ReadAllLines(file), trackLength));
                 }
                 catch (Exception ex)
                 {
@@ -288,7 +339,7 @@ namespace Ktm.Racing.Oracle
         public void WriteHedFile(string runPath, RunMetadata metadata)
         {
             var hedFilePath = Path.Combine(runPath, BuildHedFileName(metadata));
-            File.WriteAllText(hedFilePath, BuildHedContent(metadata));
+            AtomicFile.WriteAllText(hedFilePath, BuildHedContent(metadata));
             Console.WriteLine($"Neues .HED-File erstellt: {hedFilePath}");
         }
 
@@ -318,7 +369,7 @@ surface = {metadata.Surface}";
         // --- Private Hilfsmethoden ---
 
         /// <summary>
-        /// Sucht die erste .HED-Datei in einem Verzeichnis (keine Rekursion).
+        /// Sucht die .HED-Datei eines Verzeichnisses (keine Rekursion); bei mehreren die zuletzt geänderte.
         /// </summary>
         private static string? FindFirstHedFile(string directory)
         {
@@ -326,6 +377,8 @@ surface = {metadata.Surface}";
                 return null;
 
             return Directory.EnumerateFiles(directory, "*.HED", SearchOption.TopDirectoryOnly)
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .ThenBy(f => f, StringComparer.OrdinalIgnoreCase)
                 .FirstOrDefault();
         }
 
