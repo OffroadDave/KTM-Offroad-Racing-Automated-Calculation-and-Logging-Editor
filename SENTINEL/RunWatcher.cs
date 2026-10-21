@@ -1,15 +1,15 @@
 namespace SENTINEL
 {
     /// <summary>
-    /// Kernkomponente: Überwacht konfigurierte Verzeichnisse, erkennt neue Runs
-    /// und generiert download.done sobald ein Run stabil ist.
+    /// Core component: watches configured directories, detects new runs
+    /// and generates download.done as soon as a run is stable.
     /// 
-    /// <para><b>Ablauf pro Scan-Zyklus:</b></para>
+    /// <para><b>Sequence per scan cycle:</b></para>
     /// <list type="number">
-    ///   <item>Alle WatchPaths rekursiv nach Run_*-Ordnern durchsuchen</item>
-    ///   <item>Runs mit existierender download.done überspringen</item>
-    ///   <item>Für verbleibende Runs: Snapshot erstellen → StabilityTracker füttern</item>
-    ///   <item>Stabile Runs: download.done generieren → aus Tracking entfernen</item>
+    ///   <item>Search all WatchPaths recursively for Run_* folders</item>
+    ///   <item>Skip runs with an existing download.done</item>
+    ///   <item>For remaining runs: create snapshot → feed StabilityTracker</item>
+    ///   <item>Stable runs: generate download.done → remove from tracking</item>
     /// </list>
     /// </summary>
     public sealed class RunWatcher
@@ -24,13 +24,14 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Führt einen kompletten Scan-Zyklus durch.
-        /// Wird vom Polling-Loop in Program.cs aufgerufen.
+        /// Performs a complete scan cycle.
+        /// Called by the polling loop in Program.cs.
         /// </summary>
-        /// <returns>Anzahl der in diesem Zyklus generierten download.done Dateien</returns>
+        /// <returns>Number of download.done files generated in this cycle</returns>
         public int RunScanCycle()
         {
             var pendingRuns = DiscoverPendingRuns();
+            _tracker.RetainOnly(pendingRuns);
             int generatedCount = 0;
 
             foreach (var runPath in pendingRuns)
@@ -48,7 +49,7 @@ namespace SENTINEL
                         if (latestSnapshot is not null)
                         {
                             var donePath = DownloadDoneWriter.Write(latestSnapshot);
-                            Console.WriteLine($"  ✅ download.done generiert: {donePath}");
+                            Console.WriteLine($"  ✅ download.done generated: {donePath}");
                             _tracker.Remove(runPath);
                             generatedCount++;
                         }
@@ -56,7 +57,7 @@ namespace SENTINEL
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"  ⚠️ Fehler bei {runPath}: {ex.Message}");
+                    Console.WriteLine($"  ⚠️ Error for {runPath}: {ex.Message}");
                 }
             }
 
@@ -64,57 +65,90 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Durchsucht alle WatchPaths rekursiv nach Run_*-Ordnern ohne download.done.
+        /// Searches all WatchPaths recursively for Run_* folders without download.done.
+        /// Inaccessible subfolders are skipped instead of aborting the entire WatchPath.
+        /// If <see cref="SentinelConfig.MaxRunAgeDays"/> &gt; 0, runs unchanged for longer are ignored.
         /// </summary>
         public List<string> DiscoverPendingRuns()
         {
             var pendingRuns = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            DateTime? cutoffUtc = _config.MaxRunAgeDays > 0
+                ? DateTime.UtcNow.AddDays(-_config.MaxRunAgeDays)
+                : null;
 
             foreach (var watchPath in _config.WatchPaths)
             {
                 if (!Directory.Exists(watchPath))
                 {
-                    Console.WriteLine($"  ⚠️ WatchPath existiert nicht: {watchPath}");
+                    Console.WriteLine($"  ⚠️ WatchPath does not exist: {watchPath}");
                     continue;
                 }
 
                 try
                 {
-                    var runDirs = Directory.GetDirectories(watchPath, "Run_*", SearchOption.AllDirectories);
+                    var runDirs = Directory.EnumerateDirectories(watchPath, "Run_*", DirectoryEnumeration);
 
                     foreach (var runDir in runDirs)
                     {
-                        if (!DownloadDoneWriter.Exists(runDir))
-                        {
-                            pendingRuns.Add(runDir);
-                        }
+                        if (!seen.Add(Path.GetFullPath(runDir)))
+                            continue;
+                        if (DownloadDoneWriter.Exists(runDir))
+                            continue;
+                        if (cutoffUtc is not null && LastActivityUtc(runDir) < cutoffUtc)
+                            continue;
+
+                        pendingRuns.Add(runDir);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"  ⚠️ Fehler beim Scannen von {watchPath}: {ex.Message}");
+                    Console.WriteLine($"  ⚠️ Error while scanning {watchPath}: {ex.Message}");
                 }
             }
 
             return pendingRuns;
         }
 
-        /// <summary>Gibt die Anzahl der aktuell getrackten (noch instabilen) Runs zurück.</summary>
+        private static readonly EnumerationOptions DirectoryEnumeration = new()
+        {
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = true,
+        };
+
+        /// <summary>
+        /// Most recent write time of the run folder and its lap folders (downloads create new laps
+        /// without necessarily modifying the run folder itself).
+        /// </summary>
+        private static DateTime LastActivityUtc(string runDir)
+        {
+            var latest = Directory.GetLastWriteTimeUtc(runDir);
+            foreach (var lap in Directory.EnumerateDirectories(runDir, "Lap_*", new EnumerationOptions { IgnoreInaccessible = true }))
+            {
+                var time = Directory.GetLastWriteTimeUtc(lap);
+                if (time > latest) latest = time;
+            }
+            return latest;
+        }
+
+        /// <summary>Returns the number of currently tracked (not yet stable) runs.</summary>
         public int TrackedRunCount => _tracker.TrackedRunCount;
 
         private static void LogSnapshotStatus(RunSnapshot snapshot)
         {
-            var status = snapshot.IsStructurallyValid ? "gültig" : "ungültig";
+            var status = snapshot.IsStructurallyValid ? "valid" : "invalid";
             var issues = new List<string>();
 
-            if (snapshot.HasZeroByteFiles) issues.Add("0-Byte-Dateien");
-            if (snapshot.HasLockedFiles) issues.Add("gesperrte Dateien");
-            if (snapshot.LapCount == 0) issues.Add("keine Laps");
+            if (snapshot.HasZeroByteFiles) issues.Add("0-byte files");
+            if (snapshot.HasPlaceholderFiles) issues.Add("cloud placeholders");
+            if (snapshot.HasLockedFiles) issues.Add("locked files");
+            if (snapshot.LapCount == 0) issues.Add("no laps");
+            if (!snapshot.IsComplete) issues.Add($"{snapshot.MissingFiles.Count} missing file(s) according to RunLapHeader.xml");
 
             var issueText = issues.Count > 0 ? $" ({string.Join(", ", issues)})" : "";
 
             Console.WriteLine($"  📊 {Path.GetFileName(snapshot.RunPath)}: " +
-                $"{snapshot.FileCount} Dateien, {snapshot.TotalSizeBytes / 1024} KB, " +
+                $"{snapshot.FileCount} files, {snapshot.TotalSizeBytes / 1024} KB, " +
                 $"{snapshot.LapCount} Laps — {status}{issueText}");
         }
     }

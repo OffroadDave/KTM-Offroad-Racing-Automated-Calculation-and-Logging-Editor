@@ -3,9 +3,9 @@ using System.Xml.Linq;
 namespace SENTINEL
 {
     /// <summary>
-    /// Generiert download.done XML-Dateien konform zum KRAKEN-XSD-Schema.
+    /// Generates download.done XML files conforming to the KRAKEN XSD schema.
     /// 
-    /// <para><b>Schema-Struktur (aus download.done.xsd):</b></para>
+    /// <para><b>Schema structure (from download.done.xsd):</b></para>
     /// <code>
     /// &lt;Done&gt;
     ///   &lt;UserName&gt;SENTINEL&lt;/UserName&gt;
@@ -28,10 +28,10 @@ namespace SENTINEL
         private const string FileName = "download.done";
 
         /// <summary>
-        /// Generiert und schreibt die download.done Datei in den Run-Ordner.
+        /// Generates and writes the download.done file into the run folder.
         /// </summary>
-        /// <param name="snapshot">Der stabile Snapshot des Run-Ordners</param>
-        /// <returns>Pfad zur erzeugten download.done Datei</returns>
+        /// <param name="snapshot">The stable snapshot of the run folder</param>
+        /// <returns>Path to the created download.done file</returns>
         public static string Write(RunSnapshot snapshot)
         {
             var runDir = new DirectoryInfo(snapshot.RunPath);
@@ -46,20 +46,38 @@ namespace SENTINEL
                     new XElement("UserName", "SENTINEL"),
                     new XElement("ComputerName", Environment.MachineName),
                     new XElement("UserDomain", Environment.UserDomainName),
-                    new XElement("DateTime", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")),
+                    new XElement("DateTime", FormatTimestamp(DateTime.Now)),
                     new XElement("LocalPath", snapshot.RunPath),
                     new XElement("RemotePath", string.Empty),
                     BuildRunElement(runName, snapshot, totalSubfolders, totalFiles)
                 )
             );
 
+            // Write completely to a temp file first, then rename: KRAKEN never sees a partial XML.
             var outputPath = Path.Combine(snapshot.RunPath, FileName);
-            doc.Save(outputPath);
+            var tempPath = outputPath + ".tmp";
+            try
+            {
+                doc.Save(tempPath);
+                File.Move(tempPath, outputPath, overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
             return outputPath;
         }
 
         /// <summary>
-        /// Prüft ob für den angegebenen Run-Ordner bereits eine download.done existiert.
+        /// Local time in the format <c>yyyy-MM-ddTHH:mm:ss</c> (xs:dateTime without offset, as before),
+        /// formatted culture-invariantly — otherwise e.g. a dot could appear as the time separator.
+        /// </summary>
+        internal static string FormatTimestamp(DateTime value) =>
+            value.ToString("yyyy-MM-dd'T'HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+
+        /// <summary>
+        /// Checks whether a download.done already exists for the given run folder.
         /// </summary>
         public static bool Exists(string runPath)
         {
@@ -75,7 +93,7 @@ namespace SENTINEL
                 new XAttribute("files", files)
             );
 
-            // Dateien auf Run-Ebene (z.B. Session.xml)
+            // Files at run level (e.g. Session.xml)
             foreach (var file in snapshot.RunFiles)
             {
                 runElement.Add(new XElement("File",
@@ -84,7 +102,7 @@ namespace SENTINEL
                 ));
             }
 
-            // Lap-Ordner
+            // Lap folders
             foreach (var lap in snapshot.Laps)
             {
                 var lapElement = new XElement("Lap",
@@ -109,7 +127,7 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Zählt alle Unterordner im Run (Lap_*-Ordner + deren Unterordner).
+        /// Counts all subfolders in the run (Lap_* folders + their subfolders).
         /// </summary>
         private static int CountSubfolders(RunSnapshot snapshot)
         {

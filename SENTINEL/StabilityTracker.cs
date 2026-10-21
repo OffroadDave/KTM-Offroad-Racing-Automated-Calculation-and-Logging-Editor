@@ -1,16 +1,16 @@
 namespace SENTINEL
 {
     /// <summary>
-    /// Verfolgt Snapshots pro Run über mehrere Polling-Zyklen und bestimmt,
-    /// wann ein Run als "stabil" gilt (= Download abgeschlossen).
+    /// Tracks snapshots per run across multiple polling cycles and determines
+    /// when a run is considered "stable" (= download completed).
     /// 
-    /// <para><b>Stabilitäts-Algorithmus:</b></para>
+    /// <para><b>Stability algorithm:</b></para>
     /// <list type="number">
-    ///   <item>Pro Run wird eine Historie von Snapshots geführt</item>
-    ///   <item>Neuer Snapshot wird mit dem vorherigen verglichen (Dateianzahl + Gesamtgröße)</item>
-    ///   <item>Sind beide gleich UND strukturell gültig → StableCount++</item>
-    ///   <item>Änderung erkannt → StableCount wird auf 0 zurückgesetzt</item>
-    ///   <item>StableCount ≥ Threshold → Run ist stabil</item>
+    ///   <item>A history of snapshots is kept per run</item>
+    ///   <item>A new snapshot is compared with the previous one (file count + total size)</item>
+    ///   <item>If both are equal AND structurally valid → StableCount++</item>
+    ///   <item>Change detected → StableCount is reset to 0</item>
+    ///   <item>StableCount ≥ threshold → run is stable</item>
     /// </list>
     /// </summary>
     public sealed class StabilityTracker
@@ -24,7 +24,7 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Zeichnet einen neuen Snapshot für einen Run auf und aktualisiert den Stabilitätszähler.
+        /// Records a new snapshot for a run and updates the stability counter.
         /// </summary>
         public void RecordSnapshot(RunSnapshot snapshot)
         {
@@ -47,7 +47,7 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Prüft ob ein Run die Stabilitätsschwelle erreicht hat.
+        /// Checks whether a run has reached the stability threshold.
         /// </summary>
         public bool IsStable(string runPath)
         {
@@ -58,7 +58,7 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Gibt den letzten Snapshot für einen Run zurück (für die download.done-Generierung).
+        /// Returns the latest snapshot for a run (for download.done generation).
         /// </summary>
         public RunSnapshot? GetLatestSnapshot(string runPath)
         {
@@ -66,14 +66,28 @@ namespace SENTINEL
         }
 
         /// <summary>
-        /// Entfernt den Tracking-State für einen Run (nach download.done-Generierung).
+        /// Removes the tracking state for a run (after download.done generation).
         /// </summary>
         public void Remove(string runPath)
         {
             _states.Remove(runPath);
         }
 
-        /// <summary>Anzahl aktuell getrackter Runs.</summary>
+        /// <summary>
+        /// Removes tracking states for runs that are no longer pending (folder deleted, moved
+        /// or download.done created elsewhere). Prevents unbounded growth.
+        /// </summary>
+        /// <returns>Number of removed states</returns>
+        public int RetainOnly(IEnumerable<string> activeRunPaths)
+        {
+            var active = new HashSet<string>(activeRunPaths, StringComparer.OrdinalIgnoreCase);
+            var stale = _states.Keys.Where(path => !active.Contains(path)).ToList();
+            foreach (var path in stale)
+                _states.Remove(path);
+            return stale.Count;
+        }
+
+        /// <summary>Number of currently tracked runs.</summary>
         public int TrackedRunCount => _states.Count;
 
         private sealed class RunTrackingState

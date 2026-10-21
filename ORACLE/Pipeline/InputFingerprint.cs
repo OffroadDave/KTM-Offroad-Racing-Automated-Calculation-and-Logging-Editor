@@ -4,13 +4,13 @@ using System.Text.Json;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Beschreibt die Version einer Eingabedatei (KOMPASS.json, loadChannels.xlsx) für Log und Status:
-    /// Zeitstempel, Größe, SHA-256 (gekürzt) und – für KOMPASS – Autor/Zeit aus dem KODE-Sidecar
-    /// <c>KOMPASS.meta.json</c>. Damit ist nachvollziehbar, mit welchem Datenstand ein Run verarbeitet wurde.
+    /// Describes the version of an input file (KOMPASS.json, loadChannels.xlsx) for log and status:
+    /// timestamp, size, SHA-256 (shortened) and – for KOMPASS – author/time from the KODE sidecar
+    /// <c>KOMPASS.meta.json</c>. This makes it traceable which data version a run was processed with.
     /// </summary>
     public static class InputFingerprint
     {
-        /// <summary>Kurzbeschreibung, z.B. <c>KOMPASS.json 2026-10-12T12:07:04Z, 5.1 KB, sha256 1a2b3c4d5e6f, saved by reicheltd 2026-10-12T12:07:04Z</c>.</summary>
+        /// <summary>Short description, e.g. <c>KOMPASS.json 2026-10-12T12:07:04Z, 5.1 KB, sha256 1a2b3c4d5e6f, saved by reicheltd 2026-10-12T12:07:04Z</c>.</summary>
         public static string Describe(string path)
         {
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))

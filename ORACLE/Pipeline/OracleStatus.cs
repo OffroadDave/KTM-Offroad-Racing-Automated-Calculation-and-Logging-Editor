@@ -5,23 +5,23 @@ using System.Text.Json.Serialization;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Status-Datei für Idempotenz: Wird nach erfolgreicher Verarbeitung im Run-Ordner
-    /// als <c>oracle.status.json</c> gespeichert.
+    /// Status file for idempotency: saved in the run folder as <c>oracle.status.json</c>
+    /// after successful processing.
     /// 
-    /// <para><b>Idempotenz-Logik:</b></para>
+    /// <para><b>Idempotency logic:</b></para>
     /// <list type="bullet">
-    ///   <item>Status existiert + ExitCode == 0 → Run bereits verarbeitet, überspringen</item>
-    ///   <item>Status existiert + ExitCode != 0 → Vorherige Verarbeitung fehlgeschlagen, wiederholen</item>
-    ///   <item>Status existiert nicht → Normal verarbeiten</item>
-    ///   <item><c>--force</c> Flag → Immer verarbeiten, Status ignorieren</item>
+    ///   <item>Status exists + ExitCode == 0 → run already processed, skip</item>
+    ///   <item>Status exists + ExitCode != 0 → previous processing failed, retry</item>
+    ///   <item>Status does not exist → process normally</item>
+    ///   <item><c>--force</c> flag → always process, ignore status</item>
     /// </list>
     /// 
-    /// <para><b>Dateistruktur:</b></para>
+    /// <para><b>File structure:</b></para>
     /// <code>
     /// Run_205/
     /// ├── Lap_001/
     /// ├── download.done          ← SENTINEL
-    /// └── oracle.status.json     ← ORACLE (dieses Modell)
+    /// └── oracle.status.json     ← ORACLE (this model)
     /// </code>
     /// </summary>
     public sealed class OracleStatus
@@ -35,58 +35,58 @@ namespace Ktm.Racing.Oracle
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        // Assembly-Version einmal per Reflection ermitteln und cachen (konstant zur Laufzeit).
+        // Determine the assembly version once via reflection and cache it (constant at runtime).
         private static readonly string CachedVersion = GetAssemblyVersion();
 
-        /// <summary>Schema-Version der Status-Datei</summary>
+        /// <summary>Schema version of the status file</summary>
         public string Version { get; set; } = "1.0";
 
-        /// <summary>Verarbeiteter Run-/Rider-Pfad</summary>
+        /// <summary>Processed run/rider path</summary>
         public string Path { get; set; } = string.Empty;
 
-        /// <summary>Zeitpunkt der Verarbeitung (UTC)</summary>
+        /// <summary>Time of processing (UTC)</summary>
         public DateTime ProcessedAtUtc { get; set; } = DateTime.UtcNow;
 
-        /// <summary>ORACLE-Version (aus Assembly)</summary>
+        /// <summary>ORACLE version (from assembly)</summary>
         public string OracleVersion { get; set; } = CachedVersion;
 
-        /// <summary>Status der einzelnen Verarbeitungsschritte</summary>
+        /// <summary>Status of the individual processing steps</summary>
         public Dictionary<string, StepStatus> Steps { get; set; } = [];
 
-        /// <summary>Finaler Exit-Code</summary>
+        /// <summary>Final exit code</summary>
         public int ExitCode { get; set; }
 
         /// <summary>
-        /// Revision der Verarbeitungslogik, mit der der Status geschrieben wurde (0 = vor Einführung). Ist sie kleiner als
-        /// <see cref="CurrentProcessingRevision"/>, wird der Ordner automatisch neu verarbeitet – so profitieren bereits
-        /// verarbeitete Sessions von Korrekturen (z.B. Metadaten, Run-Reparatur), ohne <c>--force</c>.
+        /// Revision of the processing logic that wrote the status (0 = before it was introduced). If it is lower than
+        /// <see cref="CurrentProcessingRevision"/>, the folder is automatically reprocessed – so already
+        /// processed sessions benefit from fixes (e.g. metadata, run repair) without <c>--force</c>.
         /// </summary>
         public int ProcessingRevision { get; set; }
 
         /// <summary>
-        /// Aktuelle Revision der Verarbeitungslogik. Erhöhen, wenn eine Änderung bereits verarbeitete Daten verbessert.
-        /// 2 = Metadaten per Muster, Geräte getrennt, Run-Reparatur, leere Runs, Längen-Median (2026-10-12).
-        /// 3 = KOMPASS-Stammdaten ersetzen abweichende .HED-Werte (z.B. riderName-Platzhalter) (2026-10-19).
+        /// Current revision of the processing logic. Increase it when a change improves already processed data.
+        /// 2 = metadata by pattern, devices separated, run repair, empty runs, length median (2026-10-12).
+        /// 3 = KOMPASS master data replaces mismatching .HED values (e.g. riderName placeholder) (2026-10-19).
         /// </summary>
         public const int CurrentProcessingRevision = 3;
 
-        /// <summary>Verarbeitungszustand eines Ordners laut Status-Datei.</summary>
+        /// <summary>Processing state of a folder according to the status file.</summary>
         public enum State
         {
-            /// <summary>Kein (lesbarer) Status oder fehlgeschlagen – vollständig verarbeiten.</summary>
+            /// <summary>No (readable) status or failed – process fully.</summary>
             NotProcessed,
 
-            /// <summary>Mit älterer Verarbeitungslogik verarbeitet – vollständig neu verarbeiten.</summary>
+            /// <summary>Processed with older processing logic – fully reprocess.</summary>
             Outdated,
 
-            /// <summary>Verarbeitet; nur die Track-Länge fehlte noch (Exit 5/6) – nur die Länge nachholen.</summary>
+            /// <summary>Processed; only the track length was still missing (exit 5/6) – only catch up on the length.</summary>
             LengthPending,
 
-            /// <summary>Erfolgreich verarbeitet (Exit 0, oder 4 nur wegen beschädigter Runs).</summary>
+            /// <summary>Successfully processed (exit 0, or 4 only because of corrupt runs).</summary>
             Done,
         }
 
-        /// <summary>Ermittelt den Verarbeitungszustand des Ordners.</summary>
+        /// <summary>Determines the processing state of the folder.</summary>
         public static State GetState(string targetPath)
         {
             var status = Load(targetPath);
@@ -103,20 +103,20 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Prüft ob der angegebene Pfad bereits verarbeitet wurde (<see cref="State.Done"/> oder <see cref="State.LengthPending"/>).
+        /// Checks whether the specified path has already been processed (<see cref="State.Done"/> or <see cref="State.LengthPending"/>).
         /// </summary>
         public static bool IsAlreadyProcessed(string targetPath)
         {
             var state = GetState(targetPath);
             if (state == State.Outdated)
-                Console.WriteLine($"[status] Mit älterer ORACLE-Verarbeitungslogik verarbeitet (Revision < {CurrentProcessingRevision}) – wird neu verarbeitet.");
+                Console.WriteLine($"[status] Processed with older ORACLE processing logic (revision < {CurrentProcessingRevision}) – reprocessing.");
             return state is State.Done or State.LengthPending;
         }
 
         /// <summary>
-        /// Lädt die Status-Datei aus dem angegebenen Verzeichnis.
+        /// Loads the status file from the specified directory.
         /// </summary>
-        /// <returns>OracleStatus bei Erfolg, null wenn keine Status-Datei existiert oder Parse-Fehler</returns>
+        /// <returns>OracleStatus on success, null if no status file exists or on a parse error</returns>
         public static OracleStatus? Load(string directoryPath)
         {
             var filePath = System.IO.Path.Combine(directoryPath, FileName);
@@ -130,16 +130,16 @@ namespace Ktm.Racing.Oracle
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Warnung: Status-Datei konnte nicht geladen werden: {ex.Message}");
+                Console.WriteLine($"Warning: status file could not be loaded: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// Speichert die Status-Datei im angegebenen Verzeichnis. Non-fatal: Ist die Datei gesperrt
-        /// (z.B. durch einen Editor/Watcher), wird eine Warnung geloggt statt zu werfen — eine
-        /// erfolgreiche Verarbeitung soll nicht wegen eines Schreibfehlers als Fehler erscheinen.
-        /// Ohne Status-Datei wird der Pfad beim nächsten Lauf erneut verarbeitet.
+        /// Saves the status file in the specified directory. Non-fatal: if the file is locked
+        /// (e.g. by an editor/watcher), a warning is logged instead of throwing — a
+        /// successful processing must not appear as a failure because of a write error.
+        /// Without a status file, the path is reprocessed on the next run.
         /// </summary>
         public void Save(string directoryPath)
         {
@@ -151,14 +151,14 @@ namespace Ktm.Racing.Oracle
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Warnung: Status-Datei konnte nicht gespeichert werden ({filePath}): {ex.Message}");
+                Console.WriteLine($"Warning: status file could not be saved ({filePath}): {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Markiert einen bereits verarbeiteten Ordner als veraltet (z.B. nachdem <c>split-laps</c> die Laps geändert hat),
-        /// damit der nächste <c>process</c>-Aufruf ihn ohne <c>--force</c> vollständig neu verarbeitet. Ohne Status-Datei
-        /// passiert nichts. Wirft, wenn die Invalidierung nicht gespeichert werden kann (anders als <see cref="Save"/>).
+        /// Marks an already processed folder as outdated (e.g. after <c>split-laps</c> has changed the laps)
+        /// so that the next <c>process</c> call fully reprocesses it without <c>--force</c>. Without a status file
+        /// nothing happens. Throws if the invalidation cannot be saved (unlike <see cref="Save"/>).
         /// </summary>
         public static void MarkOutdated(string directoryPath, string reason)
         {
@@ -174,7 +174,7 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Setzt den Status eines Verarbeitungsschritts.
+        /// Sets the status of a processing step.
         /// </summary>
         public void SetStep(string stepName, string status, Dictionary<string, object>? details = null)
         {
@@ -186,7 +186,7 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Erstellt eine neue Status-Instanz für den angegebenen Pfad.
+        /// Creates a new status instance for the specified path.
         /// </summary>
         public static OracleStatus Create(string targetPath)
         {
@@ -206,7 +206,7 @@ namespace Ktm.Racing.Oracle
     }
 
     /// <summary>
-    /// Status eines einzelnen Verarbeitungsschritts in der Pipeline.
+    /// Status of a single processing step in the pipeline.
     /// </summary>
     public sealed class StepStatus
     {
@@ -218,7 +218,7 @@ namespace Ktm.Racing.Oracle
         /// <summary>Status: "success", "failed", "partial", "skipped"</summary>
         public string Status { get; set; } = Success;
 
-        /// <summary>Optionale Detailinformationen (z.B. Quelle, Channel-Liste, Anzahl)</summary>
+        /// <summary>Optional details (e.g. source, channel list, count)</summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Dictionary<string, object>? Details { get; set; }
     }

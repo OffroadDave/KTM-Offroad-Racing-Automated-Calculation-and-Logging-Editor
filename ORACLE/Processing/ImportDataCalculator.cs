@@ -7,36 +7,32 @@ namespace Ktm.Racing.Oracle
 {
     public class ImportDataCalculator
     {
-        // Reader/Writer werden pro Run frisch erzeugt (vermeidet State-Leaks nach ReleaseObjects)
+        // Reader/writer are freshly created per run (avoids state leaks after ReleaseObjects)
         private IMarelliDataAccessWrite ztxAccessWrite = null!;
         private MarelliDataAccess? ztxAccessRead;
 
         private List<string> channelNames = new();
 
-        // Expose channel names read-only for other classes
-
-        public IReadOnlyList<string> ChannelNames => channelNames.AsReadOnly();
-
         private readonly GpsSettings _gps;
-        private GpsCleanResult? runGps; // aufbereitetes GPS des aktuellen Runs (sVehicle → Lap-Distanzen)
-        private string? currentRunPath; // Aktueller Run-Pfad
-        private IDataset resultDataset = new Dataset(); // Globale Variable für berechnete Ergebnisse
+        private GpsCleanResult? runGps; // cleaned GPS of the current run (sVehicle → lap distances)
+        private string? currentRunPath; // Current run path
+        private IDataset resultDataset = new Dataset(); // Global variable for calculated results
 
-        /// <summary>Erstellt den Rechner; <paramref name="gps"/> = GPS-Kanäle und Aufbereitung (Abschnitt <c>Gps</c>).</summary>
+        /// <summary>Creates the calculator; <paramref name="gps"/> = GPS channels and cleaning (section <c>Gps</c>).</summary>
         public ImportDataCalculator(GpsSettings? gps = null) => _gps = gps ?? new GpsSettings();
 
         /// <summary>
-        /// Hauptfunktion: Führt alle Berechnungsschritte für einen einzelnen Run aus.
-        /// Erzeugt frische Reader/Writer-Instanzen pro Aufruf, damit die Methode
-        /// sicher mehrfach hintereinander aufgerufen werden kann.
+        /// Main function: performs all calculation steps for a single run.
+        /// Creates fresh reader/writer instances per call so that the method
+        /// can safely be called several times in a row.
         /// </summary>
-        /// <param name="runPath">Pfad zum Run-Ordner (Basis für das Laden der Daten)</param>
-        /// <param name="distanceOffsetMeters">Start-Offset für sVehicle (Continuity über Renn-Runs).</param>
+        /// <param name="runPath">Path to the run folder (basis for loading the data)</param>
+        /// <param name="distanceOffsetMeters">Start offset for sVehicle (continuity across race runs).</param>
         /// <param name="preloaded">
-        /// Bereits gelesene Run-Daten (z.B. aus der Renn-Erkennung); dann wird der Run nicht erneut geladen.
-        /// <c>null</c> = Run hier laden.
+        /// Already read run data (e.g. from the race detection); then the run is not loaded again.
+        /// <c>null</c> = load the run here.
         /// </param>
-        /// <returns>Run-Distanz (ohne Offset) und die GPS-Distanz je Lap.</returns>
+        /// <returns>Run distance (without offset) and the GPS distance per lap.</returns>
         public RunCalcResult RunCalculationPipeline(string runPath, double distanceOffsetMeters = 0, RunGpsData? preloaded = null)
         {
             currentRunPath = runPath;
@@ -45,32 +41,32 @@ namespace Ktm.Racing.Oracle
             runGps = null;
             ztxAccessRead = null;
 
-            // Frischer Writer pro Run (vermeidet State-Leaks nach ReleaseObjects); der Reader nur, wenn wirklich gelesen wird.
+            // Fresh writer per run (avoids state leaks after ReleaseObjects); the reader only if data is actually read.
             ztxAccessWrite = KtmDataHandlerFactory.CreateWriter();
 
             double runDistance = 0.0;
             double[] lapDistances = [];
             try
             {
-                // 1. Run-Daten übernehmen oder laden (Fehler werfen, damit der Aufrufer den Run als fehlgeschlagen zählt)
+                // 1. Take over or load run data (throw errors so that the caller counts the run as failed)
                 var data = preloaded ?? LoadDataSet(runPath);
                 channelNames = data.ChannelNames.ToList();
 
-                // 2. Berechnungsfunktionen der Reihe nach ausführen
+                // 2. Execute calculation functions in order
                 runDistance = SVehicleCalc(data, distanceOffsetMeters);
 
-                // 3. Distanz je Lap (aus derselben Datenquelle) für LapDistance
+                // 3. Distance per lap (from the same data source) for LapDistance
                 lapDistances = ComputeLapDistances(runPath, data);
 
-                // 4. Ergebnisse speichern (nur wenn Berechnungen Ergebnisse erzeugt haben)
+                // 4. Save results (only if calculations produced results)
                 if (resultDataset.NumElements() > 0)
                 {
                     SaveResults(resultDataset);
-                    Console.WriteLine($"{resultDataset.NumElements()} berechnete(r) Channel(s) gespeichert.");
+                    Console.WriteLine($"{resultDataset.NumElements()} calculated channel(s) saved.");
                 }
                 else
                 {
-                    Console.WriteLine("Keine Berechnungsergebnisse zum Speichern.");
+                    Console.WriteLine("No calculation results to save.");
                 }
             }
             finally
@@ -82,54 +78,17 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Führt die Berechnungspipeline für mehrere Runs sequentiell aus.
-        /// Jeder Run wird mit frischen Reader/Writer-Instanzen verarbeitet,
-        /// um State-Leaks zwischen Runs zu vermeiden.
+        /// Loads the run and reads the channel list, lap boundaries and the GPS channels.
         /// </summary>
-        /// <param name="runPaths">Liste der Run-Pfade</param>
-        /// <returns>Anzahl erfolgreich verarbeiteter Runs</returns>
-        public int RunCalculationPipelineForRuns(IReadOnlyList<string> runPaths)
-        {
-            if (runPaths == null || runPaths.Count == 0)
-            {
-                Console.WriteLine("[calc] Keine Runs für Berechnungen angegeben.");
-                return 0;
-            }
-
-            Console.WriteLine($"[calc] Starte Berechnungspipeline für {runPaths.Count} Run(s)...");
-            int successCount = 0;
-
-            for (int idx = 0; idx < runPaths.Count; idx++)
-            {
-                var runPath = runPaths[idx];
-                Console.WriteLine($"[calc] ── Run {idx + 1}/{runPaths.Count}: {Path.GetFileName(runPath)}");
-                try
-                {
-                    RunCalculationPipeline(runPath);
-                    successCount++;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[calc] ❌ Fehler bei {Path.GetFileName(runPath)}: {ex.Message}");
-                }
-            }
-
-            Console.WriteLine($"[calc] Abgeschlossen: {successCount}/{runPaths.Count} Run(s) erfolgreich.");
-            return successCount;
-        }
-
-        /// <summary>
-        /// Lädt den Run und liest Kanalliste, Lap-Grenzen und die GPS-Kanäle.
-        /// </summary>
-        /// <param name="runPath">Pfad zum Run-Ordner</param>
-        /// <exception cref="InvalidDataException">Der Run kann nicht geladen werden.</exception>
+        /// <param name="runPath">Path to the run folder</param>
+        /// <exception cref="InvalidDataException">The run cannot be loaded.</exception>
         private RunGpsData LoadDataSet(string runPath)
         {
             var reader = OpenReader(runPath);
-            Console.WriteLine($"Datensatz erfolgreich geladen aus: {runPath}");
+            Console.WriteLine($"Dataset successfully loaded from: {runPath}");
 
             var names = reader.GetChannelsNames() ?? [];
-            Console.WriteLine("Channelliste aus Datensatz extrahiert.");
+            Console.WriteLine("Channel list extracted from dataset.");
 
             var latName = GpsSettings.Resolve(names, _gps.LatitudeChannel);
             var lonName = GpsSettings.Resolve(names, _gps.LongitudeChannel);
@@ -152,8 +111,8 @@ namespace Ktm.Racing.Oracle
             };
         }
 
-        /// <summary>Lädt den Run einmalig (lazy) für Lesezugriffe.</summary>
-        /// <exception cref="InvalidDataException">Der Run kann nicht geladen werden.</exception>
+        /// <summary>Loads the run once (lazily) for read access.</summary>
+        /// <exception cref="InvalidDataException">The run cannot be loaded.</exception>
         private MarelliDataAccess OpenReader(string runPath)
         {
             if (ztxAccessRead is not null)
@@ -168,16 +127,16 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Berechnung der kumulierten Distanz aus GPS-Koordinaten und Hinzufügen als neuen Channel.
+        /// Calculates the cumulative distance from GPS coordinates and adds it as a new channel.
         /// </summary>
-        /// <param name="data">Kanalliste und GPS-Kanäle des Runs.</param>
-        /// <param name="distanceOffset">Offset [m], der auf jede sVehicle-Stützstelle addiert wird.</param>
-        /// <returns>Die in diesem Run zurückgelegte Distanz [m] (ohne Offset).</returns>
+        /// <param name="data">Channel list and GPS channels of the run.</param>
+        /// <param name="distanceOffset">Offset [m] that is added to every sVehicle sample.</param>
+        /// <returns>The distance [m] covered in this run (without offset).</returns>
         private double SVehicleCalc(RunGpsData data, double distanceOffset)
         {
-            Console.WriteLine("Kumulierte Distanz aus GPS wird berechnet...");
+            Console.WriteLine("Calculating cumulative distance from GPS...");
 
-            // Exakte Kanalnamen aus der Konfiguration (Groß/Klein egal, kein Teilstring-Fallback).
+            // Exact channel names from the configuration (case-insensitive, no substring fallback).
             string? latChannelName = GpsSettings.Resolve(data.ChannelNames, _gps.LatitudeChannel);
             string? lonChannelName = GpsSettings.Resolve(data.ChannelNames, _gps.LongitudeChannel);
             if (latChannelName is null || lonChannelName is null)
@@ -185,7 +144,7 @@ namespace Ktm.Racing.Oracle
                 var missing = new List<string>();
                 if (latChannelName is null) missing.Add(_gps.LatitudeChannel);
                 if (lonChannelName is null) missing.Add(_gps.LongitudeChannel);
-                Console.WriteLine($"Fehlende Kanäle: {string.Join(", ", missing)}. Berechnung wird abgebrochen.");
+                Console.WriteLine($"Missing channels: {string.Join(", ", missing)}. Calculation aborted.");
                 return 0.0;
             }
 
@@ -194,29 +153,29 @@ namespace Ktm.Racing.Oracle
             var time = data.Time;
             if (latitudes == null || longitudes == null || time == null)
             {
-                Console.WriteLine("Channel-Daten sind nicht im erwarteten Format.");
+                Console.WriteLine("Channel data is not in the expected format.");
                 return 0.0;
             }
 
             if (latitudes.Length != longitudes.Length || latitudes.Length != time.Length || latitudes.Length < 2)
             {
-                Console.WriteLine("Latitude, Longitude und Zeit-Arrays müssen gleiche Länge und mindestens 2 Punkte haben.");
+                Console.WriteLine("Latitude, longitude and time arrays must have the same length and at least 2 points.");
                 return 0.0;
             }
 
-            // GPS aufbereiten (wie Lat_Valid/Lon_Valid: Samples ohne Fix entfernen, Aussetzer überbrücken; zusätzlich
-            // wiederholte Fixes zusammenfassen und GPS-Sprünge entfernen) und die Distanz auf das Kanalraster legen.
+            // Clean GPS (like Lat_Valid/Lon_Valid: remove samples without fix, bridge dropouts; additionally
+            // merge repeated fixes and remove GPS jumps) and map the distance onto the channel grid.
             var gps = GpsCleaner.Clean(new GpsTrace(time, latitudes, longitudes), _gps.ToCleanOptions());
             runGps = gps;
             if (!gps.HasFix)
-                Console.WriteLine("[gps] Kein GPS-Fix in diesem Run (Lat/Lon = 0) – sVehicle und LapDistance sind 0 m.");
+                Console.WriteLine("[gps] No GPS fix in this run (lat/lon = 0) – sVehicle stays 0 m, no LapDistance is written.");
             else if (gps.InvalidSamples > 0 || gps.SpikeFixes > 0 || gps.JumpCount > 0)
-                Console.WriteLine($"[gps] Aufbereitet: {gps.Summary}.");
+                Console.WriteLine($"[gps] Cleaned: {gps.Summary}.");
 
             double[] distance = gps.DistanceAt(time);
             double runDistance = gps.TotalMeters;
 
-            // Offset addieren (Continuity über Renn-Runs), dann erst runden (vermeidet Fehlerakkumulation).
+            // Add offset (continuity across race runs), only then round (avoids error accumulation).
             for (int i = 0; i < distance.Length; i++)
                 distance[i] = Math.Round(distance[i] + distanceOffset, 2);
             // Create new timeseries for sVehicle
@@ -228,18 +187,18 @@ namespace Ktm.Racing.Oracle
             // Add to calculation dataset
             resultDataset.Add(sVehicle);
 
-            Console.WriteLine($"Berechnung von sVehicle abgeschlossen (Offset {distanceOffset:F0} m, +{runDistance:F0} m).");
+            Console.WriteLine($"sVehicle calculation completed (offset {distanceOffset:F0} m, +{runDistance:F0} m).");
             return runDistance;
         }
 
         /// <summary>
-        /// Speichert die berechneten Ergebnisse als importData.ztx im Run.
+        /// Saves the calculated results as importData.ztx in the run.
         /// </summary>
-        /// <param name="dataSet">Datensatz mit Ergebnissen</param>
-        /// <exception cref="IOException">Die Write-API meldet Fehler (sVehicle wurde nicht vollständig geschrieben).</exception>
+        /// <param name="dataSet">Dataset with results</param>
+        /// <exception cref="IOException">The write API reports errors (sVehicle was not written completely).</exception>
         private void SaveResults(IDataset dataSet)
         {
-            Console.WriteLine("Speichere Ergebnisse...");
+            Console.WriteLine("Saving results...");
             if (currentRunPath == null)
                 throw new InvalidOperationException("runPath is not set.");
             ztxAccessWrite.SetDataLocation([currentRunPath]);
@@ -249,10 +208,10 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// GPS-Distanz [m] je Lap (1-basiert). Primär aus der aufbereiteten Run-Distanz an den Lap-Grenzen – dadurch ist die
-        /// Summe der Laps exakt die sVehicle-Distanz, und Aussetzer/Sprünge an einer Lap-Grenze werden wie im Run behandelt.
-        /// Ohne Lap-Grenzen: je Lap über die per-Lap-Kanalabfrage, ebenfalls aufbereitet. Ohne GPS-Fix ist die Distanz
-        /// unbekannt (<see cref="double.NaN"/>) – dann wird eine vorhandene LapDistance entfernt statt „0 m“ zu schreiben.
+        /// GPS distance [m] per lap (1-based). Primarily from the cleaned run distance at the lap boundaries – this way the
+        /// sum of the laps is exactly the sVehicle distance, and dropouts/jumps at a lap boundary are handled as in the run.
+        /// Without lap boundaries: per lap via the per-lap channel query, also cleaned. Without a GPS fix the distance is
+        /// unknown (<see cref="double.NaN"/>) – then an existing LapDistance is removed instead of writing "0 m".
         /// </summary>
         private double[] ComputeLapDistances(string runPath, RunGpsData data)
         {
@@ -273,7 +232,7 @@ namespace Ktm.Racing.Oracle
             string? lonName = GpsSettings.Resolve(channelNames, _gps.LongitudeChannel);
             if (latName is null || lonName is null)
             {
-                Console.WriteLine($"Lap-Distanz übersprungen: GPS-Kanäle ({_gps.LatitudeChannel}/{_gps.LongitudeChannel}) nicht verfügbar.");
+                Console.WriteLine($"Lap distance skipped: GPS channels ({_gps.LatitudeChannel}/{_gps.LongitudeChannel}) not available.");
                 return distances;
             }
 
@@ -282,7 +241,7 @@ namespace Ktm.Racing.Oracle
             {
                 try
                 {
-                    // Der NLaps-Overload liefert ein Tuple (per-Lap-Array, kombiniert).
+                    // The NLaps overload returns a tuple (per-lap array, combined).
                     var (perLap, combined) = reader.GetChannels(
                         new[] { latName, lonName }, new uint[] { n }, null, false);
                     var ds = combined ?? (perLap is { Length: > 0 } ? perLap[0] : null);
@@ -296,7 +255,7 @@ namespace Ktm.Racing.Oracle
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Lap-Distanz für Lap {n} fehlgeschlagen: {ex.Message}");
+                    Console.WriteLine($"Lap distance for lap {n} failed: {ex.Message}");
                 }
             }
             return distances;

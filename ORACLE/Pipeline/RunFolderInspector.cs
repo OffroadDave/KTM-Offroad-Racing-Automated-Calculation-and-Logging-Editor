@@ -1,24 +1,24 @@
 namespace Ktm.Racing.Oracle
 {
-    /// <summary>Ein Run-Ordner, den die WinTAX-API nicht als gültigen Run erkennt, mit Diagnose.</summary>
-    /// <param name="RunPath">Pfad des <c>Run_*</c>-Ordners.</param>
-    /// <param name="Reason">Lesbare Ursache (z.B. Lap-Ordner ohne <c>cableData.ztx</c>).</param>
+    /// <summary>A run folder that the WinTAX API does not recognize as a valid run, with diagnosis.</summary>
+    /// <param name="RunPath">Path of the <c>Run_*</c> folder.</param>
+    /// <param name="Reason">Readable cause (e.g. lap folder without <c>cableData.ztx</c>).</param>
     /// <param name="IsEmpty">
-    /// <c>true</c> für einen leeren Run (keine Lap-Ordner, keine Lap in <c>RunLapHeader.xml</c> – Logger ohne Aufzeichnung).
-    /// Leere Runs enthalten keine Messdaten; sie sind kein Fehler und erhalten nur die Metadaten.
+    /// <c>true</c> for an empty run (no lap folders, no lap in <c>RunLapHeader.xml</c> – logger without recording).
+    /// Empty runs contain no measurement data; they are not an error and only receive the metadata.
     /// </param>
     public sealed record SkippedRun(string RunPath, string Reason, bool IsEmpty = false);
 
     /// <summary>
-    /// Findet <c>Run_*</c>-Ordner rein per System.IO und diagnostiziert, warum ein Ordner kein gültiger
-    /// WinTAX4-Run ist. Damit werden Runs, die <c>FindRuns</c> nicht liefert, nicht mehr stillschweigend
-    /// übergangen (ohne native Abhängigkeit, testbar).
+    /// Finds <c>Run_*</c> folders purely via System.IO and diagnoses why a folder is not a valid
+    /// WinTAX4 run. This way, runs that <c>FindRuns</c> does not return are no longer silently
+    /// skipped (without native dependency, testable).
     /// </summary>
     public static class RunFolderInspector
     {
         /// <summary>
-        /// Alle <c>Run_*</c>-Ordner unter <paramref name="root"/> (der Ordner selbst, falls er ein Run-Ordner ist).
-        /// Steigt nicht in Run-Ordner ab.
+        /// All <c>Run_*</c> folders under <paramref name="root"/> (the folder itself, if it is a run folder).
+        /// Does not descend into run folders.
         /// </summary>
         public static IReadOnlyList<string> FindRunFolders(string root)
         {
@@ -51,8 +51,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Die <c>Run_*</c>-Ordner unter <paramref name="root"/>, die nicht in <paramref name="validRuns"/>
-        /// (Ergebnis von <c>FindRuns</c>/<c>IsRunLocation</c>) enthalten sind, jeweils mit Diagnose.
+        /// The <c>Run_*</c> folders under <paramref name="root"/> that are not contained in <paramref name="validRuns"/>
+        /// (result of <c>FindRuns</c>/<c>IsRunLocation</c>), each with diagnosis.
         /// </summary>
         public static IReadOnlyList<SkippedRun> FindSkipped(string root, IEnumerable<string> validRuns)
         {
@@ -65,13 +65,13 @@ namespace Ktm.Racing.Oracle
                 .ToList();
         }
 
-        /// <summary><c>true</c>, wenn der Run keine Lap-Ordner hat und <c>RunLapHeader.xml</c> keine Lap referenziert.</summary>
+        /// <summary><c>true</c> if the run has no lap folders and <c>RunLapHeader.xml</c> references no lap.</summary>
         public static bool IsEmptyRun(string runFolder) =>
             Directory.Exists(runFolder)
             && Directory.GetDirectories(runFolder, "Lap_*", SearchOption.TopDirectoryOnly).Length == 0
             && (RunRepair.ReferencedLaps(runFolder)?.Count ?? 0) == 0;
 
-        /// <summary>Beschreibt, warum ein Run-Ordner nicht verarbeitet werden kann.</summary>
+        /// <summary>Describes why a run folder cannot be processed.</summary>
         public static string Diagnose(string runFolder)
         {
             if (!Directory.Exists(runFolder))

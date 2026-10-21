@@ -4,49 +4,49 @@ using System.Xml.Linq;
 namespace Ktm.Racing.Oracle
 {
     /// <summary>
-    /// Schreibt Run-/Lap-Properties DIREKT in die WinTAX4-XML-Dateien.
+    /// Writes run/lap properties DIRECTLY into the WinTAX4 XML files.
     ///
-    /// <para>Ersetzt die frühere, API-basierte Variante: Die KtmDataHandler-Property-API
-    /// (<c>AddRunProperty</c>/<c>AddLapProperty</c>) persistiert in dieser Umgebung nicht in die
-    /// XML-Dateien, die WinTAX4/downstream tatsächlich lesen. Der XmlRunEditor bearbeitet daher:</para>
+    /// <para>Replaces the former API-based variant: the KtmDataHandler property API
+    /// (<c>AddRunProperty</c>/<c>AddLapProperty</c>) does not persist in this environment to the
+    /// XML files that WinTAX4/downstream actually read. The XmlRunEditor therefore edits:</para>
     /// <list type="bullet">
-    ///   <item><b>Primär</b> je Lap die <c>LapHeader.xml</c>: Lap, TrackLap, Alias, Run, TrackRun, Marker, LapDistance</item>
+    ///   <item><b>Primarily</b> the <c>LapHeader.xml</c> per lap: Lap, TrackLap, Alias, Run, TrackRun, Marker, LapDistance</item>
     ///   <item><c>Car.xml</c>: Name, DriverName</item>
     ///   <item><c>Session.xml</c>: Track, TrackLen</item>
-    ///   <item><b>Sekundär</b> die aggregierte <c>RunLapHeader.xml</c> (Infos je Lap) konsistent</item>
+    ///   <item><b>Secondarily</b> the aggregated <c>RunLapHeader.xml</c> (infos per lap), consistently</item>
     /// </list>
     /// </summary>
     public class XmlRunEditor
     {
         /// <summary>
-        /// Setzt alle Run- und Lap-Properties direkt in den XML-Dateien eines Run-Ordners.
+        /// Sets all run and lap properties directly in the XML files of a run folder.
         /// </summary>
-        /// <param name="lapOffset">Basis für fortlaufende Lap-Nummerierung über mehrere Renn-Runs (Option C).</param>
-        /// <param name="isLastInStint">True wenn dies der letzte Renn-Run ist (nur dann Box-Marker am Ende).</param>
+        /// <param name="lapOffset">Basis for continuous lap numbering across several race runs (option C).</param>
+        /// <param name="isLastInStint">True if this is the last race run (only then a box marker at the end).</param>
         /// <param name="lapDistances">
-        /// GPS-Distanz je Lap [m] (Index 0 = erste Lap); null = LapDistance unverändert lassen. Ein unbekannter Wert
-        /// (<see cref="double.NaN"/> oder fehlender Eintrag) entfernt eine vorhandene (veraltete) LapDistance.
+        /// GPS distance per lap [m] (index 0 = first lap); null = leave LapDistance unchanged. An unknown value
+        /// (<see cref="double.NaN"/> or missing entry) removes an existing (stale) LapDistance.
         /// </param>
-        /// <returns>Anzahl der Laps in diesem Run (für die Offset-Akkumulation).</returns>
-        /// <exception cref="Exception">Eine XML-Datei kann nicht gelesen/geschrieben werden – der Aufrufer zählt den Run als fehlgeschlagen.</exception>
+        /// <returns>Number of laps in this run (for the offset accumulation).</returns>
+        /// <exception cref="Exception">An XML file cannot be read/written – the caller counts the run as failed.</exception>
         public int SetRunProperties(string runPath, string alias, string track, string trackLength, string rider,
             int lapOffset = 0, bool isLastInStint = true, IReadOnlyList<double>? lapDistances = null)
         {
-            // Alias defensiv normalisieren: garantiert keine Leerzeichen in XML/HED (z.B. "AA 01" -> "AA01").
+            // Normalize alias defensively: guarantees no spaces in XML/HED (e.g. "AA 01" -> "AA01").
             alias = BikeAlias.Normalize(alias);
 
             string runFolderName = new DirectoryInfo(runPath).Name;
             int runNumber = int.TryParse(runFolderName.Replace("Run_", ""), out int num) ? num : 0;
 
-            // Lap-Reihenfolge wie in den Daten (RunLapHeader.xml, nur Laps mit Daten) – dieselbe Reihenfolge wie lapDistances.
+            // Lap order as in the data (RunLapHeader.xml, only laps with data) – the same order as lapDistances.
             var lapDirs = OrderedLapFolders(runPath);
             int numLaps = lapDirs.Count;
 
-            // --- Run-Level (Car.xml / Session.xml) ---
+            // --- Run level (Car.xml / Session.xml) ---
             UpdateCarXml(runPath, alias, rider);
             UpdateSessionXml(runPath, track, trackLength);
 
-            // --- per-Lap LapHeader.xml (PRIMÄR) ---
+            // --- per-lap LapHeader.xml (PRIMARY) ---
             for (int i = 0; i < numLaps; i++)
             {
                 int continuousLap = lapOffset + i + 1;
@@ -56,19 +56,19 @@ namespace Ktm.Racing.Oracle
                     lastLapOfStint ? "Box" : "Lap", lapDist);
             }
 
-            // --- RunLapHeader.xml (SEKUNDÄR, konsistent) ---
+            // --- RunLapHeader.xml (SECONDARY, consistent) ---
             UpdateRunLapHeaderXml(runPath, lapDirs, alias, runNumber, lapOffset, isLastInStint, lapDistances);
 
             Console.WriteLine(
-                $"XML-Properties gesetzt für {runFolderName}: {numLaps} Lap(s), " +
-                $"Lap {lapOffset + 1}..{lapOffset + numLaps}, Alias=\"{alias}\", Run={runNumber}.");
+                $"XML properties set for {runFolderName}: {numLaps} lap(s), " +
+                $"lap {lapOffset + 1}..{lapOffset + numLaps}, Alias=\"{alias}\", Run={runNumber}.");
 
             return numLaps;
         }
 
         /// <summary>
-        /// Die Lap-Ordner eines Runs in Daten-Reihenfolge (<c>RunLapHeader.xml</c>, nur Ordner mit Daten); ohne
-        /// RunLapHeader alle <c>Lap_*</c>-Ordner nach Namen.
+        /// The lap folders of a run in data order (<c>RunLapHeader.xml</c>, only folders with data); without
+        /// RunLapHeader all <c>Lap_*</c> folders by name.
         /// </summary>
         public static List<string> OrderedLapFolders(string runPath)
         {
@@ -81,7 +81,7 @@ namespace Ktm.Racing.Oracle
         }
 
         // =====================================================================
-        //  XML-Editoren pro Datei
+        //  XML editors per file
         // =====================================================================
 
         private static void UpdateCarXml(string runPath, string name, string driver)
@@ -109,8 +109,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Setzt nur <c>TrackLen</c> in der <c>Session.xml</c> eines Runs (nach der Track-Längen-Prüfung,
-        /// wenn die Länge erst aus den Rundendistanzen ermittelt wurde). Non-fatal.
+        /// Sets only <c>TrackLen</c> in the <c>Session.xml</c> of a run (after the track length check,
+        /// when the length was only determined from the lap distances). Non-fatal.
         /// </summary>
         public void SetTrackLength(string runPath, string trackLength)
         {
@@ -126,7 +126,7 @@ namespace Ktm.Racing.Oracle
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Setzen von TrackLen für {Path.GetFileName(runPath)}: {ex.Message}");
+                Console.WriteLine($"Error setting TrackLen for {Path.GetFileName(runPath)}: {ex.Message}");
             }
         }
 
@@ -152,7 +152,7 @@ namespace Ktm.Racing.Oracle
                     SetChild(lh, "LapDistance", Math.Round(dist, 2));
             }
 
-            // Alias-Segment in etwaigen <Path>-Feldern normalisieren ("\AA 01\" → "\AA01\").
+            // Normalize the alias segment in any <Path> fields ("\AA 01\" → "\AA01\").
             foreach (var pathEl in lh.Descendants("Path"))
                 pathEl.Value = NormalizeAliasInPath(pathEl.Value, alias);
 
@@ -165,7 +165,7 @@ namespace Ktm.Racing.Oracle
             var file = Path.Combine(runPath, "RunLapHeader.xml");
             if (!File.Exists(file)) return;
 
-            // Ordnername → (fortlaufende Lap-Nr, Marker, Distanz) für die Zuordnung über den Pfad.
+            // Folder name → (continuous lap no., marker, distance) for matching via the path.
             var byFolder = new Dictionary<string, (int Lap, string Marker, double? Dist)>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < lapDirs.Count; i++)
             {
@@ -202,8 +202,8 @@ namespace Ktm.Racing.Oracle
                 }
             }
 
-            // Alias-Segment in ALLEN <Path>-Feldern normalisieren (v.a. Inf/Path als absoluter
-            // Run-Pfad: "…\AA 01\Run_1083\" → "…\AA01\Run_1083\"). Relative Lap-Pfade bleiben unberührt.
+            // Normalize the alias segment in ALL <Path> fields (especially Inf/Path as absolute
+            // run path: "…\AA 01\Run_1083\" → "…\AA01\Run_1083\"). Relative lap paths remain untouched.
             foreach (var pathEl in doc.Descendants("Path"))
                 pathEl.Value = NormalizeAliasInPath(pathEl.Value, alias);
 
@@ -211,17 +211,17 @@ namespace Ktm.Racing.Oracle
         }
 
         // =====================================================================
-        //  Hilfsmethoden
+        //  Helper methods
         // =====================================================================
 
         /// <summary>
-        /// Distanz für Lap <paramref name="index"/>: null = keine Distanzen übergeben (LapDistance unverändert),
-        /// <see cref="double.NaN"/> = berechnet, aber unbekannt (vorhandene LapDistance entfernen).
+        /// Distance for lap <paramref name="index"/>: null = no distances passed (LapDistance unchanged),
+        /// <see cref="double.NaN"/> = calculated but unknown (remove existing LapDistance).
         /// </summary>
         private static double? LapDistanceAt(IReadOnlyList<double>? lapDistances, int index)
             => lapDistances is null ? null : index < lapDistances.Count ? lapDistances[index] : double.NaN;
 
-        /// <summary>Setzt den Wert eines Kind-Elements; legt es an, falls es fehlt.</summary>
+        /// <summary>Sets the value of a child element; creates it if it is missing.</summary>
         private static void SetChild(XElement parent, string name, object value)
         {
             var el = parent.Element(name);
@@ -233,7 +233,7 @@ namespace Ktm.Racing.Oracle
             el.Value = ToInvariant(value);
         }
 
-        /// <summary>Setzt ein Name/Data-Info-Paar in einem RunLapHeader-&lt;Infos&gt;-Block; legt es an, falls es fehlt.</summary>
+        /// <summary>Sets a Name/Data info pair in a RunLapHeader &lt;Infos&gt; block; creates it if it is missing.</summary>
         private static void SetInfo(XElement infos, string name, object value)
         {
             var info = infos.Elements("Info").FirstOrDefault(e => (string?)e.Element("Name") == name);
@@ -255,9 +255,9 @@ namespace Ktm.Racing.Oracle
             => value is IFormattable f ? f.ToString(null, CultureInfo.InvariantCulture) : value?.ToString() ?? "";
 
         /// <summary>
-        /// Normalisiert das Alias-Segment in einem Pfad-String: Ein Pfadsegment, das (ohne Leerraum)
-        /// dem kanonischen Alias entspricht, wird durch den kanonischen Alias ersetzt
-        /// (z.B. <c>"…\AA 01\Run_1083\"</c> → <c>"…\AA01\Run_1083\"</c>). Andere Segmente bleiben unberührt.
+        /// Normalizes the alias segment in a path string: a path segment that (without whitespace)
+        /// matches the canonical alias is replaced by the canonical alias
+        /// (e.g. <c>"…\AA 01\Run_1083\"</c> → <c>"…\AA01\Run_1083\"</c>). Other segments remain untouched.
         /// </summary>
         private static string NormalizeAliasInPath(string path, string canonicalAlias)
         {

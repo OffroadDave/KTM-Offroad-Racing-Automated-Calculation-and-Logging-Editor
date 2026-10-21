@@ -1,40 +1,40 @@
 namespace Ktm.Racing.Oracle
 {
-    /// <summary>Schwellen der Start-Erkennung (identisch zur VCH <c>KTM_ORR_ValidStart.vch</c>).</summary>
+    /// <summary>Start detection thresholds (identical to the VCH <c>KTM_ORR_ValidStart.vch</c>).</summary>
     public sealed class StartDetectionOptions
     {
-        /// <summary>Stillstand: GPS-Geschwindigkeit darunter [km/h].</summary>
+        /// <summary>Standstill: GPS speed below this [km/h].</summary>
         public double StagedMaxSpeedKph { get; init; } = 3;
 
-        /// <summary>Am Gatter: Drehzahl darüber [rpm] (Leerlauf liegt deutlich darunter).</summary>
+        /// <summary>At the gate: RPM above this [rpm] (idle is well below).</summary>
         public double StagedMinRpm { get; init; } = 4000;
 
-        /// <summary>Mindestdauer [s], die das Bike vor dem Start ununterbrochen bereit am Gatter steht (Drehzahlaufbau ~2 s).</summary>
+        /// <summary>Minimum duration [s] the bike must stand ready at the gate without interruption before the start (RPM build-up ~2 s).</summary>
         public double StagedMinSeconds { get; init; } = 1.5;
 
-        /// <summary>Der Start muss spätestens so lange [s] nach dem Bereitstehen erfolgen.</summary>
+        /// <summary>The start must occur at most this long [s] after standing ready.</summary>
         public double StagedHoldSeconds { get; init; } = 1;
 
-        /// <summary>Gas innerhalb von <see cref="LaunchThrottleSeconds"/> nach dem Auslösen mindestens [%].</summary>
+        /// <summary>Minimum throttle [%] within <see cref="LaunchThrottleSeconds"/> after the trigger.</summary>
         public double LaunchMinThrottle { get; init; } = 50;
 
-        /// <summary>Zeitfenster [s] nach dem Auslösen für <see cref="LaunchMinThrottle"/>.</summary>
+        /// <summary>Time window [s] after the trigger for <see cref="LaunchMinThrottle"/>.</summary>
         public double LaunchThrottleSeconds { get; init; } = 0.5;
 
-        /// <summary>Bestätigung: innerhalb dieser Zeit [s] nach dem Start …</summary>
+        /// <summary>Confirmation: within this time [s] after the start …</summary>
         public double ConfirmSeconds { get; init; } = 3;
 
-        /// <summary>… mindestens diese GPS-Geschwindigkeit [km/h] erreichen …</summary>
+        /// <summary>… reach at least this GPS speed [km/h] …</summary>
         public double ConfirmMinSpeedKph { get; init; } = 30;
 
-        /// <summary>… und innerhalb von <see cref="DistanceSeconds"/> mindestens diese Strecke [m] zurücklegen.</summary>
+        /// <summary>… and cover at least this distance [m] within <see cref="DistanceSeconds"/>.</summary>
         public double ConfirmMinDistanceMeters { get; init; } = 20;
 
-        /// <summary>Zeitfenster [s] für die Streckenprüfung.</summary>
+        /// <summary>Time window [s] for the distance check.</summary>
         public double DistanceSeconds { get; init; } = 5;
     }
 
-    /// <summary>Auf ein gemeinsames Zeitraster gebrachte Kanäle eines Runs (gleiche Länge, Zeit in s).</summary>
+    /// <summary>Channels of a run resampled onto a common time grid (same length, time in s).</summary>
     public sealed class StartSignals
     {
         public required double[] Time { get; init; }
@@ -47,23 +47,24 @@ namespace Ktm.Racing.Oracle
         public double[]? LaunchActive { get; init; }
     }
 
-    /// <summary>Ein erkannter Start.</summary>
+    /// <summary>A detected start.</summary>
     public sealed record DetectedStart(
         double TimeSeconds, bool Valid, string Reason, double RpmAtLaunch, double MaxSpeed3sKph,
         double Distance5sMeters, bool LaunchControl);
 
     /// <summary>
-    /// Erkennt <b>gültige</b> Starts (Gatterstart) statt nur „erstes Mal Gas ≥ Kupplung“:
+    /// Detects <b>valid</b> starts (gate starts) instead of just "first time throttle ≥ clutch":
     /// <list type="number">
-    ///   <item>Bereit am Gatter: Stillstand, Gang eingelegt, Drehzahl hoch – ununterbrochen ≥ 2 s.</item>
-    ///   <item>Start: innerhalb 1 s danach Gas ≥ 50 % und Gas ≥ Kupplungsweg, nicht im Begrenzer-Modus.</item>
-    ///   <item>Bestätigung: innerhalb 3 s ≥ 30 km/h und innerhalb 5 s ≥ 20 m.</item>
+    ///   <item>Ready at the gate: standstill, gear engaged, high RPM – uninterrupted for ≥ 1.5 s (<see cref="StartDetectionOptions.StagedMinSeconds"/>).</item>
+    ///   <item>Start: at most 1 s later (<see cref="StartDetectionOptions.StagedHoldSeconds"/>), within 0.5 s throttle ≥ 50 % and
+    ///   throttle ≥ clutch travel, not in limiter mode.</item>
+    ///   <item>Confirmation: ≥ 30 km/h within 3 s and ≥ 20 m within 5 s.</item>
     /// </list>
-    /// Abgelehnte Kandidaten (z.B. Anfahren aus der Box) werden mit Grund gemeldet.
+    /// Rejected candidates (e.g. pulling away from the pit box) are reported with a reason.
     /// </summary>
     public static class StartDetector
     {
-        /// <summary>Alle Start-Kandidaten eines Runs (gültige und abgelehnte), zeitlich sortiert.</summary>
+        /// <summary>All start candidates of a run (valid and rejected), sorted by time.</summary>
         public static IReadOnlyList<DetectedStart> Detect(StartSignals s, StartDetectionOptions? options = null)
         {
             options ??= new StartDetectionOptions();
@@ -90,7 +91,7 @@ namespace Ktm.Racing.Oracle
                     stagedSince = double.NaN;
                 }
 
-                // Auslösen wie bisher (Gas ≥ Kupplungsweg, Launch-Begrenzer noch aktiv), aber nur aus der Bereitschaft am Gatter.
+                // Trigger as before (throttle ≥ clutch travel, launch limiter still active), but only from the ready state at the gate.
                 var throttle = s.Throttle[i];
                 var trigger = t - lastReady <= options.StagedHoldSeconds
                               && (s.Clutch is null ? throttle >= options.LaunchMinThrottle : throttle >= s.Clutch[i])
@@ -114,7 +115,7 @@ namespace Ktm.Racing.Oracle
                         : $"no launch (max {maxSpeed:0} km/h in {options.ConfirmSeconds:0} s, {distance:0} m in {options.DistanceSeconds:0} s)";
                 result.Add(new DetectedStart(t, valid, reason, s.Rpm[i], maxSpeed, distance, launchControl));
 
-                // Nächster Kandidat erst nach dem Bestätigungsfenster und erneutem Bereitstehen.
+                // Next candidate only after the confirmation window and standing ready again.
                 var next = t + options.DistanceSeconds;
                 while (i < n && s.Time[i] < next)
                     i++;
@@ -126,8 +127,8 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
-        /// Bringt einen Kanal per Sample-and-Hold auf das Zeitraster <paramref name="grid"/> (Kanäle haben unterschiedliche
-        /// Abtastraten). Vor dem ersten Sample wird der erste Wert verwendet.
+        /// Resamples a channel onto the time grid <paramref name="grid"/> using sample-and-hold (channels have different
+        /// sample rates). Before the first sample, the first value is used.
         /// </summary>
         public static double[] Resample(double[] time, double[] data, double[] grid)
         {
@@ -146,7 +147,7 @@ namespace Ktm.Racing.Oracle
             return result;
         }
 
-        /// <summary>Gleichmäßiges Zeitraster von <paramref name="start"/> bis <paramref name="end"/>.</summary>
+        /// <summary>Uniform time grid from <paramref name="start"/> to <paramref name="end"/>.</summary>
         public static double[] Grid(double start, double end, double step)
         {
             var count = Math.Max(0, (int)Math.Floor((end - start) / step) + 1);

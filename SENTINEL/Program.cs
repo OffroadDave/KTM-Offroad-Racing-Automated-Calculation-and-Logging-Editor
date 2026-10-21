@@ -1,19 +1,19 @@
 namespace SENTINEL
 {
     /// <summary>
-    /// SENTINEL — Download-Completion-Monitor für KRAKEN.
+    /// SENTINEL — download completion monitor for KRAKEN.
     /// 
-    /// Überwacht OneDrive-synchronisierte Ordner und generiert download.done Dateien
-    /// sobald ein Run_*-Ordner stabil ist (= OneDrive-Sync abgeschlossen).
+    /// Watches OneDrive-synchronized folders and generates download.done files
+    /// as soon as a Run_* folder is stable (= OneDrive sync completed).
     /// 
-    /// <para><b>Stabilitäts-Algorithmus:</b></para>
-    /// Scannt Run-Ordner in konfigurierbaren Intervallen, erstellt Snapshots
-    /// (Dateianzahl + Gesamtgröße + Lock-/Platzhalterprüfung) und vergleicht
-    /// aufeinanderfolgende Snapshots. Nach N stabilen Zyklen (Standard: 3 × 30s = 90s)
-    /// wird download.done generiert, was KRAKEN die Job-Pipeline starten lässt.
+    /// <para><b>Stability algorithm:</b></para>
+    /// Scans run folders at configurable intervals, creates snapshots
+    /// (file count + total size + lock/placeholder check) and compares
+    /// consecutive snapshots. After N stable cycles (default: 3 × 30s = 90s)
+    /// download.done is generated, which lets KRAKEN start the job pipeline.
     /// 
-    /// <para><b>Konfiguration:</b> sentinel-config.json im Anwendungsverzeichnis</para>
-    /// <para><b>Beenden:</b> Ctrl+C</para>
+    /// <para><b>Configuration:</b> sentinel-config.json in the application directory</para>
+    /// <para><b>Exit:</b> Ctrl+C</para>
     /// </summary>
     public static class Program
     {
@@ -25,23 +25,23 @@ namespace SENTINEL
             Console.WriteLine("╚══════════════════════════════════════════════╝");
             Console.WriteLine();
 
-            // --- Konfiguration laden ---
+            // --- Load configuration ---
             var config = SentinelConfig.Load();
 
             if (config.WatchPaths.Count == 0)
             {
-                Console.WriteLine("❌ Keine WatchPaths konfiguriert. Bitte sentinel-config.json prüfen.");
+                Console.WriteLine("❌ No WatchPaths configured. Please check sentinel-config.json.");
                 return 1;
             }
 
-            Console.WriteLine($"Konfiguration:");
-            Console.WriteLine($"  Polling-Intervall:     {config.PollingIntervalSeconds}s");
-            Console.WriteLine($"  Stabilitäts-Schwelle:  {config.StabilityThreshold} Zyklen");
-            Console.WriteLine($"  Min. Dateigröße (ZTX): {config.MinimumFileSizeBytes} Bytes");
-            Console.WriteLine($"  Überwachte Pfade:");
+            Console.WriteLine($"Configuration:");
+            Console.WriteLine($"  Polling interval:      {config.PollingIntervalSeconds}s");
+            Console.WriteLine($"  Stability threshold:   {config.StabilityThreshold} cycles");
+            Console.WriteLine($"  Min. file size (ZTX):  {config.MinimumFileSizeBytes} bytes");
+            Console.WriteLine($"  Watched paths:");
             foreach (var path in config.WatchPaths)
             {
-                var exists = Directory.Exists(path) ? "✅" : "❌ nicht gefunden";
+                var exists = Directory.Exists(path) ? "✅" : "❌ not found";
                 Console.WriteLine($"    → {path} {exists}");
             }
             Console.WriteLine();
@@ -54,15 +54,15 @@ namespace SENTINEL
                 e.Cancel = true;
                 cts.Cancel();
                 Console.WriteLine();
-                Console.WriteLine("⏹ Beende SENTINEL...");
+                Console.WriteLine("⏹ Stopping SENTINEL...");
             };
 
-            // --- Polling-Loop ---
+            // --- Polling loop ---
             var watcher = new RunWatcher(config);
             int totalGenerated = 0;
             int cycleNumber = 0;
 
-            Console.WriteLine("🔍 Starte Überwachung... (Ctrl+C zum Beenden)");
+            Console.WriteLine("🔍 Starting monitoring... (Ctrl+C to exit)");
             Console.WriteLine(new string('─', 60));
 
             try
@@ -70,7 +70,7 @@ namespace SENTINEL
                 while (!cts.Token.IsCancellationRequested)
                 {
                     cycleNumber++;
-                    Console.WriteLine($"[Zyklus {cycleNumber}] {DateTime.Now:HH:mm:ss} — Scanne...");
+                    Console.WriteLine($"[Cycle {cycleNumber}] {DateTime.Now:HH:mm:ss} — Scanning...");
 
                     var generated = watcher.RunScanCycle();
                     totalGenerated += generated;
@@ -78,12 +78,12 @@ namespace SENTINEL
                     var pending = watcher.TrackedRunCount;
                     if (pending > 0)
                     {
-                        Console.WriteLine($"  ⏳ {pending} Run(s) werden überwacht");
+                        Console.WriteLine($"  ⏳ {pending} run(s) being monitored");
                     }
 
                     if (generated > 0)
                     {
-                        Console.WriteLine($"  🎯 {generated} download.done generiert (gesamt: {totalGenerated})");
+                        Console.WriteLine($"  🎯 {generated} download.done generated (total: {totalGenerated})");
                     }
 
                     Console.WriteLine();
@@ -92,11 +92,11 @@ namespace SENTINEL
             }
             catch (OperationCanceledException)
             {
-                // Ctrl+C — normales Beenden
+                // Ctrl+C — normal exit
             }
 
             Console.WriteLine(new string('─', 60));
-            Console.WriteLine($"SENTINEL beendet. {totalGenerated} download.done Datei(en) generiert.");
+            Console.WriteLine($"SENTINEL stopped. {totalGenerated} download.done file(s) generated.");
             return 0;
         }
     }

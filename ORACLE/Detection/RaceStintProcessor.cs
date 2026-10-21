@@ -1,42 +1,42 @@
 ﻿namespace Ktm.Racing.Oracle
 {
-    /// <summary>Zusammenfassung der renn-bewussten Verarbeitung eines Rider-Ordners (Option C).</summary>
+    /// <summary>Summary of the race-aware processing of a rider folder (option C).</summary>
     public sealed class RaceStintResult
     {
-        /// <summary>Anzahl der als Rennen erkannten und durchgehend verarbeiteten Runs.</summary>
+        /// <summary>Number of runs detected as races and processed continuously.</summary>
         public int RaceRunCount { get; init; }
 
-        /// <summary>Anzahl der eigenständig verarbeiteten Nicht-Renn-Runs.</summary>
+        /// <summary>Number of non-race runs processed independently.</summary>
         public int NonRaceRunCount { get; init; }
 
-        /// <summary>Gesamtzahl der Laps über alle Renn-Runs (durchgehende Nummerierung).</summary>
+        /// <summary>Total number of laps across all race runs (continuous numbering).</summary>
         public int TotalRaceLaps { get; init; }
 
-        /// <summary>Gesamte Renndistanz [m] über alle Renn-Runs (durchgehende sVehicle-Distanz).</summary>
+        /// <summary>Total race distance [m] across all race runs (continuous sVehicle distance).</summary>
         public double TotalRaceDistanceMeters { get; init; }
 
-        /// <summary>Pfade der als Rennen verarbeiteten Runs (in chronologischer Reihenfolge).</summary>
+        /// <summary>Paths of the runs processed as races (in chronological order).</summary>
         public IReadOnlyList<string> RaceRunPaths { get; init; } = [];
 
-        /// <summary>GPS-Distanz je Lap [m] für jeden verarbeiteten Run (Grundlage der Track-Längen-Schätzung).</summary>
+        /// <summary>GPS distance per lap [m] for each processed run (basis of the track length estimate).</summary>
         public IReadOnlyList<IReadOnlyList<double>> LapDistancesPerRun { get; init; } = [];
 
-        /// <summary>Alle verarbeiteten Run-Pfade (Renn- und Nicht-Renn-Runs).</summary>
+        /// <summary>All processed run paths (race and non-race runs).</summary>
         public IReadOnlyList<string> ProcessedRunPaths { get; init; } = [];
 
-        /// <summary>Runs, deren Verarbeitung fehlschlug (Name: Ursache); die übrigen Runs wurden trotzdem verarbeitet.</summary>
+        /// <summary>Runs whose processing failed (name: cause); the remaining runs were processed anyway.</summary>
         public IReadOnlyList<string> FailedRuns { get; init; } = [];
     }
 
     /// <summary>
-    /// Verarbeitet einen Rider-/Session-Ordner renn-bewusst (Option C): Die als Rennen erkannten
-    /// Runs werden mit <b>durchgehender</b> <c>sVehicle</c>-Distanz und <b>fortlaufender</b>
-    /// Lap-Nummerierung verarbeitet, sodass ein durch Sturz/Abwürgen fragmentiertes Rennen als
-    /// eine zusammenhängende Einheit erscheint. Die Original-Ordnerstruktur bleibt unverändert
-    /// (Runs werden nicht zusammengeführt).
+    /// Processes a rider/session folder in a race-aware way (option C): the runs detected as races
+    /// are processed with a <b>continuous</b> <c>sVehicle</c> distance and <b>sequential</b>
+    /// lap numbering, so that a race fragmented by a crash/stall appears as
+    /// one contiguous unit. The original folder structure remains unchanged
+    /// (runs are not merged).
     ///
-    /// <para>Nicht-Renn-Runs (Blips, Standgas, Rollen, Sichtung, Auslauf) werden eigenständig
-    /// verarbeitet (Offset 0) — wie bei der klassischen Einzel-Run-Verarbeitung.</para>
+    /// <para>Non-race runs (blips, idling, rolling, sighting, cool-down) are processed
+    /// independently (offset 0) — like in classic single-run processing.</para>
     /// </summary>
     public class RaceStintProcessor
     {
@@ -48,29 +48,26 @@
             _detector = detector;
         }
 
-        /// <summary>Factory mit Standard-Abhängigkeiten.</summary>
-        public static RaceStintProcessor Create() => new(RaceSegmentDetector.Create());
-
         /// <summary>
-        /// Erkennt die Renn-Runs im Rider-Ordner und verarbeitet sie mit Continuity.
+        /// Detects the race runs in the rider folder and processes them with continuity.
         /// </summary>
-        /// <param name="riderPath">Rider-/Session-Ordner mit den Run_*-Unterordnern.</param>
-        /// <param name="metadata">Zuvor ermittelte Run-Metadaten (Bike, Track, Fahrer).</param>
-        /// <param name="trackLengthMeters">Track-Länge aus KOMPASS für die relative Distanzschwelle (0 = nur absolut).</param>
+        /// <param name="riderPath">Rider/session folder containing the Run_* subfolders.</param>
+        /// <param name="metadata">Previously determined run metadata (bike, track, rider).</param>
+        /// <param name="trackLengthMeters">Track length from KOMPASS for the relative distance threshold (0 = absolute only).</param>
         public RaceStintResult ProcessRider(string riderPath, RunMetadata metadata, double trackLengthMeters = 0)
         {
             var detection = _detector.DetectRaces(riderPath, trackLengthMeters);
 
-            // Renn-Runs chronologisch (numerisch nach Run-Nummer, robust gegen unterschiedliche Stellenzahl).
+            // Race runs in chronological order (numerically by run number, robust against different digit counts).
             var raceRuns = detection.Runs
                 .Where(r => r.Verdict == RaceRunVerdict.Race)
-                .OrderBy(r => RunNumber(r.RunFolderName))
+                .OrderBy(r => RunFolders.Number(r.RunFolderName))
                 .ToList();
             var nonRaceRuns = detection.Runs
                 .Where(r => r.Verdict == RaceRunVerdict.NoRace)
                 .ToList();
 
-            Console.WriteLine($"[stint] {raceRuns.Count} Renn-Run(s), {nonRaceRuns.Count} Nicht-Renn-Run(s).");
+            Console.WriteLine($"[stint] {raceRuns.Count} race run(s), {nonRaceRuns.Count} non-race run(s).");
 
             var xmlEditor = new XmlRunEditor();
             var calculator = new ImportDataCalculator(_detector.Gps);
@@ -78,7 +75,7 @@
             var processedRuns = new List<string>();
             var failedRuns = new List<string>();
 
-            // --- Renn-Runs: durchgehende Distanz + fortlaufende Lap-Nummerierung ---
+            // --- Race runs: continuous distance + sequential lap numbering ---
             double distanceOffset = 0.0;
             int lapOffset = 0;
             for (int i = 0; i < raceRuns.Count; i++)
@@ -86,8 +83,8 @@
                 var run = raceRuns[i];
                 bool isLast = i == raceRuns.Count - 1;
 
-                // Berechnung ZUERST (schreibt importData.ztx + RunLapHeader-Overlay und liefert die
-                // per-Lap-Distanzen), danach die XML-Properties mit fortlaufender Lap-Nummerierung.
+                // Calculation FIRST (writes importData.ztx + RunLapHeader overlay and returns the
+                // per-lap distances), then the XML properties with sequential lap numbering.
                 try
                 {
                     var calc = calculator.RunCalculationPipeline(run.RunPath, distanceOffset, run.Data);
@@ -106,16 +103,16 @@
                 }
                 catch (Exception ex)
                 {
-                    // Ein defekter Run darf die übrigen Runs des Geräts nicht verhindern.
-                    Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: Verarbeitung fehlgeschlagen – {ex.Message}");
+                    // A defective run must not prevent processing of the device's remaining runs.
+                    Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: processing failed – {ex.Message}");
                     failedRuns.Add($"{run.RunFolderName}: {ex.Message}");
                 }
             }
 
-            // --- Nicht-Renn-Runs: eigenständig (Offset 0), unverändertes Verhalten ---
+            // --- Non-race runs: independent (offset 0), unchanged behavior ---
             foreach (var run in nonRaceRuns)
             {
-                Console.WriteLine($"[stint] {run.RunFolderName}: kein Rennen ({run.Reason}) — eigenständige Verarbeitung.");
+                Console.WriteLine($"[stint] {run.RunFolderName}: no race ({run.Reason}) — independent processing.");
                 try
                 {
                     var calc = calculator.RunCalculationPipeline(run.RunPath, 0, run.Data);
@@ -127,15 +124,15 @@
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: Verarbeitung fehlgeschlagen – {ex.Message}");
+                    Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: processing failed – {ex.Message}");
                     failedRuns.Add($"{run.RunFolderName}: {ex.Message}");
                 }
             }
 
-            // --- Runs, die die Renn-Erkennung nicht lesen konnte: nicht verarbeitet, aber nie stillschweigend ---
+            // --- Runs that race detection could not read: not processed, but never silently ---
             foreach (var run in detection.Runs.Where(r => r.Verdict == RaceRunVerdict.Error))
             {
-                Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: nicht lesbar – {run.Reason}");
+                Console.WriteLine($"[stint] ⚠️ {run.RunFolderName}: not readable – {run.Reason}");
                 failedRuns.Add($"{run.RunFolderName}: {run.Reason}");
             }
 
@@ -152,11 +149,5 @@
             };
         }
 
-        /// <summary>Extrahiert die numerische Run-Nummer aus dem Ordnernamen ("Run_1083" → 1083).</summary>
-        private static int RunNumber(string folderName)
-        {
-            var digits = new string(folderName.Where(char.IsDigit).ToArray());
-            return int.TryParse(digits, out int n) ? n : 0;
-        }
     }
 }

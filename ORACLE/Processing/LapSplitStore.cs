@@ -355,7 +355,7 @@ public static class LapSplitStore
         {
             var names = manifest.CreatedLaps.Concat(manifest.OriginalLaps).ToList();
             if (names.Any(n => !IsSafeLapFolderName(n)))
-                throw new InvalidDataException($"Interrupted split in {backup} has an invalid manifest ? restore manually.");
+                throw new InvalidDataException($"Interrupted split in {backup} has an invalid manifest - restore manually.");
 
             var moved = manifest.OriginalLaps.Where(n => Directory.Exists(Path.Combine(backup, n))).ToList();
             var created = manifest.CreatedLaps
