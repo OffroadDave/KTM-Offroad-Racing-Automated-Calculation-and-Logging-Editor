@@ -688,6 +688,15 @@ namespace Ktm.Racing.Oracle
                     ["failedRuns"] = result.FailedRuns,
                 });
 
+            // Ohne eine einzige erfolgreiche Berechnung ist der Fahrer nicht verarbeitet: kein "Done"/"LengthPending", kein MotoDB-Start.
+            if (result.ProcessedRunPaths.Count == 0 && result.FailedRuns.Count > 0)
+            {
+                Console.WriteLine("[process-rider] Berechnungen für keinen Run erfolgreich – Status bleibt offen (erneuter Versuch beim nächsten Aufruf).");
+                status.ExitCode = (int)OracleExitCode.GeneralError;
+                status.Save(statusFolder);
+                return OracleExitCode.GeneralError;
+            }
+
             // --- Track-Länge prüfen/schätzen: ohne eindeutige Länge darf MotoDB nicht laufen ---
             var lengthExit = FinishTrackLength(lengthGate, knownLength, metadata, allRuns, statusFolder,
                 result.LapDistancesPerRun, statusFolder, status);
@@ -698,8 +707,7 @@ namespace Ktm.Racing.Oracle
                 return lengthExit;
             }
 
-            var exit = result.ProcessedRunPaths.Count == 0 && result.FailedRuns.Count > 0 ? OracleExitCode.GeneralError
-                : corrupt.Count > 0 || result.FailedRuns.Count > 0 ? OracleExitCode.PartialSuccess
+            var exit = corrupt.Count > 0 || result.FailedRuns.Count > 0 ? OracleExitCode.PartialSuccess
                 : OracleExitCode.Success;
             status.ExitCode = (int)exit;
             status.Save(statusFolder);
