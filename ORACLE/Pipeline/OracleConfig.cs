@@ -153,9 +153,7 @@ namespace Ktm.Racing.Oracle
         };
 
         /// <summary>Löst einen Kanal exakt (Groß/Klein egal) aus der Kanalliste auf; <c>null</c>, wenn er fehlt.</summary>
-        public static string? Resolve(IEnumerable<string> names, string channel) =>
-            names.FirstOrDefault(n => n.Equals(channel, StringComparison.Ordinal))
-            ?? names.FirstOrDefault(n => n.Equals(channel, StringComparison.OrdinalIgnoreCase));
+        public static string? Resolve(IEnumerable<string> names, string channel) => ChannelResolver.Find(names, channel);
     }
 
     /// <summary>

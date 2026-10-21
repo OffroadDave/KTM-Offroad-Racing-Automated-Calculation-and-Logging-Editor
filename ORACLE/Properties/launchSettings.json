@@ -4,10 +4,6 @@
       "commandName": "Project",
       "commandLineArgs": "process \"C:\\MXTrackData\\Testdata\\01_KTM-FR\\Wintax\\2026\\450\\05_RT\\RT12_ESP-Almonte\\R1\\AA01\\Run_205\""
     },
-    "ORACLE - Merge": {
-      "commandName": "Project",
-      "commandLineArgs": "merge \"C:\\MXTrackData\\Testdata\\01_KTM-FR\\Wintax\\2026\\450\\05_RT\\RT12_ESP-Almonte\\R1\\AA01\""
-    },
     "ORACLE - Validate": {
       "commandName": "Project",
       "commandLineArgs": "validate \"C:\\MXTrackData\\Testdata\\01_KTM-FR\\Wintax\\2026\\450\\05_RT\\RT12_ESP-Almonte\\R1\\AA01\\Run_205\""

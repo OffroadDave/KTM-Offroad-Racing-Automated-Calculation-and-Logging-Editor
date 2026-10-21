@@ -46,17 +46,35 @@ namespace SENTINEL
                     new XElement("UserName", "SENTINEL"),
                     new XElement("ComputerName", Environment.MachineName),
                     new XElement("UserDomain", Environment.UserDomainName),
-                    new XElement("DateTime", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")),
+                    new XElement("DateTime", FormatTimestamp(DateTime.Now)),
                     new XElement("LocalPath", snapshot.RunPath),
                     new XElement("RemotePath", string.Empty),
                     BuildRunElement(runName, snapshot, totalSubfolders, totalFiles)
                 )
             );
 
+            // Erst vollständig in eine Temp-Datei schreiben, dann umbenennen: KRAKEN sieht nie ein halbes XML.
             var outputPath = Path.Combine(snapshot.RunPath, FileName);
-            doc.Save(outputPath);
+            var tempPath = outputPath + ".tmp";
+            try
+            {
+                doc.Save(tempPath);
+                File.Move(tempPath, outputPath, overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
             return outputPath;
         }
+
+        /// <summary>
+        /// Lokale Zeit im Format <c>yyyy-MM-ddTHH:mm:ss</c> (xs:dateTime ohne Offset, wie bisher),
+        /// kulturunabhängig formatiert — sonst würde z.B. ein Punkt als Zeittrennzeichen erscheinen.
+        /// </summary>
+        internal static string FormatTimestamp(DateTime value) =>
+            value.ToString("yyyy-MM-dd'T'HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
 
         /// <summary>
         /// Prüft ob für den angegebenen Run-Ordner bereits eine download.done existiert.

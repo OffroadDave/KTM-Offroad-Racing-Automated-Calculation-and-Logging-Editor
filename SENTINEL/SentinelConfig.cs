@@ -34,13 +34,31 @@ namespace SENTINEL
         public long MinimumFileSizeBytes { get; set; } = 1024;
 
         /// <summary>
+        /// Runs, deren Ordner länger als diese Anzahl Tage nicht verändert wurde, werden ignoriert
+        /// (verhindert, dass alte Runs ohne download.done bei jedem Zyklus erneut gescannt werden).
+        /// 0 = deaktiviert (Standard, bisheriges Verhalten).
+        /// </summary>
+        public int MaxRunAgeDays { get; set; } = 0;
+
+        /// <summary>Untergrenze für das Polling-Intervall in Sekunden.</summary>
+        public const int MinPollingIntervalSeconds = 1;
+
+        /// <summary>Obergrenze für das Polling-Intervall in Sekunden (1 Stunde).</summary>
+        public const int MaxPollingIntervalSeconds = 3600;
+
+        /// <summary>
         /// Lädt die Konfiguration aus sentinel-config.json im Anwendungsverzeichnis.
         /// Falls keine Datei existiert oder ein Fehler auftritt, werden Standardwerte verwendet.
         /// </summary>
-        public static SentinelConfig Load()
-        {
-            var configPath = Path.Combine(AppContext.BaseDirectory, "sentinel-config.json");
+        public static SentinelConfig Load() =>
+            Load(Path.Combine(AppContext.BaseDirectory, "sentinel-config.json"));
 
+        /// <summary>
+        /// Lädt die Konfiguration aus der angegebenen Datei und korrigiert ungültige Werte (<see cref="Normalize"/>).
+        /// Falls keine Datei existiert oder ein Fehler auftritt, werden Standardwerte verwendet.
+        /// </summary>
+        public static SentinelConfig Load(string configPath)
+        {
             if (!File.Exists(configPath))
             {
                 Console.WriteLine("Keine sentinel-config.json gefunden, verwende Standardkonfiguration.");
@@ -57,13 +75,53 @@ namespace SENTINEL
                     ReadCommentHandling = JsonCommentHandling.Skip,
                 };
 
-                return JsonSerializer.Deserialize<SentinelConfig>(json, options) ?? new SentinelConfig();
+                var config = JsonSerializer.Deserialize<SentinelConfig>(json, options) ?? new SentinelConfig();
+                config.Normalize();
+                return config;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Fehler beim Laden der Konfiguration: {ex.Message}");
                 Console.WriteLine("Verwende Standardkonfiguration.");
                 return new SentinelConfig();
+            }
+        }
+
+        /// <summary>
+        /// Korrigiert ungültige Werte: Ein Polling-Intervall von 0 oder negativ würde eine Dauerschleife bzw.
+        /// eine Exception in <c>Task.Delay</c> erzeugen. Jede Korrektur wird auf der Konsole gemeldet.
+        /// </summary>
+        public void Normalize()
+        {
+            WatchPaths = (WatchPaths ?? [])
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Select(p => p.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var interval = Math.Clamp(PollingIntervalSeconds, MinPollingIntervalSeconds, MaxPollingIntervalSeconds);
+            if (interval != PollingIntervalSeconds)
+            {
+                Console.WriteLine($"⚠️ pollingIntervalSeconds={PollingIntervalSeconds} ungültig, verwende {interval}s.");
+                PollingIntervalSeconds = interval;
+            }
+
+            if (StabilityThreshold <= 0)
+            {
+                Console.WriteLine($"⚠️ stabilityThreshold={StabilityThreshold} ungültig, verwende 3.");
+                StabilityThreshold = 3;
+            }
+
+            if (MinimumFileSizeBytes < 0)
+            {
+                Console.WriteLine($"⚠️ minimumFileSizeBytes={MinimumFileSizeBytes} ungültig, verwende 0.");
+                MinimumFileSizeBytes = 0;
+            }
+
+            if (MaxRunAgeDays < 0)
+            {
+                Console.WriteLine($"⚠️ maxRunAgeDays={MaxRunAgeDays} ungültig, verwende 0 (deaktiviert).");
+                MaxRunAgeDays = 0;
             }
         }
     }

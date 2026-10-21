@@ -1,5 +1,7 @@
 # Gesamtanalyse & Roadmap – KTM Offroad Racing Toolchain
 
+> **Historisches Dokument.** Beschreibt den Stand vor Oktober 2026. Der Session-Merge wurde entfernt, und der Race Report Manager ist nicht mehr Teil dieses Repositorys. Aktuelle Beschreibung: [README](../../README.md), [ORACLE-workflow](../ORACLE-workflow.md).
+
 > Read-only-Analyse, Stand 2026-09-05. **Keine Code-Änderungen** – ausschließlich Vorschläge.
 > Konsolidiert die fünf Einzelreports (Kategorie A). Freigabe vor jeder Umsetzung erforderlich.
 

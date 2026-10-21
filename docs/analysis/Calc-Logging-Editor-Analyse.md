@@ -1,5 +1,7 @@
 # KTM Offroad Racing Automated Calculation and Logging Editor – Analyse
 
+> **Historisches Dokument.** Beschreibt den Stand vor Oktober 2026. Der Session-Merge wurde entfernt, und der Race Report Manager ist nicht mehr Teil dieses Repositorys. Aktuelle Beschreibung: [README](../../README.md), [ORACLE-workflow](../ORACLE-workflow.md).
+
 > Read-only-Analyse, Stand 2026-09-05. Keine Code-Änderungen vorgenommen.
 > Konsolidiertes Backlog & Roadmap: `docs/analysis/00_Gesamtanalyse-und-Roadmap.md`.
 

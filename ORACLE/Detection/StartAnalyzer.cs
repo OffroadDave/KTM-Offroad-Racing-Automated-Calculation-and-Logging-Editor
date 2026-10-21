@@ -21,7 +21,7 @@ namespace Ktm.Racing.Oracle
         {
             var runs = _browse.IsRunLocation(path)
                 ? [path]
-                : (_browse.FindRuns(path) ?? Enumerable.Empty<string>()).OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToList();
+                : RunFolders.InOrder(_browse.FindRuns(path) ?? Enumerable.Empty<string>());
             if (runs.Count == 0)
             {
                 Console.WriteLine($"Keine gültigen Runs gefunden in: {path}");
@@ -84,8 +84,7 @@ namespace Ktm.Racing.Oracle
                     return (null, "LoadRun fehlgeschlagen", null);
 
                 var names = reader.GetChannelsNames() ?? [];
-                string? Find(params string[] candidates) =>
-                    candidates.Select(c => names.FirstOrDefault(n => n.Equals(c, StringComparison.OrdinalIgnoreCase))).FirstOrDefault(n => n is not null);
+                string? Find(params string[] candidates) => ChannelResolver.Find(names, candidates);
 
                 var speed = Find("vVehicleGps", "vVehicleGPS", "vGPS");
                 var gear = Find("NGear", "nGear");

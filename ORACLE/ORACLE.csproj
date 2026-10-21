@@ -19,9 +19,11 @@
     <InternalsVisibleTo Include="ORACLE.Tests" />
   </ItemGroup>
 
+  <!-- Autofac: DI container of KtmDataHandler (compiled against 6.3.0 – upgrade only together with the KTM suite).
+       MathNet.Numerics and System.Configuration.ConfigurationManager are not used by ORACLE's code but are runtime
+       dependencies of KtmSharedUtils/KtmDataHandler (log4net). ClosedXML comes with Ktm.Racing.Domain. -->
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.3.0" />
-    <PackageReference Include="ClosedXML" Version="0.105.1" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9" />
   </ItemGroup>
@@ -36,9 +38,6 @@
     <Reference Include="KtmSharedUtils">
       <HintPath>..\..\..\..\KTM Tools\KTM Utils Software Suite\KtmSharedUtils.dll</HintPath>
       <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Vbe.Interop">
-      <HintPath>..\..\..\..\Program Files\Microsoft Office\root\vfs\ProgramFilesX86\Microsoft Office\Office16\DCF\Microsoft.Vbe.Interop.dll</HintPath>
     </Reference>
   </ItemGroup>
 

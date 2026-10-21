@@ -1,5 +1,7 @@
 # ORACLE Pipeline-Analyse: Schwachstellen, Architektur & Roadmap
 
+> **Historisches Dokument.** Beschreibt den Stand vor Oktober 2026. Der Session-Merge wurde entfernt, und der Race Report Manager ist nicht mehr Teil dieses Repositorys. Aktuelle Beschreibung: [README](../README.md), [ORACLE-workflow](ORACLE-workflow.md).
+
 ## Inhaltsverzeichnis
 
 1. [Ist-Zustand: Die komplette Pipeline](#1-ist-zustand-die-komplette-pipeline)

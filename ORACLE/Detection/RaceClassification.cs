@@ -28,7 +28,7 @@ namespace Ktm.Racing.Oracle
         /// <summary>Laufzeit des Runs [s] (<c>GetLastSampleTime</c>).</summary>
         public double DurationSeconds { get; init; }
 
-        /// <summary>Zurückgelegte GPS-Distanz [m] (Haversine über Lat_dez/Lon_dez).</summary>
+        /// <summary>Zurückgelegte GPS-Distanz [m] (aus Lat_dez/Lon_dez, aufbereitet durch GpsCleaner).</summary>
         public double GpsDistanceMeters { get; init; }
 
         /// <summary>Durchschnittsgeschwindigkeit [kph] = GPS-Distanz / Laufzeit.</summary>

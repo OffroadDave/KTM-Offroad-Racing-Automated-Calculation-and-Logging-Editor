@@ -73,6 +73,20 @@ namespace SENTINEL
             _states.Remove(runPath);
         }
 
+        /// <summary>
+        /// Entfernt Tracking-States für Runs, die nicht mehr ausstehen (Ordner gelöscht, verschoben
+        /// oder download.done von anderer Stelle erzeugt). Verhindert unbegrenztes Wachstum.
+        /// </summary>
+        /// <returns>Anzahl entfernter States</returns>
+        public int RetainOnly(IEnumerable<string> activeRunPaths)
+        {
+            var active = new HashSet<string>(activeRunPaths, StringComparer.OrdinalIgnoreCase);
+            var stale = _states.Keys.Where(path => !active.Contains(path)).ToList();
+            foreach (var path in stale)
+                _states.Remove(path);
+            return stale.Count;
+        }
+
         /// <summary>Anzahl aktuell getrackter Runs.</summary>
         public int TrackedRunCount => _states.Count;
 

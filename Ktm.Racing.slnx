@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/02_Apps/">
     <Project Path="ORACLE/ORACLE.csproj" />
+    <Project Path="SENTINEL/SENTINEL.csproj" />
   </Folder>
   <Folder Name="/03_Tests/">
     <Project Path="ORACLE.Tests/ORACLE.Tests.csproj" />
+    <Project Path="SENTINEL.Tests/SENTINEL.Tests.csproj" />
   </Folder>
 </Solution>

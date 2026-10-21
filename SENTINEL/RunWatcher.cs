@@ -31,6 +31,7 @@ namespace SENTINEL
         public int RunScanCycle()
         {
             var pendingRuns = DiscoverPendingRuns();
+            _tracker.RetainOnly(pendingRuns);
             int generatedCount = 0;
 
             foreach (var runPath in pendingRuns)
@@ -65,10 +66,16 @@ namespace SENTINEL
 
         /// <summary>
         /// Durchsucht alle WatchPaths rekursiv nach Run_*-Ordnern ohne download.done.
+        /// Unzugängliche Unterordner werden übersprungen statt den ganzen WatchPath abzubrechen.
+        /// Bei <see cref="SentinelConfig.MaxRunAgeDays"/> &gt; 0 werden länger unveränderte Runs ignoriert.
         /// </summary>
         public List<string> DiscoverPendingRuns()
         {
             var pendingRuns = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            DateTime? cutoffUtc = _config.MaxRunAgeDays > 0
+                ? DateTime.UtcNow.AddDays(-_config.MaxRunAgeDays)
+                : null;
 
             foreach (var watchPath in _config.WatchPaths)
             {
@@ -80,14 +87,18 @@ namespace SENTINEL
 
                 try
                 {
-                    var runDirs = Directory.GetDirectories(watchPath, "Run_*", SearchOption.AllDirectories);
+                    var runDirs = Directory.EnumerateDirectories(watchPath, "Run_*", DirectoryEnumeration);
 
                     foreach (var runDir in runDirs)
                     {
-                        if (!DownloadDoneWriter.Exists(runDir))
-                        {
-                            pendingRuns.Add(runDir);
-                        }
+                        if (!seen.Add(Path.GetFullPath(runDir)))
+                            continue;
+                        if (DownloadDoneWriter.Exists(runDir))
+                            continue;
+                        if (cutoffUtc is not null && LastActivityUtc(runDir) < cutoffUtc)
+                            continue;
+
+                        pendingRuns.Add(runDir);
                     }
                 }
                 catch (Exception ex)
@@ -99,6 +110,27 @@ namespace SENTINEL
             return pendingRuns;
         }
 
+        private static readonly EnumerationOptions DirectoryEnumeration = new()
+        {
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = true,
+        };
+
+        /// <summary>
+        /// Jüngster Schreibzeitpunkt des Run-Ordners und seiner Lap-Ordner (Downloads legen neue Laps an,
+        /// ohne zwingend den Run-Ordner selbst zu ändern).
+        /// </summary>
+        private static DateTime LastActivityUtc(string runDir)
+        {
+            var latest = Directory.GetLastWriteTimeUtc(runDir);
+            foreach (var lap in Directory.EnumerateDirectories(runDir, "Lap_*", new EnumerationOptions { IgnoreInaccessible = true }))
+            {
+                var time = Directory.GetLastWriteTimeUtc(lap);
+                if (time > latest) latest = time;
+            }
+            return latest;
+        }
+
         /// <summary>Gibt die Anzahl der aktuell getrackten (noch instabilen) Runs zurück.</summary>
         public int TrackedRunCount => _tracker.TrackedRunCount;
 
@@ -108,8 +140,10 @@ namespace SENTINEL
             var issues = new List<string>();
 
             if (snapshot.HasZeroByteFiles) issues.Add("0-Byte-Dateien");
+            if (snapshot.HasPlaceholderFiles) issues.Add("Cloud-Platzhalter");
             if (snapshot.HasLockedFiles) issues.Add("gesperrte Dateien");
             if (snapshot.LapCount == 0) issues.Add("keine Laps");
+            if (!snapshot.IsComplete) issues.Add($"{snapshot.MissingFiles.Count} fehlende Datei(en) laut RunLapHeader.xml");
 
             var issueText = issues.Count > 0 ? $" ({string.Join(", ", issues)})" : "";
 

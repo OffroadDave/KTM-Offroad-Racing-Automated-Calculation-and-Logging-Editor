@@ -19,6 +19,8 @@ namespace Ktm.Racing.Oracle
         {
             if (args.Length == 0)
                 return null;
+            if (args[0].Equals("merge", StringComparison.OrdinalIgnoreCase))
+                return "Der Befehl 'merge' wurde entfernt.";
 
             var (flags, valueOptions, first) = OptionsFor(args[0]);
             for (var i = first; i < args.Length; i++)

@@ -48,9 +48,6 @@
             _detector = detector;
         }
 
-        /// <summary>Factory mit Standard-Abhängigkeiten.</summary>
-        public static RaceStintProcessor Create() => new(RaceSegmentDetector.Create());
-
         /// <summary>
         /// Erkennt die Renn-Runs im Rider-Ordner und verarbeitet sie mit Continuity.
         /// </summary>
@@ -64,7 +61,7 @@
             // Renn-Runs chronologisch (numerisch nach Run-Nummer, robust gegen unterschiedliche Stellenzahl).
             var raceRuns = detection.Runs
                 .Where(r => r.Verdict == RaceRunVerdict.Race)
-                .OrderBy(r => RunNumber(r.RunFolderName))
+                .OrderBy(r => RunFolders.Number(r.RunFolderName))
                 .ToList();
             var nonRaceRuns = detection.Runs
                 .Where(r => r.Verdict == RaceRunVerdict.NoRace)
@@ -152,11 +149,5 @@
             };
         }
 
-        /// <summary>Extrahiert die numerische Run-Nummer aus dem Ordnernamen ("Run_1083" → 1083).</summary>
-        private static int RunNumber(string folderName)
-        {
-            var digits = new string(folderName.Where(char.IsDigit).ToArray());
-            return int.TryParse(digits, out int n) ? n : 0;
-        }
     }
 }

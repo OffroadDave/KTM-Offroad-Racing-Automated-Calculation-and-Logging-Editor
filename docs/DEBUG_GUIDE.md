@@ -12,10 +12,9 @@
 8. [Häufige Fehler & Lösungen](#8-häufige-fehler--lösungen)
 9. [KtmDataHandler / Autofac Debugging](#9-ktmdatahandler--autofac-debugging)
 10. [ImportDataCalculator Debugging](#10-importdatacalculator-debugging)
-11. [Session-Merge Debugging](#11-session-merge-debugging)
-12. [SENTINEL Debugging](#12-sentinel-debugging)
-13. [Kommandozeilen-Debugging (ohne VS)](#13-kommandozeilen-debugging-ohne-vs)
-14. [Checkliste bei neuen Berechnungen](#14-checkliste-bei-neuen-berechnungen)
+11. [SENTINEL Debugging](#11-sentinel-debugging)
+12. [Kommandozeilen-Debugging (ohne VS)](#12-kommandozeilen-debugging-ohne-vs)
+13. [Checkliste bei neuen Berechnungen](#13-checkliste-bei-neuen-berechnungen)
 
 ---
 
@@ -26,9 +25,8 @@ In `ORACLE\Properties\launchSettings.json` sind 4 Profile vordefiniert:
 | Profil | Command | Pfad-Typ | Aufruf |
 |--------|---------|----------|--------|
 | **ORACLE - Process** | `process` | Run-Ordner | Metadata + Properties + Berechnungen |
-| **ORACLE - Merge** | `merge` | Rider-Ordner | Session-Merge über alle Runs |
 | **ORACLE - Validate** | `validate` | Run-Ordner | Dateistruktur-Prüfung |
-| **ORACLE - Legacy** | *(kein Command)* | Run-Ordner | process + merge (KRAKEN-kompatibel) |
+| **ORACLE - Legacy** | *(kein Command)* | Run-Ordner | process (KRAKEN-kompatibel) |
 
 ### Profil wechseln
 
@@ -80,17 +78,12 @@ Program.Main()                          ← Einstiegspunkt, Command-Router
       │     ├── ImportDataCalculator      ← Pro Run: Berechnungen (sVehicle)
       │     └── OracleStatus.Save()
       │
-      ├── "merge" → MergeSession()
-      │     ├── SessionMergeService       ← Runs laden + Channels mergen
-      │     ├── SessionMergeExporter      ← Ergebnis als WinTAX4-Run speichern
-      │     └── OracleStatus.Save()
-      │
       ├── "validate" → ValidateRun()
       │     ├── Ordnerstruktur prüfen
       │     ├── cableData.ztx Dateien prüfen
       │     └── Daten ladbar prüfen
       │
-      └── _ → HandleLegacyAsync()         ← process + merge sequentiell
+      └── _ → HandleLegacyAsync()         ← wie process
 ```
 
 ### Datenfluss der Abhängigkeiten
@@ -120,7 +113,7 @@ OraclePipeline
 ```
 C:\MXTrackData\Testdata\
   └── 01_KTM-FR\Wintax\2026\450\05_RT\RT12_ESP-Almonte\R1\
-      └── AA01\                              ← Rider-Ordner (für merge)
+      └── AA01\                              ← Rider-/Geräteordner (für process)
           ├── Run_205\                       ← Run-Ordner (für process/validate)
           │   ├── Lap_001\
           │   │   └── cableData.ztx          ← Telemetriedaten
@@ -131,10 +124,6 @@ C:\MXTrackData\Testdata\
           │   ├── Lap_001\
           │   │   └── cableData.ztx
           │   └── ...
-          └── _MergedSession\                ← Wird von merge erstellt
-              └── Run_Merged\
-                  └── Lap_001\
-                      └── cableData.ztx
 ```
 
 ### Pflicht-Dateien für `process`
@@ -187,23 +176,7 @@ ORACLE beendet. Exit-Code: 0 (Success)
 ```
 → Lösung: `--force` Flag hinzufügen oder `oracle.status.json` manuell löschen.
 
-### 4.2 `merge` debuggen
-
-**Ziel:** Alle Runs eines Riders zusammenführen.
-
-1. Profil **"ORACLE - Merge"** auswählen
-2. Breakpoint in `SessionMergeService.MergeSession()` und `SessionMergeExporter.Export()`
-3. F5 drücken
-
-**Erwarteter Ablauf:**
-```
-[merge] Rider Path: C:\...\AA01
-[merge] Session-Merge abgeschlossen: Session="R1", Rider="AA01", X/Y Run(s), Z Channel(s).
-```
-
-**Merge-Status-Datei:** Wird in `{riderPath}\.oracle-merge\oracle.status.json` gespeichert.
-
-### 4.3 `validate` debuggen
+### 4.2 `validate` debuggen
 
 **Ziel:** Prüfen ob ein Run-Ordner gültige WinTAX4-Daten enthält.
 
@@ -220,13 +193,13 @@ ORACLE beendet. Exit-Code: 0 (Success)
 ORACLE beendet. Exit-Code: 0 (Success)
 ```
 
-### 4.4 `legacy` debuggen
+### 4.3 `legacy` debuggen
 
 **Ziel:** Rückwärtskompatiblen Modus testen (args[0] = Pfad, kein Command).
 
 1. Profil **"ORACLE - Legacy"** auswählen
 2. F5 drücken
-3. Führt `process` + `merge` sequentiell aus
+3. Führt `process` aus
 
 ---
 
@@ -239,7 +212,6 @@ ORACLE beendet. Exit-Code: 0 (Success)
 |-------|--------|-------|
 | `Program.cs:45` | `switch` Expression | Welcher Command wird ausgeführt? |
 | `OraclePipeline.cs` | `ProcessRunAsync()` Anfang | Alle Eingabeparameter inspizieren |
-| `OraclePipeline.cs` | `MergeSession()` Anfang | Rider-Pfad und Force-Flag prüfen |
 
 #### Metadaten & Discovery
 | Datei | Stelle | Warum |
@@ -252,19 +224,11 @@ ORACLE beendet. Exit-Code: 0 (Success)
 #### Berechnungen (ImportDataCalculator)
 | Datei | Stelle | Warum |
 |-------|--------|-------|
-| `ImportDataCalculator.cs` | `RunCalculationPipelineForRuns()` | Multi-Run-Loop inspizieren |
-| `ImportDataCalculator.cs` | `LoadDataSet()` nach `GetChannelsNames()` | Welche Channels sind vorhanden? |
+| `RaceStintProcessor.cs` | `ProcessRider()` | Renn-/Nicht-Renn-Runs und Offsets inspizieren |
+| `ImportDataCalculator.cs` | `RunCalculationPipeline()` | `preloaded` (aus der Renn-Erkennung) oder `LoadDataSet()` |
 | `ImportDataCalculator.cs` | `SVehicleCalc()` bei `missingChannels` | Fehlen `Lat_dez` / `Lon_dez`? |
-| `ImportDataCalculator.cs` | `SVehicleCalc()` nach Haversine-Loop | `distance[]` Array inspizieren |
-| `ImportDataCalculator.cs` | `InterpolateZerosMathNet()` bei `validIdx` | Wie viele Null-Werte wurden gefunden? |
+| `ImportDataCalculator.cs` | `SVehicleCalc()` nach `GpsCleaner.Clean()` | `gps.Summary`, `distance[]` inspizieren |
 | `ImportDataCalculator.cs` | `SaveResults()` | Was wird geschrieben? |
-
-#### Session-Merge
-| Datei | Stelle | Warum |
-|-------|--------|-------|
-| `SessionMergeService.cs` | `MergeSession()` | Welche Runs werden gemergt? |
-| `SessionMergeService.cs` | `MergeChannelsAcrossRuns()` | Channel-Concat inspizieren |
-| `SessionMergeExporter.cs` | `Export()` | Zielordner und Template-Datei |
 
 ### Conditional Breakpoints
 
@@ -338,7 +302,6 @@ Get-ChildItem "ORACLE\bin\x64\Debug\net8.0\logs\*.log" | Sort-Object LastWriteTi
 | Command | Status-Datei Speicherort |
 |---------|-------------------------|
 | `process` | `{runPath}\oracle.status.json` |
-| `merge` | `{riderPath}\.oracle-merge\oracle.status.json` |
 
 ### Beispiel einer erfolgreichen Verarbeitung
 
@@ -409,8 +372,6 @@ Remove-Item "C:\MXTrackData\...\Run_205\oracle.status.json"
 # Alle Runs im Rider-Ordner
 Get-ChildItem "C:\MXTrackData\...\AA01\Run_*\oracle.status.json" | Remove-Item
 
-# Merge-Status
-Remove-Item "C:\MXTrackData\...\AA01\.oracle-merge\oracle.status.json"
 ```
 
 ---
@@ -425,7 +386,7 @@ Remove-Item "C:\MXTrackData\...\AA01\.oracle-merge\oracle.status.json"
 | `1` | `GeneralError` | Unerwarteter Fehler | Exception in Pipeline |
 | `2` | `InvalidArguments` | Argumente ungültig | Pfad fehlt, falscher Command |
 | `3` | `DataNotFound` | Daten nicht gefunden | Pfad existiert nicht, kein WinTAX4-Run, keine Metadaten |
-| `4` | `PartialSuccess` | Teilweise erfolgreich | Legacy: process OK aber merge fehlgeschlagen |
+| `4` | `PartialSuccess` | Teilweise erfolgreich | Einzelne Runs fehlgeschlagen oder beschädigte Run-Ordner übersprungen |
 | `5` | `ResourceLocked` | Ressource gesperrt | `loadChannels.xlsx` in Excel geöffnet → Retry |
 | `6` | `TrackLengthMissing` | Keine eindeutige Track-Länge | KOMPASS/CIRCUITS leer oder Länge doppelt belegt und zu wenige GPS-Runden (auch im Event) → später erneut bzw. in KODE pflegen |
 | `7` | `InvalidData` | Ungültige Daten | Beschädigter Run-Ordner oder ungültige `KOMPASS.json` → reparieren, kein Retry |
@@ -515,17 +476,17 @@ reader.ReleaseObjects();
 ### Multi-Run Ablauf verfolgen
 
 ```
-RunCalculationPipelineForRuns(validRuns)    ← Einstieg: Liste aller Runs
+RaceStintProcessor.ProcessRider(riderPath)  ← Einstieg: alle Runs eines Geräts
   │
   └── for each run:
-        RunCalculationPipeline(runPath)     ← Pro Run: frische Reader/Writer
-          ├── LoadDataSet()                 ← Channels laden
+        RunCalculationPipeline(runPath, offset, preloaded)
+          ├── LoadDataSet()                 ← nur ohne preloaded (Einzel-Run-Pfad)
           ├── SVehicleCalc()                ← GPS → kumulierte Distanz
           │     ├── Channel-Verfügbarkeit prüfen
-          │     ├── InterpolateZerosMathNet()  ← Null-Werte interpolieren
-          │     ├── Haversine-Berechnung
+          │     ├── GpsCleaner.Clean()      ← Aussetzer, wiederholte Fixes, GPS-Sprünge
           │     └── resultDataset.Add()
-          └── SaveResults()                 ← Ergebnis in cableData.ztx schreiben
+          ├── ComputeLapDistances()         ← sVehicle an den Lap-Grenzen
+          └── SaveResults()                 ← Ergebnis in importData.ztx schreiben
 ```
 
 ### Daten im Debugger inspizieren
@@ -541,35 +502,16 @@ Watch-Fenster:
   time[^1]                 → Endzeitpunkt (C# 12 Range)
 ```
 
-### Interpolation debuggen
+### GPS-Aufbereitung prüfen
 
-Breakpoint in `InterpolateZerosMathNet()`:
-
-```
-Watch-Fenster:
-  validIdx.Count           → Anzahl gültiger (nicht-null) Werte
-  n - validIdx.Count       → Anzahl zu interpolierender Nullen
-  first                    → Index des ersten gültigen Werts
-  last                     → Index des letzten gültigen Werts
-```
-
-**Warnung:** Wenn `validIdx.Count == 0` → Channel enthält nur Nullen, keine Interpolation möglich.
-
-### Haversine-Ergebnis prüfen
-
-Breakpoint nach dem Haversine-Loop:
+Breakpoint in `SVehicleCalc()` nach `GpsCleaner.Clean()`:
 
 ```
 Watch-Fenster:
-  distance[^1]             → Gesamtdistanz in Metern
-  segmentDistances.Max()   → Größter Einzelschritt (plausibel?)
-  segmentDistances.Average() → Mittlerer Schritt
+  gps.Summary              → Samples mit Fix, Fixes, entfernte Ausreißer, Sprünge
+  gps.TotalMeters          → Gesamtdistanz in Metern
+  gps.JumpCount            → GPS-Sprünge, über die nicht verbunden wird
 ```
-
-**Plausibilitätsprüfung:**
-- Rundstrecke ~1.5–5 km pro Lap
-- Segmentdistanzen typisch 0.1–50 m (je nach Abtastrate)
-- Wenn `segmentDistances.Max() > 1000` → wahrscheinlich GPS-Sprung (Datenfehler)
 
 ### SaveResults debuggen
 
@@ -583,50 +525,7 @@ Watch-Fenster:
 
 ---
 
-## 11. Session-Merge Debugging
-
-### Merge-Ablauf verfolgen
-
-```
-OraclePipeline.MergeSession(riderPath)
-  │
-  ├── SessionMergeService.MergeSession(riderPath)
-  │     ├── DiscoverRuns()         → Runs im Rider-Ordner finden
-  │     ├── LoadSingleRun()        → Pro Run: Channels laden + Zeitversatz prüfen
-  │     └── MergeChannelsAcrossRuns()  → Channels per ITimeseries.Concat() zusammenführen
-  │
-  ├── MergedSessionData inspizieren:
-  │     ├── .MergedRunCount        → Wie viele Runs erfolgreich?
-  │     ├── .TotalRunsDiscovered   → Wie viele Runs entdeckt?
-  │     ├── .ChannelNames          → Welche Channels im Ergebnis?
-  │     └── .HasData               → Gibt es überhaupt Daten?
-  │
-  └── SessionMergeExporter.Export(mergedSession, riderPath)
-        ├── CreateFolderStructure()   → _MergedSession/Run_Merged/Lap_001/
-        ├── CopyTemplateFile()        → cableData.ztx aus erstem gültigen Lap kopieren
-        └── WriteMergedData()         → AddImportDataToRun()
-```
-
-### Merge-Ergebnis prüfen
-
-```powershell
-# Prüfen ob Merge-Ordner erstellt wurde
-Test-Path "C:\MXTrackData\...\AA01\_MergedSession\Run_Merged\Lap_001\cableData.ztx"
-
-# Dateigröße des Merge-Ergebnisses
-Get-Item "C:\MXTrackData\...\AA01\_MergedSession\Run_Merged\Lap_001\cableData.ztx" | Select-Object Name, Length
-```
-
-### Merge-Validierung
-
-Häufige Probleme:
-- **0 Runs gemergt:** Kein Run im Rider-Ordner hat ladbare cableData.ztx
-- **Channels fehlen im Merge:** Nicht alle Runs haben dieselben Channels
-- **Export-Ordner existiert bereits:** Vorheriger Merge wurde nicht gelöscht
-
----
-
-## 12. SENTINEL Debugging
+## 11. SENTINEL Debugging
 
 SENTINEL ist ein separates Projekt (reines .NET 8, keine KtmDataHandler-Abhängigkeit).
 
@@ -638,9 +537,35 @@ SENTINEL ist ein separates Projekt (reines .NET 8, keine KtmDataHandler-Abhängi
   "WatchPaths": ["C:\\MXTrackData\\..."],
   "PollingIntervalSeconds": 30,
   "StabilityThreshold": 3,
-  "MinimumFileSizeBytes": 1024
+  "MinimumFileSizeBytes": 1024,
+  "MaxRunAgeDays": 0
 }
 ```
+
+Ungültige Werte werden beim Laden korrigiert und gemeldet (`SentinelConfig.Normalize`): `PollingIntervalSeconds` wird auf
+1–3600 begrenzt, `StabilityThreshold <= 0` → 3, negative Werte → 0. `MaxRunAgeDays > 0` ignoriert Runs, deren Ordner länger
+unverändert ist (0 = aus).
+
+### Wann gilt ein Run als fertig?
+
+`RunSnapshot.IsStructurallyValid` verlangt:
+
+- mindestens ein `Lap_*`-Ordner,
+- **jede in `RunLapHeader.xml` (`LapInfo/Path`) referenzierte Datei ist vorhanden** (`MissingFiles` leer) — ein pausierter
+  OneDrive-Sync sieht sonst nach 90 s „stabil“ aus,
+- keine 0-Byte-Dateien bzw. `.ztx` unter `MinimumFileSizeBytes`,
+- keine Cloud-Platzhalter (Attribute `Offline`, `RecallOnOpen`, `RecallOnDataAccess`; diese Dateien werden nicht geöffnet,
+  um keinen Download auszulösen),
+- keine gesperrten Dateien.
+
+Danach muss der Snapshot `StabilityThreshold`-mal unverändert bleiben. `download.done` wird über eine `.tmp`-Datei geschrieben
+und dann umbenannt, damit KRAKEN nie ein halbes XML liest. Das Konsolenlog nennt bei ungültigen Runs den Grund (z.B.
+„1 fehlende Datei(en) laut RunLapHeader.xml“, „Cloud-Platzhalter“).
+
+### Tests
+
+`SENTINEL.Tests` (xUnit) deckt Snapshot, Stabilität, Writer, Konfiguration und Watcher mit temporären Run-Ordnern ab:
+`dotnet test SENTINEL.Tests`.
 
 ### Debug-Ablauf
 
@@ -660,7 +585,7 @@ SENTINEL ist ein separates Projekt (reines .NET 8, keine KtmDataHandler-Abhängi
 
 ---
 
-## 13. Kommandozeilen-Debugging (ohne VS)
+## 12. Kommandozeilen-Debugging (ohne VS)
 
 ### Direkter Aufruf
 
@@ -672,9 +597,6 @@ cd "ORACLE\bin\x64\Debug\net8.0"
 
 # Process mit Force
 .\ORACLE.exe process "C:\MXTrackData\...\Run_205" --force
-
-# Merge
-.\ORACLE.exe merge "C:\MXTrackData\...\AA01"
 
 # Validate
 .\ORACLE.exe validate "C:\MXTrackData\...\Run_205"
@@ -691,16 +613,12 @@ cd "ORACLE\bin\x64\Debug\net8.0"
 KRAKEN übergibt `%RUN_PATH%` als Argument:
 
 ```powershell
-# KRAKEN-Simulation: validate → process → merge
+# KRAKEN-Simulation: validate → process
 $runPath = "C:\MXTrackData\...\Run_205"
-$riderPath = Split-Path $runPath
 
 .\ORACLE.exe validate $runPath
 if ($LASTEXITCODE -eq 0) {
     .\ORACLE.exe process $runPath
-    if ($LASTEXITCODE -eq 0) {
-        .\ORACLE.exe merge $riderPath
-    }
 }
 Write-Host "Finale: $LASTEXITCODE"
 ```
@@ -716,7 +634,7 @@ Get-Content $latest.FullName -Wait
 
 ---
 
-## 14. Checkliste bei neuen Berechnungen
+## 13. Checkliste bei neuen Berechnungen
 
 Wenn eine neue Berechnungsfunktion in `ImportDataCalculator` hinzugefügt wird:
 
@@ -785,7 +703,6 @@ NeueBerechnung();    // ← Hier hinzufügen
 | `resultDataset.NumElements()` | `ImportDataCalculator` | Berechnete Channels |
 | `metadata` | `ProcessRunAsync` | Bike, Track, Rider |
 | `validRuns` | `ProcessRunAsync` | Entdeckte Run-Pfade |
-| `mergedSession.ChannelNames` | `MergeSession` | Channels im Merge-Ergebnis |
 | `status.Steps` | vor `Save()` | Aktueller Verarbeitungsstatus |
 | `_browse` | `OraclePipeline` | Injizierte IMarelliDataBrowse |
 | `_config` | `OraclePipeline` | Geladene Konfiguration |
