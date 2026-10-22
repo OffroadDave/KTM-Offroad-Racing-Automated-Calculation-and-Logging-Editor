@@ -42,7 +42,8 @@ namespace Ktm.Racing.Oracle
 
     /// <summary>
     /// Weather during a session: reads the lap times of the runs (LapHeader.xml), fetches the weather for the session window
-    /// once from the <see cref="IWeatherSource"/> and writes per run the <c>[WEATHER]</c> section of the .HED and per lap
+    /// once from the <see cref="IWeatherSource"/> and writes per run <c>trackCondition</c> into the <c>[TRACK]</c> section and the
+    /// <c>[WEATHER]</c> section of the .HED and per lap
     /// <c>Meteo.xml</c>. Only the time of the runs is evaluated. Runs whose .HED has <c>weatherSource = manual</c> are left
     /// unchanged. Never throws for missing data or network problems – the result says what happened.
     /// </summary>
@@ -60,7 +61,8 @@ namespace Ktm.Racing.Oracle
             var timed = new List<(string Run, IReadOnlyList<LapWindow> Laps)>();
             foreach (var run in runs)
             {
-                if (string.Equals(HedFileService.ReadWeatherValue(run, "weatherSource"), HedFileService.ManualWeatherSource, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(HedFileService.ReadRunValue(run, HedFileService.WeatherSection, "weatherSource"),
+                        HedFileService.ManualWeatherSource, StringComparison.OrdinalIgnoreCase))
                 {
                     results.Add(new RunWeatherResult(run, StepStatus.Success, "weather maintained manually – left unchanged"));
                     continue;
@@ -112,7 +114,7 @@ namespace Ktm.Racing.Oracle
                     return new RunWeatherResult(run, StepStatus.Failed, "weather model returned no values for the run");
 
                 if (settings.WriteHed)
-                    new HedFileService().SetWeather(run, HedValues(summary, sourceText));
+                    new HedFileService().SetWeather(run, HedValues(summary, sourceText), summary.TrackCondition);
 
                 var written = 0;
                 if (settings.WriteMeteoXml)
@@ -120,7 +122,7 @@ namespace Ktm.Racing.Oracle
                     foreach (var lap in laps)
                     {
                         var folder = Path.Combine(run, lap.Folder);
-                        if (Directory.Exists(folder) && MeteoXml.Write(folder, WeatherCalculator.Summarize(series, lap.Start, lap.End, settings), settings))
+                        if (Directory.Exists(folder) && MeteoXml.Write(folder, WeatherCalculator.Summarize(series, lap.Start, lap.End, settings)))
                             written++;
                     }
                 }
@@ -136,13 +138,15 @@ namespace Ktm.Racing.Oracle
             }
         }
 
-        /// <summary>Key/value pairs of the <c>[WEATHER]</c> section (order and keys as in the MotoDB HED catalog).</summary>
+        /// <summary>
+        /// Key/value pairs of the <c>[WEATHER]</c> section (order and keys as in the MotoDB HED catalog). The track condition is
+        /// written separately into <c>[TRACK]</c>.
+        /// </summary>
         internal static IReadOnlyList<KeyValuePair<string, string>> HedValues(WeatherSummary s, string sourceText)
         {
             static string F(double value, string format) => double.IsNaN(value) ? "" : value.ToString(format, CultureInfo.InvariantCulture);
             return
             [
-                new("trackCondition", s.TrackCondition),
                 new("airTemp", F(s.AirTempC, "0.0")),
                 new("airTempStart", F(s.AirTempStartC, "0.0")),
                 new("airTempEnd", F(s.AirTempEndC, "0.0")),
@@ -150,7 +154,6 @@ namespace Ktm.Racing.Oracle
                 new("humidity", F(s.HumidityPct, "0")),
                 new("pressure", F(s.PressureHpa, "0.0")),
                 new("airDensity", F(s.AirDensityKgM3, "0.000")),
-                new("powerCorrection", F(s.PowerCorrectionDin, "0.000")),
                 new("windSpeed", F(s.WindSpeedKmh, "0.0")),
                 new("windDir", F(s.WindDirectionDeg, "0")),
                 new("rain", F(s.RainMm, "0.0")),

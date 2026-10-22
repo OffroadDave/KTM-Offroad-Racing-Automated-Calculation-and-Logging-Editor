@@ -154,7 +154,7 @@ ORACLE.exe sync-motodb
 4. **(optional `--gps-split`)** — Runs per GPS-Ziellinie in Laps teilen (Abschnitt 9); bereits geteilte Runs bleiben unverändert.
 5. **Berechnen & schreiben** — `sVehicle` + per-Lap-Distanz; Lap/Alias/Marker/LapDistance, Track, Fahrer
    direkt in `LapHeader.xml` / `RunLapHeader.xml` / `Car.xml` / `Session.xml`.
-6. **Wetter** — `[WEATHER]` in der `.HED` und `Meteo.xml` je Lap (Abschnitt 10b; ändert nie den Exit-Code).
+6. **Wetter** — `trackCondition` in `[TRACK]`, Sektion `[WEATHER]` in der `.HED` und `Meteo.xml` je Lap (Abschnitt 10b; ändert nie den Exit-Code).
 7. **Track-Länge prüfen** — Abschnitt 10a.
 8. **Status schreiben** — `oracle.status.json` im Geräteordner.
 
@@ -256,10 +256,8 @@ Fehlt die Datei, gelten die Standardwerte. JSON-Kommentare (`//`) sind erlaubt.
     "DampRainMm": 0.1,           // trackCondition "damp" ab 0,1 mm Regen während des Runs …
     "WetRainMm": 1.0,            // … "wet" ab 1 mm …
     "WetRateMmPerHour": 2.0,     // … oder ab 2 mm/h in einem 15-Minuten-Intervall
-    "WriteHed": true,            // .HED-Sektion [WEATHER]
-    "WriteMeteoXml": true,       // Lap_*\Meteo.xml
-    "MeteoPressureUnit": "mbar", // <Bar> in mbar (= hPa) oder "bar"
-    "MeteoWindSpeedUnit": "kmh"  // <WindSp> in km/h oder "ms"
+    "WriteHed": true,            // .HED: trackCondition in [TRACK] + Sektion [WEATHER]
+    "WriteMeteoXml": true        // Lap_*\Meteo.xml
   }
 }
 ```
@@ -411,14 +409,15 @@ ORACLE trägt das Wetter **während jedes Runs** ein – Postprocessing, kein Fo
 |---|---|
 | **Ort** | KOMPASS-Koordinate des Tracks (dieselbe wie für den GPS-Split; in KODE pflegen) |
 | **Zeit** | Lap-Start (`STS`/`STMs`) und `LapTime` aus `LapHeader.xml`. Die Logger-Uhr läuft auf **Ortszeit der Strecke** (geprüft mit der GPS-Zeit: RT22 UTC+2, Shanghai UTC+8); die API rechnet mit `timezone=auto` Zeitzone und Sommerzeit selbst. |
-| **Quelle** | Open-Meteo Historical Forecast API (archivierte hochauflösende Modelle, 15-Minuten-Werte, kurz nach der Session verfügbar). Ein Abruf je Session (alle Runs eines Geräteordners), nur das Zeitfenster der Runs. Wetterdaten von Open-Meteo.com, Lizenz CC BY 4.0. |
-| **Ausgabe je Run** | `.HED`-Sektion `[WEATHER]`: `trackCondition` (dry/damp/wet), `airTemp` (Mittel), `airTempStart`, `airTempEnd`, `groundTemp` (Bodenoberfläche ≈ Streckentemperatur), `humidity`, `pressure`, `airDensity`, `powerCorrection` (DIN 70020), `windSpeed`, `windDir`, `rain`, `rainRateMax`, `weatherSource` |
-| **Ausgabe je Lap** | `Lap_*\Meteo.xml` im WinTAX-Format (Meteo-Seite in *Edit Lap Information*, Channel Browser, `$METEOTEMPOUT`, `$METEOHUMOUT`, `$METEOBAR`, `$METEORAIN`, `$METEOWINDSP`, `$METEOWINDDIR` im VCH) |
-| **MotoDB** | `ORACLE.exe sync-motodb` legt die Felder der Gruppe `WEATHER` (mit Einheit) im Sheet HED von `loadChannels.xlsx` an. |
+| **Quelle** | Open-Meteo Historical Forecast API (archivierte hochauflösende Modelle, 15-Minuten-Werte, kurz nach der Session verfügbar). Ein Abruf je Session (alle Runs eines Geräteordners), nur das Zeitfenster der Runs. Alle Werte – auch der Luftdruck – stammen aus dem Modell, nicht vom Bike. Wetterdaten von Open-Meteo.com, Lizenz CC BY 4.0. |
+| **Ausgabe je Run** | `.HED`: `trackCondition` (dry/damp/wet) in der Sektion `[TRACK]` (neben `surface`), Sektion `[WEATHER]`: `airTemp` (Mittel), `airTempStart`, `airTempEnd`, `groundTemp` (Bodenoberfläche ≈ Streckentemperatur), `humidity`, `pressure`, `airDensity`, `windSpeed`, `windDir`, `rain`, `rainRateMax`, `weatherSource` |
+| **Ausgabe je Lap** | `Lap_*\Meteo.xml` im WinTAX-Format (Meteo-Seite in *Edit Lap Information*, Channel Browser, `$METEOTEMPOUT`, `$METEOHUMOUT`, `$METEOBAR`, `$METEORAIN`, `$METEOWINDSP`, `$METEOWINDDIR` im VCH). WinTAX speichert keine Einheiten; ORACLE schreibt dieselben wie in der `.HED`: °C, %, hPa, km/h, Grad (−180…+180, Ost positiv), mm je Lap. |
+| **MotoDB** | `ORACLE.exe sync-motodb` legt `trackCondition` im Block `TRACK` und die Felder der Gruppe `WEATHER` (mit Einheit) im Sheet HED von `loadChannels.xlsx` an – im nächsten freien Gruppenblock (verbundene Zellen in Spalte A bleiben erhalten). |
 
-**Streckenzustand** (nur Regen während des Runs): `wet` ab `WetRainMm` (1 mm) oder ab `WetRateMmPerHour` (2 mm/h) in einem
-15-Minuten-Intervall, `damp` ab `DampRainMm` (0,1 mm), sonst `dry`. Wettermodelle verfehlen kurze, lokale Schauer manchmal –
-wer es besser weiß, trägt die Werte in der `.HED` selbst ein und setzt `weatherSource = manual`; ORACLE überschreibt sie dann nie.
+**Streckenzustand** (nur Regen während des Runs, Schwellen in `oracle-config.json`, Abschnitt `Weather`): `wet` ab `WetRainMm`
+(1 mm) oder ab `WetRateMmPerHour` (2 mm/h) in einem 15-Minuten-Intervall, `damp` ab `DampRainMm` (0,1 mm), sonst `dry`.
+Wettermodelle verfehlen kurze, lokale Schauer manchmal – wer es besser weiß, trägt die Werte in der `.HED` selbst ein und setzt
+`weatherSource = manual` in `[WEATHER]`; ORACLE überschreibt dann weder `[WEATHER]` noch `trackCondition`.
 
 **Ablauf:** Der Schritt läuft in `process` nach den Berechnungen und **ändert nie den Exit-Code**. Ohne Internet an der Strecke
 steht im Status `weather: failed`; der nächste `process`-Aufruf holt das Wetter für bereits verarbeitete Runs nach – auch wenn
@@ -497,7 +496,7 @@ Logger am Bike ─► OneDrive/Workstation ─► SENTINEL (download.done)
 | `[weather] ⚠️ Open-Meteo: no connection …` / Status `weather: failed` | Kein Internet → nichts tun; der nächste `process`-Aufruf (oder `ORACLE.exe weather <Pfad>`) holt das Wetter nach. |
 | `[weather] Skipped: no track coordinate in KOMPASS …` | Track in KOMPASS ohne `Latitude`/`Longitude` → in KODE pflegen. |
 | Wetter passt zeitlich nicht (z.B. Regen Stunden zu früh) | Logger-Uhr nicht auf Ortszeit der Strecke → `Weather.LoggerClock` prüfen (`Utc` für UTC-Logger), dann `weather --force`. |
-| Streckenzustand laut Modell falsch | Werte in der `.HED`-Sektion `[WEATHER]` korrigieren und `weatherSource = manual` setzen – ORACLE überschreibt sie nicht mehr. |
+| Streckenzustand laut Modell falsch | `trackCondition` in `[TRACK]` (und ggf. Werte in `[WEATHER]`) korrigieren und in `[WEATHER]` `weatherSource = manual` setzen – ORACLE überschreibt sie nicht mehr. Die Schwellen stehen in `oracle-config.json` (`Weather.DampRainMm`, `WetRainMm`, `WetRateMmPerHour`). |
 | `riderName` leer, Status `metadata: partial` | Rider (Kürzel/Saison/Team) fehlt in KOMPASS oder Team-Ordner fehlt in `TeamMappings` → in KODE bzw. `oracle-config.json` ergänzen. |
 | `DriverName`/`riderName` falsch (alter Wert aus `.HED`) | Ab Revision 3 ersetzt KOMPASS abweichende `.HED`-Werte automatisch; der Ordner wird beim nächsten Aufruf neu verarbeitet. Bleibt der Wert, steht `PreferHedMetadata: true` in der Konfiguration oder KOMPASS kennt den Rider (Kürzel + Saison) nicht. |
 | `Access denied` beim Umbenennen eines Geräteordners | Ordner liegt in einem offenen VS-Code-Workspace o.ä. (Datei-Lock); non-fatal — oder `NormalizeDeviceFolderName: false`. |

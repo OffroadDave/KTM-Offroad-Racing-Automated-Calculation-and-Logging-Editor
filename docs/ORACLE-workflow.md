@@ -105,7 +105,7 @@ Team, Saison, Motorklasse und Disziplin werden am **Muster** der Pfadsegmente er
 | `RunLapHeader.xml` | Liste der Laps (`LapInfo/Path`) | liest/schreibt; SENTINEL prüft damit die Vollständigkeit |
 | `Car.xml`, `Session.xml` | Bike, Rider, Track, `TrackLen` | schreibt |
 | `importData.ztx` | von ORACLE berechnete Kanäle (`sVehicle`) | **wird von ORACLE ersetzt** |
-| `{Saison}{Event}_{Bike}{Session}.HED` | INI-artige Metadaten für MotoDB (UTF-8), inkl. Sektion `[WEATHER]` | liest/schreibt ([HedFileService.cs](../ORACLE/Metadata/HedFileService.cs)) |
+| `{Saison}{Event}_{Bike}{Session}.HED` | INI-artige Metadaten für MotoDB (UTF-8), inkl. `trackCondition` in `[TRACK]` und Sektion `[WEATHER]` | liest/schreibt ([HedFileService.cs](../ORACLE/Metadata/HedFileService.cs)) |
 | `Lap_*\Meteo.xml` | Wetter je Lap im WinTAX-Format | schreibt ([MeteoXml.cs](../ORACLE/Weather/MeteoXml.cs)) |
 | `download.done` | Freigabe-Marker (XML) von SENTINEL | nur SENTINEL schreibt |
 
@@ -167,7 +167,7 @@ riderName = Andrea Adamo
 3. **KRAKEN** startet nacheinander `ORACLE.exe sync-motodb`, `ORACLE.exe process "<Run>"` und bei Exit-Code `0`/`4` MotoDB.
 4. **ORACLE `process`** führt für den Run aus ([README, Abschnitt 6](../README.md#6-was-process-tut-in-reihenfolge)):
    Reparatur verwaister Lap-Ordner → Metadaten (KOMPASS gewinnt gegen Platzhalter in der `.HED`) → kanonische `.HED`
-   → optional GPS-Lap-Split → sVehicle und Lap-Distanzen → XML-Properties → **Wetter während der Runs** (`[WEATHER]`,
+   → optional GPS-Lap-Split → sVehicle und Lap-Distanzen → XML-Properties → **Wetter während der Runs** (`trackCondition` in `[TRACK]`, `[WEATHER]`,
    `Meteo.xml`; braucht Internet, ändert nie den Exit-Code) → Track-Längen-Prüfung → `oracle.status.json`.
 5. **MotoDB** übernimmt den Run, sofern `trackLength` aus der `.HED` exakt in `CIRCUITS` vorkommt.
 
@@ -239,8 +239,9 @@ Bei mehreren Geräten/Runs gewinnt der schwerwiegendste Code
 
 - Fehlte an der Strecke das Internet (`weather: failed`), holt der nächste `process`-Aufruf das Wetter nach. Für ganze Events:
   `ORACLE.exe weather "C:\...\RT22_GER-Teutschenthal"`.
-- Das Modell kennt nur 15-Minuten-Werte im 1–9-km-Raster und verfehlt kurze Schauer manchmal. Stimmt `trackCondition` nicht mit
-  den Session-Notizen überein: Werte in der `.HED`-Sektion `[WEATHER]` korrigieren und `weatherSource = manual` setzen.
+- Das Modell kennt nur 15-Minuten-Werte im 1–9-km-Raster und verfehlt kurze Schauer manchmal. Stimmt `trackCondition` (Sektion
+  `[TRACK]`) nicht mit den Session-Notizen überein: Wert korrigieren und in `[WEATHER]` `weatherSource = manual` setzen. Die
+  Schwellen für dry/damp/wet stehen in `oracle-config.json` (`Weather.DampRainMm`, `WetRainMm`, `WetRateMmPerHour`).
 - Details: [README, Abschnitt 10b](../README.md#10b-wetter-während-der-runs-process-weather).
 
 ### 6.3 Track-Längen-Vorschläge bestätigen

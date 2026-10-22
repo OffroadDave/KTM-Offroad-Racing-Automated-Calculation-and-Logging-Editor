@@ -2,7 +2,7 @@ namespace Ktm.Racing.Oracle
 {
     /// <summary>
     /// Weather during a run from a historical weather model (section <c>Weather</c> in oracle-config.json). ORACLE writes the
-    /// values to the run's .HED (<c>[WEATHER]</c>, for MotoDB) and to <c>Lap_*\Meteo.xml</c> (WinTAX meteo page, <c>$METEO…</c>
+    /// values to the run's .HED (<c>trackCondition</c> in <c>[TRACK]</c>, section <c>[WEATHER]</c>, for MotoDB) and to <c>Lap_*\Meteo.xml</c> (WinTAX meteo page, <c>$METEO…</c>
     /// in VCH). Only the time of the run itself is evaluated – no forecast, no look-back before the session.
     /// </summary>
     public sealed class WeatherSettings
@@ -40,17 +40,11 @@ namespace Ktm.Racing.Oracle
         /// <summary>Precipitation rate in any 15-minute interval of the run from which the track counts as <c>wet</c> [mm/h].</summary>
         public double WetRateMmPerHour { get; set; } = 2.0;
 
-        /// <summary>Write the <c>[WEATHER]</c> section into the run's .HED.</summary>
+        /// <summary>Write <c>trackCondition</c> into the <c>[TRACK]</c> section and the <c>[WEATHER]</c> section into the run's .HED.</summary>
         public bool WriteHed { get; set; } = true;
 
         /// <summary>Write <c>Meteo.xml</c> into every lap folder.</summary>
         public bool WriteMeteoXml { get; set; } = true;
-
-        /// <summary>Pressure unit of <c>&lt;Bar&gt;</c> in Meteo.xml: <c>mbar</c> (= hPa) or <c>bar</c>.</summary>
-        public string MeteoPressureUnit { get; set; } = "mbar";
-
-        /// <summary>Wind speed unit of <c>&lt;WindSp&gt;</c> in Meteo.xml: <c>kmh</c> or <c>ms</c>.</summary>
-        public string MeteoWindSpeedUnit { get; set; } = "kmh";
 
         /// <summary><c>true</c> when the logger clock is UTC; otherwise the local time of the track.</summary>
         internal bool LoggerClockIsUtc => LoggerClock.Equals("Utc", StringComparison.OrdinalIgnoreCase);

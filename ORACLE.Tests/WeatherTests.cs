@@ -61,15 +61,12 @@ public sealed class WeatherTests
         Assert.Equal(expected, WeatherCalculator.Classify(rainMm, rate, new WeatherSettings()));
 
     [Fact]
-    public void Air_density_and_DIN_correction_match_reference_values()
+    public void Air_density_matches_reference_values()
     {
         // ISA sea level, dry: 1.225 kg/m³.
         Assert.Equal(1.225, WeatherCalculator.AirDensity(15, 1013.25, 0), 3);
-        // RT22 R1 (21.6 °C, 998.7 hPa, 71 %): ρ ≈ 1.172 kg/m³, DIN factor ≈ 1.036.
+        // RT22 R1 (21.6 °C, 998.7 hPa from the model, 71 %): ρ ≈ 1.172 kg/m³.
         Assert.Equal(1.172, WeatherCalculator.AirDensity(21.6, 998.7, 71), 3);
-        Assert.Equal(1.036, WeatherCalculator.DinCorrection(21.6, 998.7, 71), 3);
-        // Reference conditions give 1.
-        Assert.Equal(1.0, WeatherCalculator.DinCorrection(20, 1013, 0), 6);
     }
 
     [Fact]
@@ -167,7 +164,7 @@ public sealed class WeatherTests
     [Fact]
     public void Meteo_xml_has_the_WinTAX_layout()
     {
-        var xml = MeteoXml.Build(Lap(), new WeatherSettings());
+        var xml = MeteoXml.Build(Lap());
 
         Assert.Equal(
             "<?xml version=\"1.0\"?>\r\n<Meteo>\r\n<TempIn>21.6</TempIn>\r\n<TempOut>21.6</TempOut>\r\n<WindSp>9.4</WindSp>\r\n" +
@@ -177,13 +174,10 @@ public sealed class WeatherTests
     }
 
     [Fact]
-    public void Meteo_xml_units_are_configurable_and_unknown_values_write_nothing()
+    public void Meteo_xml_writes_nothing_for_unknown_values()
     {
-        var xml = MeteoXml.Build(Lap(), new WeatherSettings { MeteoPressureUnit = "bar", MeteoWindSpeedUnit = "ms" })!;
-        Assert.Contains("<Bar>0.9985</Bar>", xml);
-        Assert.Contains("<WindSp>2.6</WindSp>", xml);
-
-        Assert.Null(MeteoXml.Build(Lap() with { AirTempC = double.NaN }, new WeatherSettings()));
+        Assert.Null(MeteoXml.Build(Lap() with { AirTempC = double.NaN }));
+        Assert.Null(MeteoXml.Build(Lap() with { RainMm = double.NaN }));
     }
 
     [Fact]
@@ -193,7 +187,7 @@ public sealed class WeatherTests
         try
         {
             CultureInfo.CurrentCulture = new CultureInfo("de-DE");
-            Assert.Contains("<TempOut>21.6</TempOut>", MeteoXml.Build(Lap(), new WeatherSettings()));
+            Assert.Contains("<TempOut>21.6</TempOut>", MeteoXml.Build(Lap()));
         }
         finally
         {
@@ -217,25 +211,48 @@ public sealed class WeatherTests
     }
 
     [Fact]
+    public void Track_condition_is_set_in_the_TRACK_section()
+    {
+        string[] withTrack = ["[KTM_NAMING]", "bikeName = AA01", "[TRACK]", "surface = Sand", "", "[WEATHER]", "airTemp = 21.6"];
+        var updated = HedFileService.SetSectionValue(withTrack, "TRACK", "trackCondition", "wet");
+        Assert.Equal(["[KTM_NAMING]", "bikeName = AA01", "[TRACK]", "surface = Sand", "trackCondition = wet", "", "[WEATHER]", "airTemp = 21.6"], updated);
+        Assert.Equal("dry", HedFileService.ReadValue(HedFileService.SetSectionValue(updated, "TRACK", "trackCondition", "dry"), "TRACK", "trackCondition"));
+
+        string[] withoutTrack = ["[KTM_NAMING]", "bikeName = AA01", "[WEATHER]", "airTemp = 21.6"];
+        Assert.Equal(["[KTM_NAMING]", "bikeName = AA01", "[TRACK]", "trackCondition = damp", "[WEATHER]", "airTemp = 21.6"],
+            HedFileService.SetSectionValue(withoutTrack, "TRACK", "trackCondition", "damp"));
+
+        Assert.Equal(["[KTM_NAMING]", "bikeName = AA01", "[TRACK]", "surface = Sand", "", "[WEATHER]", "airTemp = 21.6"],
+            HedFileService.RemoveKey(updated, "TRACK", "trackCondition"));
+    }
+
+    [Fact]
     public void Rewriting_the_HED_keeps_each_runs_own_weather_and_never_copies_it()
     {
         using var tmp = new TempDir();
         var metadata = new RunMetadata
         {
             BikeName = "AA01", TrackName = "Teutschenthal", SeasonName = "2026", EventName = "RT22_GER-Teutschenthal", SessionName = "R1",
+            Surface = "Sand",
         };
         var name = HedFileService.BuildHedFileName(metadata);
         var run1 = tmp.CreateDir("Run_1");
         var run2 = tmp.CreateDir("Run_2");
-        File.WriteAllLines(Path.Combine(run1, name), ["[KTM_NAMING]", "bikeName = AA01", "[WEATHER]", "airTemp = 21.6"]);
+        File.WriteAllLines(Path.Combine(run1, name),
+            ["[KTM_NAMING]", "bikeName = AA01", "[TRACK]", "surface = Sand", "trackCondition = wet", "[WEATHER]", "airTemp = 21.6"]);
 
         new HedFileService().EnsureHedInAllRuns([run1, run2], tmp.Path, metadata);
 
         var hed1 = File.ReadAllLines(Path.Combine(run1, name));
         var hed2 = File.ReadAllLines(Path.Combine(run2, name));
         Assert.Equal("21.6", HedFileService.ReadValue(hed1, "WEATHER", "airTemp"));
+        Assert.Equal("wet", HedFileService.ReadValue(hed1, "TRACK", "trackCondition"));
+        Assert.Equal("Sand", HedFileService.ReadValue(hed1, "TRACK", "surface"));
         Assert.Single(hed1, l => l.Trim() == "[WEATHER]");
+        Assert.Single(hed1, l => l.Trim() == "[TRACK]");
         Assert.DoesNotContain(hed2, l => l.Trim() == "[WEATHER]");
+        Assert.Null(HedFileService.ReadValue(hed2, "TRACK", "trackCondition"));
+        Assert.Equal("Sand", HedFileService.ReadValue(hed2, "TRACK", "surface"));
         Assert.Equal("Run_2", new HedFileService().ParseHedFile(Path.Combine(run2, name))["runNumber"]);
     }
 
@@ -245,6 +262,10 @@ public sealed class WeatherTests
         var keys = WeatherService.HedValues(new WeatherSummary(), "x").Select(v => v.Key).ToList();
         Assert.Equal(HedFieldCatalog.WeatherFields.Select(f => f.Name), keys);
         Assert.All(HedFieldCatalog.WeatherFields, f => Assert.Contains(f, HedFieldCatalog.Fields));
+        Assert.DoesNotContain("trackCondition", keys);
+        Assert.DoesNotContain("powerCorrection", keys);
+        var track = HedFieldCatalog.Fields.Single(f => f.Name == HedFileService.TrackConditionKey);
+        Assert.Equal(HedFieldCatalog.TrackGroup, track.Group);
     }
 
     // ---- lap windows and service ------------------------------------------------------------------------------------
@@ -320,16 +341,18 @@ public sealed class WeatherTests
 
         var hed1 = File.ReadAllLines(Path.Combine(run1, "2026RT22_AA01R1.HED"));
         // Run 1 = 12:05–12:15: 0.4 mm × 10/15 = 0.27 mm → damp; mean temperature (20.33 + 21.0) / 2.
-        Assert.Equal("damp", HedFileService.ReadValue(hed1, "WEATHER", "trackCondition"));
+        Assert.Equal("damp", HedFileService.ReadValue(hed1, "TRACK", "trackCondition"));
+        Assert.Null(HedFileService.ReadValue(hed1, "WEATHER", "trackCondition"));
+        Assert.Null(HedFileService.ReadValue(hed1, "WEATHER", "powerCorrection"));
         Assert.Equal("0.3", HedFileService.ReadValue(hed1, "WEATHER", "rain"));
         Assert.Equal("20.7", HedFileService.ReadValue(hed1, "WEATHER", "airTemp"));
         Assert.StartsWith("Fake best_match (grid", HedFileService.ReadValue(hed1, "WEATHER", "weatherSource"));
-        Assert.Equal("[KTM_NAMING]", hed1[0]);
+        Assert.Equal(["[KTM_NAMING]", "[TRACK]", "[WEATHER]"], hed1.Where(l => l.StartsWith('[')));
 
         // Run 2 = 12:30–12:40, dry.
         var hed2 = File.ReadAllLines(Path.Combine(run2, "2026RT22_AA01R1.HED"));
         Assert.Equal("22.7", HedFileService.ReadValue(hed2, "WEATHER", "airTempEnd"));
-        Assert.Equal("dry", HedFileService.ReadValue(hed2, "WEATHER", "trackCondition"));
+        Assert.Equal("dry", HedFileService.ReadValue(hed2, "TRACK", "trackCondition"));
 
         Assert.True(File.Exists(Path.Combine(run1, "Lap_00001_00418", "Meteo.xml")));
         Assert.True(File.Exists(Path.Combine(run1, "Lap_00002_00418", "Meteo.xml")));
@@ -346,14 +369,14 @@ public sealed class WeatherTests
         using var tmp = new TempDir();
         var run = CreateRun(tmp, "Run_1", Noon.AddMinutes(5), 300);
         var hed = Path.Combine(run, "2026RT22_AA01R1.HED");
-        File.WriteAllLines(hed, ["[KTM_NAMING]", "bikeName = AA01", "[WEATHER]", "trackCondition = wet", "weatherSource = manual"]);
+        File.WriteAllLines(hed, ["[KTM_NAMING]", "bikeName = AA01", "[TRACK]", "trackCondition = wet", "[WEATHER]", "weatherSource = manual"]);
         var source = new FakeSource(Series());
 
         var result = await new WeatherService(new WeatherSettings(), source).ApplyAsync([run], new GeoCoordinate(1, 2));
 
         Assert.Equal(StepStatus.Success, result.Status);
         Assert.Equal(0, source.Calls);
-        Assert.Equal("wet", HedFileService.ReadValue(File.ReadAllLines(hed), "WEATHER", "trackCondition"));
+        Assert.Equal("wet", HedFileService.ReadValue(File.ReadAllLines(hed), "TRACK", "trackCondition"));
         Assert.False(File.Exists(Path.Combine(run, "Lap_00001_00418", "Meteo.xml")));
     }
 
@@ -404,6 +427,8 @@ public sealed class WeatherTests
         Assert.True(config.Weather.Enabled);
         Assert.Equal("TrackLocal", config.Weather.LoggerClock);
         Assert.Equal("https://historical-forecast-api.open-meteo.com/v1/forecast", config.Weather.BaseUrl);
-        Assert.Equal("mbar", config.Weather.MeteoPressureUnit);
+        Assert.Equal(0.1, config.Weather.DampRainMm);
+        Assert.Equal(1.0, config.Weather.WetRainMm);
+        Assert.Equal(2.0, config.Weather.WetRateMmPerHour);
     }
 }

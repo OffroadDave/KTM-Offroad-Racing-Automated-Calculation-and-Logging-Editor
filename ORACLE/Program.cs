@@ -188,7 +188,7 @@ class Program
         Console.WriteLine("  ORACLE.exe detect-start <riderPath|runPath>              Detect valid starts (read-only)");
         Console.WriteLine("  ORACLE.exe split-laps <event|session|device|run> [--dry-run] [--undo]");
         Console.WriteLine("                                                           Split runs into laps at the GPS finish line (dry run/undo)");
-        Console.WriteLine("  ORACLE.exe weather <event|session|device|run> [--force]  Weather during the runs (.HED [WEATHER], Lap Meteo.xml)");
+        Console.WriteLine("  ORACLE.exe weather <event|session|device|run> [--force]  Weather during the runs (.HED [TRACK]/[WEATHER], Lap Meteo.xml)");
         Console.WriteLine("  ORACLE.exe sync-motodb [--kompass <KOMPASS.json>] [--workbook <loadChannels.xlsx>]  MotoDB inputs (CIRCUITS+HED) from KOMPASS");
         Console.WriteLine("  ORACLE.exe <runPath>            [--force] [--gps-split]  Legacy mode (process)");
         Console.WriteLine();

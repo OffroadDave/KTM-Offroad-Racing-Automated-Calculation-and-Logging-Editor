@@ -12,24 +12,22 @@ namespace Ktm.Racing.Oracle
     /// &lt;Meteo&gt;&lt;TempIn/&gt;&lt;TempOut/&gt;&lt;WindSp/&gt;&lt;WindDir/&gt;&lt;Bar/&gt;&lt;HumIn/&gt;&lt;HumOut/&gt;&lt;Rain/&gt;&lt;/Meteo&gt;
     /// </code>
     /// The model has no separate "inside" sensor: <c>TempIn</c>/<c>HumIn</c> carry the same values as <c>TempOut</c>/<c>HumOut</c>.
+    /// WinTAX stores no units in the file; ORACLE writes the same units as in the .HED: °C, % rel. humidity, hPa (= mbar), km/h,
+    /// degrees (−180…+180, east positive, as documented for the meteo station) and mm per lap.
     /// </summary>
     public static class MeteoXml
     {
         public const string FileName = "Meteo.xml";
 
         /// <summary>Meteo.xml content for a lap, or <c>null</c> when a required value is unknown.</summary>
-        public static string? Build(WeatherSummary lap, WeatherSettings settings)
+        public static string? Build(WeatherSummary lap)
         {
             if (double.IsNaN(lap.AirTempC) || double.IsNaN(lap.HumidityPct) || double.IsNaN(lap.PressureHpa)
                 || double.IsNaN(lap.WindSpeedKmh) || double.IsNaN(lap.RainMm))
                 return null;
 
-            var pressure = settings.MeteoPressureUnit.Equals("bar", StringComparison.OrdinalIgnoreCase)
-                ? Format(lap.PressureHpa / 1000, "0.0000")
-                : Format(lap.PressureHpa, "0.0");
-            var wind = settings.MeteoWindSpeedUnit.Equals("ms", StringComparison.OrdinalIgnoreCase)
-                ? Format(lap.WindSpeedKmh / 3.6, "0.0")
-                : Format(lap.WindSpeedKmh, "0.0");
+            var pressure = Format(lap.PressureHpa, "0.0");
+            var wind = Format(lap.WindSpeedKmh, "0.0");
             // WinTAX documents the direction as "180E -> 180W": east positive, west negative.
             var direction = double.IsNaN(lap.WindDirectionDeg) ? 0
                 : lap.WindDirectionDeg > 180 ? lap.WindDirectionDeg - 360 : lap.WindDirectionDeg;
@@ -51,9 +49,9 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>Writes Meteo.xml into the lap folder (atomically); <c>false</c> when a required value is unknown.</summary>
-        public static bool Write(string lapFolder, WeatherSummary lap, WeatherSettings settings)
+        public static bool Write(string lapFolder, WeatherSummary lap)
         {
-            var content = Build(lap, settings);
+            var content = Build(lap);
             if (content is null)
                 return false;
             AtomicFile.WriteAllText(Path.Combine(lapFolder, FileName), content);

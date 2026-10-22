@@ -333,9 +333,10 @@ Signaturen per Reflection aus der DLL; Semantik aus `KtmDataHandler.xml` bzw. de
   eine Wetterstation, deren `.met`-Datei der Rx-Task *Import Meteo* übernimmt (`docs\Wintax4\Acquisition_Manager\Rx_tasks\Rx_tasks.md:141-160`).
   Das Dateiformat ist nicht dokumentiert; ein Muster aus WinTAX (RT22 R1 Run_1083) zeigt `<Meteo>` mit `TempIn`, `TempOut`, `WindSp`,
   `WindDir`, `Bar`, `HumIn`, `HumOut`, `Rain` (CRLF, ohne BOM). Die Einheiten sind widersprüchlich dokumentiert (Rx-Task/VCH: bar,
-  km/h; Automation `predefined_currentdata_properties.md:47-54`: mBar, m/s) → in ORACLE konfigurierbar (`MeteoPressureUnit`,
-  `MeteoWindSpeedUnit`, Standard mbar/km/h). **KtmDataHandler** kann `Meteo.xml` nur löschen (`RemoveMeteoFiles`), nicht schreiben →
-  ORACLE schreibt die Datei selbst (`Weather\MeteoXml.cs`).
+  km/h; Automation `predefined_currentdata_properties.md:47-54`: mBar, m/s); WinTAX speichert und zeigt auf der Meteo-Seite keine
+  Einheiten (geprüft 22.10.2026) → ORACLE schreibt dieselben Einheiten wie in der `.HED` (°C, %, hPa, km/h, Grad, mm).
+  **KtmDataHandler** kann `Meteo.xml` nur löschen (`RemoveMeteoFiles`), nicht schreiben → ORACLE schreibt die Datei selbst
+  (`Weather\MeteoXml.cs`).
 - **Logger-Uhr:** `STS` in `LapHeader.xml` ist nicht UTC, sondern die Ortszeit der Strecke als Unix-Sekunden (RT22: GPS-Kanal
   `HHMM` 12:52 UTC ↔ `STMs` 14:52; Shanghai: 05:39 UTC ↔ 13:39). ORACLE fragt deshalb mit `timezone=auto` ab.
 - **Open-Meteo Historical Forecast API** (`https://historical-forecast-api.open-meteo.com/v1/forecast`): archivierte Modellläufe
@@ -344,9 +345,13 @@ Signaturen per Reflection aus der DLL; Semantik aus `KtmDataHandler.xml` bzw. de
   Lizenz der Daten CC BY 4.0 (Quellenangabe in `oracle.status.json`). Freie API laut Nutzungsbedingungen (https://open-meteo.com/en/terms)
   für nicht-kommerzielle Nutzung, < 10 000 Aufrufe/Tag; ORACLE braucht einen Aufruf je Session. API-Key optional über
   `ORACLE_OPENMETEO_APIKEY`.
-- **Genauigkeit:** Modellraster 1–9 km, Bodendruck stimmt mit `pBaro` am Bike überein (RT22 998,4 ↔ 998,5 hPa; Shanghai
-  1017,5 ↔ 1018,5 hPa). `TAir` am Bike ist Ansaugluft (37–42 °C) und **keine** Umgebungstemperatur. Kurze Schauer werden zeitlich
-  bzw. örtlich teils verfehlt → `weatherSource = manual` in der `.HED` schützt korrigierte Werte.
+- **Genauigkeit:** Modellraster 1–9 km. Luftdruck und alle anderen Wetterwerte kommen aus dem Modell; zur Plausibilisierung
+  stimmt der Modell-Bodendruck mit `pBaro` am Bike überein (RT22 998,4 ↔ 998,5 hPa; Shanghai 1017,5 ↔ 1018,5 hPa). `TAir` am Bike
+  ist Ansaugluft (37–42 °C) und **keine** Umgebungstemperatur. Kurze Schauer werden zeitlich bzw. örtlich teils verfehlt →
+  `weatherSource = manual` in der `.HED` schützt korrigierte Werte.
+- **MotoDB `loadChannels.xlsx`, Sheet HED:** Gruppen sind verbundene Zellen in Spalte A (KTM_NAMING A2:A16, TRACK A17:A23, leere
+  reservierte Blöcke darunter). `sync-motodb` trägt neue Felder in den Block ihrer Gruppe ein (`trackCondition` → TRACK) und legt
+  neue Gruppen (`WEATHER`) im nächsten freien Block an; die verbundenen Zellen werden passend angepasst.
 
 ---
 

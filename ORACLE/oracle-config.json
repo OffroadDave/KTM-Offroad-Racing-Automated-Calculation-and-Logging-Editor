@@ -92,12 +92,15 @@
   },
 
   // Weather during the runs (process step "weather", command: ORACLE.exe weather <path> [--force]).
-  // Source: Open-Meteo historical forecast (15-minute values at the KOMPASS track coordinate), only the time of the runs.
-  // Output: .HED section [WEATHER] (MotoDB) and Lap_*\Meteo.xml (WinTAX meteo page, $METEO... in VCH).
+  // Source: Open-Meteo historical forecast (15-minute values at the KOMPASS track coordinate, pressure from the model),
+  // only the time of the runs.
+  // Output: .HED trackCondition in [TRACK] + section [WEATHER] (MotoDB) and Lap_*\Meteo.xml (WinTAX meteo page, $METEO... in VCH;
+  // units as in the .HED: °C, %, hPa, km/h, degrees, mm).
   // Never changes the exit code: without internet the step is retried on the next call. "weatherSource = manual" in the
   // .HED [WEATHER] section protects hand-maintained values. Optional API key via environment variable ORACLE_OPENMETEO_APIKEY.
   // LoggerClock: "TrackLocal" (logger runs on the local time of the track) or "Utc".
-  // Track condition: wet from WetRainMm during the run or WetRateMmPerHour in a 15-minute interval, damp from DampRainMm.
+  // Track condition (rain during the run only): "wet" from WetRainMm [mm] or from WetRateMmPerHour [mm/h] in any 15-minute
+  // interval, "damp" from DampRainMm [mm], otherwise "dry".
   "Weather": {
     "Enabled": true,
     "BaseUrl": "https://historical-forecast-api.open-meteo.com/v1/forecast",
@@ -108,8 +111,6 @@
     "WetRainMm": 1.0,
     "WetRateMmPerHour": 2.0,
     "WriteHed": true,
-    "WriteMeteoXml": true,
-    "MeteoPressureUnit": "mbar",
-    "MeteoWindSpeedUnit": "kmh"
+    "WriteMeteoXml": true
   }
 }

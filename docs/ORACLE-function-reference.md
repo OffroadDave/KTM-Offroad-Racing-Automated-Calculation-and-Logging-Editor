@@ -20,7 +20,7 @@ Die gemeinsam genutzte Bibliothek `Ktm.Racing.Domain` (`C:\Dev\Ktm.Racing.Domain
 | Angabe | Wert |
 |---|---|
 | Repository | `C:\Dev\KTM Offroad Racing Automated Calculation and Logging Editor` |
-| Git-Commit (`git rev-parse --short HEAD`) | `643a315` |
+| Git-Commit (`git rev-parse --short HEAD`) | `5cd69ea` |
 | Erstellt | 2026-10-21 |
 | Hinweis | Zeilennummern werden mit `render.py` automatisch aus dem Code des angegebenen Commits (zzgl. der Änderungen dieses Branches) ermittelt. Konsolen- und Logmeldungen sind englisch und werden wörtlich zitiert. |
 | Zielplattform | .NET 8 (`net8.0`); ORACLE zusätzlich `Platforms AnyCPU;x64` |
@@ -109,7 +109,7 @@ Zentrale Dateien im Dateisystem (aus dem Code):
 | `loadChannels.xlsx` (Sheets CIRCUITS/HED) | `OracleConfig.MotoDbLoadChannelsPath` | `LoadChannelsWriter` (Domain) über [`TrackLengthGate`](#tracklengthgate), [`MotoDbInputSync`](#motodbinputsync) |
 | Längenvorschläge für KODE | `TrackLengthSettings.SuggestionsDirectory` | `TrackLengthSuggestionStore` (Domain) über [`TrackLengthGate`](#tracklengthgate) |
 | `download.done` | Run-Ordner | SENTINEL [`DownloadDoneWriter`](#downloaddonewriter) |
-| `.HED`-Sektion `[WEATHER]` | jeder Run-Ordner | [`HedFileService.SetWeather`](#hedfileservice) über [`WeatherService`](#weatherservice) |
+| `.HED`: `trackCondition` in `[TRACK]`, Sektion `[WEATHER]` | jeder Run-Ordner | [`HedFileService.SetWeather`](#hedfileservice) über [`WeatherService`](#weatherservice) |
 | `Lap_*\Meteo.xml` | jeder Lap-Ordner | [`MeteoXml`](#meteoxml) über [`WeatherService`](#weatherservice) |
 
 ## 5. Kommandozeile (CLI)
@@ -690,29 +690,30 @@ Datei: [RunMetadata.cs](../ORACLE/Metadata/RunMetadata.cs). Datenmodell aller Me
 
 #### `HedFileService`
 
-Datei: [HedFileService.cs](../ORACLE/Metadata/HedFileService.cs). Suchen, Kopieren, Lesen und Schreiben von `.HED`-Dateien (INI-ähnlich, Sektionen `[KTM_NAMING]`, `[TRACK]` und `[WEATHER]`). Konstanten: `WeatherSection = "WEATHER"`, `ManualWeatherSource = "manual"`.
+Datei: [HedFileService.cs](../ORACLE/Metadata/HedFileService.cs). Suchen, Kopieren, Lesen und Schreiben von `.HED`-Dateien (INI-ähnlich, Sektionen `[KTM_NAMING]`, `[TRACK]` und `[WEATHER]`). Konstanten: `WeatherSection = "WEATHER"`, `TrackSection = "TRACK"`, `TrackConditionKey = "trackCondition"`, `ManualWeatherSource = "manual"`.
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
 | `FindAndPrepareHedFile` (Z. 22) | Sucht die `.HED` zuerst im Rider-Ordner (dann Kopie in den Run), sonst im Run-Ordner | `string runPath`, `string riderPath` | `string?` – Pfad der `.HED` im Run-Ordner; `null`, wenn keine gefunden oder das Kopieren fehlschlug | `FindFirstHedFile`, `CopyToRunFolder` | Ggf. `File.Copy` in den Run-Ordner (nicht atomar); Konsole/Log |
 | `ReadMetadata` (Z. 50) | Liest die Stammdaten der `.HED` in `RunMetadata` (Event, Session, Run bleiben leer – kommen aus dem Pfad) | `string hedFilePath` | `RunMetadata` | `ParseHedFile`, `BikeAlias` | Liest Datei; Warnung bei `bikeName` mit Leerraum |
 | `BuildHedFileName` (Z. 83) – statisch | Kanonischer Name `{SeasonName}{EventName}_{BikeName}{SessionName}.HED` | `RunMetadata metadata` | `string` | – | keine |
-| `EnsureHedInAllRuns` (Z. 92) | Genau eine kanonisch benannte `.HED` mit normalisiertem Inhalt in jedem Run | `IReadOnlyList<string> runPaths`, `string riderPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `FindFirstHedFile`, `ApplyMetadataToLines`, `BuildHedContent`, `EnsureTrackSurfaceLine`, `EnsureTrackLengthLine`, `SetValue`, `RemoveSection`, `ReadOwnSection` | Je Run: `.HED` atomar schreiben (UTF-8 ohne BOM, `runNumber` = Ordnername, die run-eigene Sektion `[WEATHER]` bleibt erhalten und wird nie aus der Vorlage in andere Runs kopiert), danach alle anders benannten `*.HED` im Run löschen (`File.Delete`); Fehler je Run nur als Warnung; Konsole/Log. Quelle: kanonische `.HED` eines Runs → neueste `.HED` der Runs → `.HED` des Rider-Ordners → aus Metadaten erzeugt. |
-| `SetValue` (Z. 229) – internal | Setzt einen Schlüssel oder fügt ihn am Ende der ersten Sektion ein | `string[] lines`, `string key`, `string value` | `string[]` | – | keine |
-| `ApplyMetadataToLines` (Z. 253) – statisch | Übernimmt nicht leere Metadaten in vorhandene Schlüssel (fehlende Schlüssel werden nicht ergänzt) | `string[] lines`, `RunMetadata metadata` | `string[]` | – | keine |
-| `SetTrackSurface` (Z. 288) | Setzt `surface` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string surface` | `void` | `EnsureTrackSurfaceLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
-| `EnsureTrackSurfaceLine` (Z. 310) – privat | `surface`-Zeile aktualisieren, in vorhandene `[TRACK]`-Sektion einfügen oder Sektion anhängen | `string[] lines`, `string surface` | `string[]` | – | keine |
-| `SetTrackLength` (Z. 341) | Setzt `trackLength` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string trackLength` | `void` | `EnsureTrackLengthLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
-| `EnsureTrackLengthLine` (Z. 363) – statisch | `trackLength`-Zeile aktualisieren oder nach `trackName` (sonst am Ende der ersten Sektion) einfügen | `string[] lines`, `string trackLength` | `string[]` | – | keine |
-| `ParseHedFile` (Z. 403) | Alle Schlüssel/Wert-Paare (ohne Sektionen, Leerzeilen, leere Werte) | `string hedFilePath` | `Dictionary<string,string>` (case-insensitive) | – | Liest Datei |
-| `WriteHedFile` (Z. 435) | Neue `.HED` aus Metadaten im Run-Ordner | `string runPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `BuildHedContent`, `AtomicFile.WriteAllText` | Datei atomar schreiben; Konsole/Log |
-| `BuildHedContent` (Z. 443) – privat | Vollständiger `.HED`-Inhalt (`[KTM_NAMING]` mit 17 Schlüsseln, `[TRACK]` mit `surface`) | `RunMetadata metadata` | `string` | – | keine |
-| `FindFirstHedFile` (Z. 470) – privat | Zuletzt geänderte `*.HED` eines Ordners (nicht rekursiv) | `string directory` | `string?` | – | Nur lesend |
-| `CopyToRunFolder` (Z. 485) – privat | Kopiert eine `.HED` in den Run, falls dort nicht gleichnamig vorhanden | `string sourceHedFile`, `string runPath` | `string?` (`null` bei Kopierfehler) | – | `File.Copy` (nicht atomar); Konsole/Log |
-| `SetWeather` (Z. 144) | Ersetzt die Sektion `[WEATHER]` in allen `.HED` eines Runs (am Dateiende) | `string runPath`, `IReadOnlyList<KeyValuePair<string,string>> values` | `void` | `ReplaceSection`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; `FileNotFoundException` ohne `.HED` |
-| `ReadWeatherValue` (Z. 156) – statisch | Wert eines Schlüssels der Sektion `[WEATHER]` der ersten `.HED` eines Runs | `string runPath`, `string key` | `string?` | `ReadValue` | Liest Datei |
-| `RemoveSection` (Z. 177) / `ReadSection` (Z. 184) / `ReadValue` (Z. 191) / `ReplaceSection` (Z. 203) – statisch | Sektion entfernen, lesen (inkl. Kopfzeile), Wert lesen, ersetzen (entfernen + am Ende anhängen) | `string[] lines`, `string section` (+ `key` bzw. `values`) | `string[]` / `string?` | `FindSection` | keine |
-| `ReadOwnSection` (Z. 214) – privat | Sektion aus der aktuellen `.HED` des Runs (kanonischer Name bevorzugt), um sie beim Neuschreiben zu behalten | `string runPath`, `string canonicalName`, `string section` | `string[]` | `FindFirstHedFile`, `ReadSection` | Liest Datei |
+| `EnsureHedInAllRuns` (Z. 92) | Genau eine kanonisch benannte `.HED` mit normalisiertem Inhalt in jedem Run | `IReadOnlyList<string> runPaths`, `string riderPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `FindFirstHedFile`, `ApplyMetadataToLines`, `BuildHedContent`, `EnsureTrackSurfaceLine`, `EnsureTrackLengthLine`, `SetValue`, `RemoveSection`, `RemoveKey`, `SetSectionValue`, `ReadOwnHed` | Je Run: `.HED` atomar schreiben (UTF-8 ohne BOM, `runNumber` = Ordnername; die run-eigenen Werte `trackCondition` in `[TRACK]` und die Sektion `[WEATHER]` bleiben erhalten und werden nie aus der Vorlage in andere Runs kopiert), danach alle anders benannten `*.HED` im Run löschen (`File.Delete`); Fehler je Run nur als Warnung; Konsole/Log. Quelle: kanonische `.HED` eines Runs → neueste `.HED` der Runs → `.HED` des Rider-Ordners → aus Metadaten erzeugt. |
+| `SetValue` (Z. 295) – internal | Setzt einen Schlüssel oder fügt ihn am Ende der ersten Sektion ein | `string[] lines`, `string key`, `string value` | `string[]` | – | keine |
+| `ApplyMetadataToLines` (Z. 319) – statisch | Übernimmt nicht leere Metadaten in vorhandene Schlüssel (fehlende Schlüssel werden nicht ergänzt) | `string[] lines`, `RunMetadata metadata` | `string[]` | – | keine |
+| `SetTrackSurface` (Z. 354) | Setzt `surface` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string surface` | `void` | `EnsureTrackSurfaceLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
+| `EnsureTrackSurfaceLine` (Z. 376) – privat | `surface`-Zeile aktualisieren, in vorhandene `[TRACK]`-Sektion einfügen oder Sektion anhängen | `string[] lines`, `string surface` | `string[]` | – | keine |
+| `SetTrackLength` (Z. 407) | Setzt `trackLength` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string trackLength` | `void` | `EnsureTrackLengthLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
+| `EnsureTrackLengthLine` (Z. 429) – statisch | `trackLength`-Zeile aktualisieren oder nach `trackName` (sonst am Ende der ersten Sektion) einfügen | `string[] lines`, `string trackLength` | `string[]` | – | keine |
+| `ParseHedFile` (Z. 469) | Alle Schlüssel/Wert-Paare (ohne Sektionen, Leerzeilen, leere Werte) | `string hedFilePath` | `Dictionary<string,string>` (case-insensitive) | – | Liest Datei |
+| `WriteHedFile` (Z. 501) | Neue `.HED` aus Metadaten im Run-Ordner | `string runPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `BuildHedContent`, `AtomicFile.WriteAllText` | Datei atomar schreiben; Konsole/Log |
+| `BuildHedContent` (Z. 509) – privat | Vollständiger `.HED`-Inhalt (`[KTM_NAMING]` mit 17 Schlüsseln, `[TRACK]` mit `surface`) | `RunMetadata metadata` | `string` | – | keine |
+| `FindFirstHedFile` (Z. 536) – privat | Zuletzt geänderte `*.HED` eines Ordners (nicht rekursiv) | `string directory` | `string?` | – | Nur lesend |
+| `CopyToRunFolder` (Z. 551) – privat | Kopiert eine `.HED` in den Run, falls dort nicht gleichnamig vorhanden | `string sourceHedFile`, `string runPath` | `string?` (`null` bei Kopierfehler) | – | `File.Copy` (nicht atomar); Konsole/Log |
+| `SetWeather` (Z. 155) | Setzt `trackCondition` in `[TRACK]` und ersetzt die Sektion `[WEATHER]` (am Dateiende) in allen `.HED` eines Runs | `string runPath`, `IReadOnlyList<KeyValuePair<string,string>> values`, `string trackCondition` (leer = unverändert) | `void` | `SetSectionValue`, `ReplaceSection`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; `FileNotFoundException` ohne `.HED` |
+| `ReadRunValue` (Z. 172) – statisch | Wert eines Schlüssels einer Sektion der neuesten `.HED` eines Runs | `string runPath`, `string section`, `string key` | `string?` | `FindFirstHedFile`, `ReadValue` | Liest Datei |
+| `RemoveKey` (Z. 228) / `SetSectionValue` (Z. 248) – statisch | Schlüssel in einer Sektion entfernen; Schlüssel in einer Sektion setzen (sonst am Sektionsende einfügen, fehlende Sektion vor `[WEATHER]` anlegen) | `string[] lines`, `string section`, `string key` (+ `string value`) | `string[]` | `FindSection` | keine |
+| `RemoveSection` (Z. 191) / `ReadSection` (Z. 198) / `ReadValue` (Z. 205) / `ReplaceSection` (Z. 217) – statisch | Sektion entfernen, lesen (inkl. Kopfzeile), Wert lesen, ersetzen (entfernen + am Ende anhängen) | `string[] lines`, `string section` (+ `key` bzw. `values`) | `string[]` / `string?` | `FindSection` | keine |
+| `ReadOwnHed` (Z. 280) – privat | Aktuelle `.HED` des Runs (kanonischer Name bevorzugt), um run-eigene Werte beim Neuschreiben zu behalten | `string runPath`, `string canonicalName` | `string[]` | `FindFirstHedFile` | Liest Datei |
 
 #### `KompassService`
 
@@ -803,7 +804,7 @@ Datei: [KtmWriteErrors.cs](../ORACLE/Runtime/KtmWriteErrors.cs). Interpretiert d
 
 ## 11a. Modul Weather
 
-Wetter während der Runs aus einem historischen Wettermodell (kein Forecast, kein Vorlauf vor der Session). Ort ist die KOMPASS-Track-Koordinate, Zeit sind die Lap-Startzeiten aus `LapHeader.xml` (Logger-Uhr = Ortszeit der Strecke, Abfrage mit `timezone=auto`). Ergebnis: `.HED`-Sektion `[WEATHER]` je Run (für MotoDB) und `Lap_*\Meteo.xml` je Lap (WinTAX). Wetterdaten von Open-Meteo.com (CC BY 4.0).
+Wetter während der Runs aus einem historischen Wettermodell (kein Forecast, kein Vorlauf vor der Session). Ort ist die KOMPASS-Track-Koordinate, Zeit sind die Lap-Startzeiten aus `LapHeader.xml` (Logger-Uhr = Ortszeit der Strecke, Abfrage mit `timezone=auto`). Ergebnis: je Run `trackCondition` in der `.HED`-Sektion `[TRACK]` und die Sektion `[WEATHER]` (für MotoDB), je Lap `Lap_*\Meteo.xml` (WinTAX). Alle Werte stammen aus dem Wettermodell (auch der Luftdruck). Wetterdaten von Open-Meteo.com (CC BY 4.0).
 
 #### `WeatherSettings`
 
@@ -817,9 +818,8 @@ Datei: [WeatherSettings.cs](../ORACLE/Weather/WeatherSettings.cs). Abschnitt `We
 | `ApiKeyEnvironmentVariable` | `string` | `ORACLE_OPENMETEO_APIKEY` | Umgebungsvariable mit optionalem API-Key |
 | `TimeoutSeconds` | `int` | 20 | Timeout je Abruf |
 | `LoggerClock` | `string` | `TrackLocal` | Uhr der Logger-Zeitstempel: `TrackLocal` oder `Utc` |
-| `DampRainMm` / `WetRainMm` / `WetRateMmPerHour` | `double` | 0,1 / 1,0 / 2,0 | Schwellen für `trackCondition` |
+| `DampRainMm` / `WetRainMm` / `WetRateMmPerHour` | `double` | 0,1 / 1,0 / 2,0 | Schwellen für `trackCondition`: `damp` ab `DampRainMm` [mm], `wet` ab `WetRainMm` [mm] oder `WetRateMmPerHour` [mm/h] in einem 15-Minuten-Intervall |
 | `WriteHed` / `WriteMeteoXml` | `bool` | `true` / `true` | Ausgaben |
-| `MeteoPressureUnit` / `MeteoWindSpeedUnit` | `string` | `mbar` / `kmh` | Einheiten in `Meteo.xml` (`bar`, `ms` möglich) |
 
 #### `OpenMeteoWeatherSource`
 
@@ -837,21 +837,21 @@ Datei: [WeatherCalculator.cs](../ORACLE/Weather/WeatherCalculator.cs). Reine Ber
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `Summarize` (Z. 33) | Wetter über ein Zeitfenster (Run oder Lap): Mittel, Start-/Endtemperatur, Bodentemperatur, Feuchte, Druck, Luftdichte, DIN-Faktor, Wind, Regen, max. Regenrate, Streckenzustand | `WeatherSeries`, `DateTime start`, `DateTime end`, `WeatherSettings` | `WeatherSummary` | übrige Methoden | keine |
-| `Classify` (Z. 68) | `wet` ab `WetRainMm` oder `WetRateMmPerHour`, `damp` ab `DampRainMm`, sonst `dry`; leer bei unbekanntem Regen | `double rainMm`, `double rateMmPerHour`, `WeatherSettings` | `string` | – | keine |
-| `ValueAt` (Z. 78) / `Mean` (Z. 105) / `MeanDirection` (Z. 128) | Lineare Interpolation; zeitgewichtetes Mittel (Trapez); Vektormittel der Windrichtung | Zeitreihe, Zeitpunkt bzw. Fenster | `double` (`NaN` ohne Daten) | – | keine |
-| `RainSum` (Z. 144) / `MaxRate` (Z. 160) | Niederschlag im Fenster (anteilig nach Überlappung je Intervall); höchste Rate [mm/h] der überlappenden Intervalle | Zeitreihe, Intervalllänge, Fenster | `double` | – | keine |
-| `AirDensity` (Z. 177) / `DinCorrection` (Z. 190) / `SaturationVaporPressureHpa` (Z. 173) | Dichte feuchter Luft [kg/m³]; Leistungskorrektur DIN 70020 (20 °C, 1013 hPa, trocken); Sättigungsdampfdruck (Magnus) | Temperatur [°C], Druck [hPa], rel. Feuchte [%] | `double` | – | keine |
-| `DistanceKm` (Z. 199) | Großkreisabstand (Gitterpunkt des Modells ↔ Track) | 2 × Lat/Lon | `double` | – | keine |
+| `Summarize` (Z. 32) | Wetter über ein Zeitfenster (Run oder Lap): Mittel, Start-/Endtemperatur, Bodentemperatur, Feuchte, Druck, Luftdichte, Wind, Regen, max. Regenrate, Streckenzustand | `WeatherSeries`, `DateTime start`, `DateTime end`, `WeatherSettings` | `WeatherSummary` | übrige Methoden | keine |
+| `Classify` (Z. 66) | `wet` ab `WetRainMm` oder `WetRateMmPerHour`, `damp` ab `DampRainMm`, sonst `dry`; leer bei unbekanntem Regen | `double rainMm`, `double rateMmPerHour`, `WeatherSettings` | `string` | – | keine |
+| `ValueAt` (Z. 76) / `Mean` (Z. 103) / `MeanDirection` (Z. 126) | Lineare Interpolation; zeitgewichtetes Mittel (Trapez); Vektormittel der Windrichtung | Zeitreihe, Zeitpunkt bzw. Fenster | `double` (`NaN` ohne Daten) | – | keine |
+| `RainSum` (Z. 142) / `MaxRate` (Z. 158) | Niederschlag im Fenster (anteilig nach Überlappung je Intervall); höchste Rate [mm/h] der überlappenden Intervalle | Zeitreihe, Intervalllänge, Fenster | `double` | – | keine |
+| `AirDensity` (Z. 175) / `SaturationVaporPressureHpa` (Z. 171) | Dichte feuchter Luft [kg/m³]; Sättigungsdampfdruck (Magnus) | Temperatur [°C], Druck [hPa], rel. Feuchte [%] | `double` | – | keine |
+| `DistanceKm` (Z. 185) | Großkreisabstand (Gitterpunkt des Modells ↔ Track) | 2 × Lat/Lon | `double` | – | keine |
 
 #### `MeteoXml`
 
-Datei: [MeteoXml.cs](../ORACLE/Weather/MeteoXml.cs). WinTAX-Lap-Datei `Meteo.xml` (Elemente `TempIn`, `TempOut`, `WindSp`, `WindDir`, `Bar`, `HumIn`, `HumOut`, `Rain`; CRLF, ohne BOM, wie von WinTAX geschrieben). `TempIn`/`HumIn` = Außenwerte, `WindDir` −180…+180 (Ost positiv), Regen in mm je Lap.
+Datei: [MeteoXml.cs](../ORACLE/Weather/MeteoXml.cs). WinTAX-Lap-Datei `Meteo.xml` (Elemente `TempIn`, `TempOut`, `WindSp`, `WindDir`, `Bar`, `HumIn`, `HumOut`, `Rain`; CRLF, ohne BOM, wie von WinTAX geschrieben). `TempIn`/`HumIn` = Außenwerte. WinTAX speichert keine Einheiten; geschrieben wird wie in der `.HED`: °C, %, hPa, km/h, `WindDir` −180…+180 (Ost positiv), Regen in mm je Lap.
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `Build` (Z. 21) | Inhalt für eine Lap (kulturunabhängig) | `WeatherSummary lap`, `WeatherSettings` | `string?` (`null`, wenn Temperatur, Feuchte, Druck, Wind oder Regen unbekannt) | – | keine |
-| `Write` (Z. 54) | Datei in den Lap-Ordner schreiben | `string lapFolder`, `WeatherSummary lap`, `WeatherSettings` | `bool` | `Build`, `AtomicFile.WriteAllText` | `Meteo.xml` atomar schreiben |
+| `Build` (Z. 23) | Inhalt für eine Lap (kulturunabhängig) | `WeatherSummary lap` | `string?` (`null`, wenn Temperatur, Feuchte, Druck, Wind oder Regen unbekannt) | – | keine |
+| `Write` (Z. 52) | Datei in den Lap-Ordner schreiben | `string lapFolder`, `WeatherSummary lap` | `bool` | `Build`, `AtomicFile.WriteAllText` | `Meteo.xml` atomar schreiben |
 
 #### `WeatherService`
 
@@ -859,10 +859,10 @@ Datei: [WeatherService.cs](../ORACLE/Weather/WeatherService.cs). Orchestriert de
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `ApplyAsync` (Z. 54) | Lap-Zeiten aller Runs lesen, Wetter **einmal je Session-Fenster** abrufen (Runs mit mehr als 6 h Abstand getrennt), je Run `[WEATHER]` und je Lap `Meteo.xml` schreiben | `IReadOnlyList<string> runs`, `GeoCoordinate? location`, `CancellationToken` | `Task<WeatherStepResult>`: `skipped` (keine Koordinate / keine Lap-Zeiten), `success`, `partial`, `failed` | `ReadLapWindows`, `IWeatherSource.GetAsync`, `WeatherCalculator.Summarize`, `HedFileService.SetWeather`, `MeteoXml.Write` | Runs mit `weatherSource = manual` bleiben unverändert. Abruffehler werden nicht geworfen. Konsole/Log je Run. |
-| `ApplyToRun` (Z. 105) – privat | Zusammenfassung des Runs und der Laps schreiben | Run, Lap-Fenster, Reihe, Quellentext | `RunWeatherResult` | s. o. | `.HED` und `Meteo.xml` atomar schreiben; I/O-Fehler → `failed` |
-| `HedValues` (Z. 115) – internal | Schlüssel/Werte der Sektion `[WEATHER]` in Katalogreihenfolge (`trackCondition`, `airTemp`, `airTempStart`, `airTempEnd`, `groundTemp`, `humidity`, `pressure`, `airDensity`, `powerCorrection`, `windSpeed`, `windDir`, `rain`, `rainRateMax`, `weatherSource`) | `WeatherSummary`, `string sourceText` | `IReadOnlyList<KeyValuePair<string,string>>` | – | keine |
-| `ReadLapWindows` (Z. 166) | Laps in Datenreihenfolge mit Start (`STS`+`STNs`, sonst `STMs`) und Ende (Start + `LapTime`) | `string runPath` | `IReadOnlyList<LapWindow>` | `LapSplitStore.ReadLapFolders` | Liest `LapHeader.xml` |
+| `ApplyAsync` (Z. 55) | Lap-Zeiten aller Runs lesen, Wetter **einmal je Session-Fenster** abrufen (Runs mit mehr als 6 h Abstand getrennt), je Run `trackCondition` (`[TRACK]`) und `[WEATHER]`, je Lap `Meteo.xml` schreiben | `IReadOnlyList<string> runs`, `GeoCoordinate? location`, `CancellationToken` | `Task<WeatherStepResult>`: `skipped` (keine Koordinate / keine Lap-Zeiten), `success`, `partial`, `failed` | `ReadLapWindows`, `IWeatherSource.GetAsync`, `WeatherCalculator.Summarize`, `HedFileService.SetWeather`, `MeteoXml.Write` | Runs mit `weatherSource = manual` bleiben unverändert. Abruffehler werden nicht geworfen. Konsole/Log je Run. |
+| `ApplyToRun` (Z. 107) – privat | Zusammenfassung des Runs und der Laps schreiben | Run, Lap-Fenster, Reihe, Quellentext | `RunWeatherResult` | s. o. | `.HED` und `Meteo.xml` atomar schreiben; I/O-Fehler → `failed` |
+| `HedValues` (Z. 117) – internal | Schlüssel/Werte der Sektion `[WEATHER]` in Katalogreihenfolge (`airTemp`, `airTempStart`, `airTempEnd`, `groundTemp`, `humidity`, `pressure`, `airDensity`, `windSpeed`, `windDir`, `rain`, `rainRateMax`, `weatherSource`); `trackCondition` geht separat nach `[TRACK]` | `WeatherSummary`, `string sourceText` | `IReadOnlyList<KeyValuePair<string,string>>` | – | keine |
+| `ReadLapWindows` (Z. 169) | Laps in Datenreihenfolge mit Start (`STS`+`STNs`, sonst `STMs`) und Ende (Start + `LapTime`) | `string runPath` | `IReadOnlyList<LapWindow>` | `LapSplitStore.ReadLapFolders` | Liest `LapHeader.xml` |
 
 ## 12. SENTINEL
 
@@ -952,7 +952,7 @@ ORACLE referenziert das Projekt `..\..\Ktm.Racing.Domain\src\Ktm.Racing.Domain\K
 | `Ktm.Racing.Domain.Kompass` | `TrackLengthRules` | `TrackLengthGate`, `OraclePipeline.ParseTrackLength` |
 | `Ktm.Racing.Domain.Kompass` | `TrackNames` | `TrackLengthGate`, `KompassService` |
 | `Ktm.Racing.Domain.Kompass` | `TrackLengthSuggestionStore`, `TrackLengthSuggestion` | `TrackLengthGate` |
-| `Ktm.Racing.Domain.MotoDb` | `HedFieldCatalog` (inkl. `WeatherFields`, Gruppe `WEATHER`) | `WeatherTests` (Abgleich der `[WEATHER]`-Schlüssel); `LoadChannelsWriter` legt die Felder im Sheet HED an (`sync-motodb`) |
+| `Ktm.Racing.Domain.MotoDb` | `HedFieldCatalog` (inkl. `TrackConditionField` in Gruppe `TRACK`, `WeatherFields` in Gruppe `WEATHER`) | `WeatherTests` (Abgleich der `[WEATHER]`-Schlüssel); `LoadChannelsWriter` legt die Felder im Sheet HED an (`sync-motodb`) |
 | `Ktm.Racing.Domain.MotoDb` | `LoadChannelsWriter`, `LoadChannelsOptions`, `LoadChannelsSyncResult`, `LoadChannelsSyncStatus`, `CircuitEntry` | `TrackLengthGate`, `WorkbookGuard`, `MotoDbInputSync` |
 | `Ktm.Racing.Domain.Telemetry` | `GpsCleaner`, `GpsCleanOptions`, `GpsCleanResult`, `GpsTrace` | `OracleConfig` (`GpsSettings`), `ImportDataCalculator`, `RaceSegmentDetector`, `GpsLapSplitService` |
 | `Ktm.Racing.Domain.Telemetry` | `GpsLapSplitter`, `GpsLapSplitOptions`, `GpsLapSplitResult`, `GpsLapSplitStatus` | `OracleConfig`, `GpsLapSplitService` |

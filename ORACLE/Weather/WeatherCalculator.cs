@@ -12,7 +12,6 @@ namespace Ktm.Racing.Oracle
         public double HumidityPct { get; init; } = double.NaN;
         public double PressureHpa { get; init; } = double.NaN;
         public double AirDensityKgM3 { get; init; } = double.NaN;
-        public double PowerCorrectionDin { get; init; } = double.NaN;
         public double WindSpeedKmh { get; init; } = double.NaN;
         public double WindDirectionDeg { get; init; } = double.NaN;
         public double RainMm { get; init; } = double.NaN;
@@ -52,7 +51,6 @@ namespace Ktm.Racing.Oracle
                 HumidityPct = humidity,
                 PressureHpa = pressure,
                 AirDensityKgM3 = AirDensity(temperature, pressure, humidity),
-                PowerCorrectionDin = DinCorrection(temperature, pressure, humidity),
                 WindSpeedKmh = Mean(series.Time, series.WindSpeedKmh, start, end),
                 WindDirectionDeg = MeanDirection(series.Time, series.WindDirectionDeg, start, end),
                 RainMm = rain,
@@ -181,18 +179,6 @@ namespace Ktm.Racing.Oracle
             var vapor = double.IsNaN(humidityPct) ? 0 : humidityPct / 100 * SaturationVaporPressureHpa(temperatureC);
             var kelvin = temperatureC + 273.15;
             return (pressureHpa - vapor) * 100 / (287.058 * kelvin) + vapor * 100 / (461.495 * kelvin);
-        }
-
-        /// <summary>
-        /// Engine power correction factor DIN 70020 (reference 20 °C, 1013 hPa dry air): measured power × factor = power at reference
-        /// conditions. &gt; 1 means the air was "thinner" than the reference.
-        /// </summary>
-        public static double DinCorrection(double temperatureC, double pressureHpa, double humidityPct)
-        {
-            if (double.IsNaN(temperatureC) || double.IsNaN(pressureHpa))
-                return double.NaN;
-            var vapor = double.IsNaN(humidityPct) ? 0 : humidityPct / 100 * SaturationVaporPressureHpa(temperatureC);
-            return 1013 / (pressureHpa - vapor) * Math.Sqrt((temperatureC + 273) / 293);
         }
 
         /// <summary>Great-circle distance [km] (grid point of the model vs. track coordinate).</summary>

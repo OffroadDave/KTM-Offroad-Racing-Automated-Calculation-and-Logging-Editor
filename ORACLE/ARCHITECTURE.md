@@ -69,7 +69,7 @@ Alles liegt im **ORACLE**-Projekt (`Ktm.Racing.Oracle`), thematisch gegliedert:
 | `Metadata/`   | `RunMetadata`, `HedFileService`, `KompassService`, `BikeAlias` (Alias-Normalisierung)    |
 | `Processing/` | `ImportDataCalculator` (sVehicle + Lap-Distanz), `RunCalcResult`, `XmlRunEditor`         |
 | `Detection/`  | `RaceSegmentDetector`, `RaceClassification`, `RaceDetectionThresholds`, `RaceStintProcessor` |
-| `Weather/`    | `WeatherService` (Wetter je Session → `.HED [WEATHER]`, `Lap_*\Meteo.xml`), `OpenMeteoWeatherSource`, `WeatherCalculator`, `MeteoXml`, `WeatherSettings` |
+| `Weather/`    | `WeatherService` (Wetter je Session → `.HED` `[TRACK] trackCondition` + `[WEATHER]`, `Lap_*\Meteo.xml`), `OpenMeteoWeatherSource`, `WeatherCalculator`, `MeteoXml`, `WeatherSettings` |
 
 ## Renn-Erkennung & Continuity (Option C)
 
