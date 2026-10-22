@@ -105,6 +105,8 @@ namespace Ktm.Racing.Oracle
 
             template = EnsureTrackSurfaceLine(template, metadata.Surface);
             template = EnsureTrackLengthLine(template, metadata.TrackLength);
+            // The weather belongs to the individual run: never copy it from the template to other runs.
+            template = RemoveSection(template, WeatherSection);
 
             int count = 0;
             foreach (var runPath in runPaths)
@@ -113,6 +115,7 @@ namespace Ktm.Racing.Oracle
                 {
                     // runNumber belongs to the individual run (convention: folder name, e.g. "Run_885").
                     var lines = SetValue((string[])template.Clone(), "runNumber", Path.GetFileName(Path.TrimEndingDirectorySeparator(runPath)));
+                    lines = [.. lines, .. ReadOwnSection(runPath, canonicalName, WeatherSection)];
 
                     // First write the new file completely, then remove differently named .HED files.
                     AtomicFile.WriteAllLines(Path.Combine(runPath, canonicalName), lines);
@@ -127,6 +130,99 @@ namespace Ktm.Racing.Oracle
                 }
             }
             Console.WriteLine($"[hed] .HED ensured in {count}/{runPaths.Count} run folder(s): \"{canonicalName}\".");
+        }
+
+        /// <summary>Section with the weather during the run (<see cref="WeatherService"/>).</summary>
+        public const string WeatherSection = "WEATHER";
+
+        /// <summary>Value of <c>weatherSource</c> that marks hand-maintained weather: ORACLE never overwrites it.</summary>
+        public const string ManualWeatherSource = "manual";
+
+        /// <summary>
+        /// Replaces the <c>[WEATHER]</c> section in all .HED files of a run folder (appended at the end). Throws on write errors.
+        /// </summary>
+        public void SetWeather(string runPath, IReadOnlyList<KeyValuePair<string, string>> values)
+        {
+            var files = Directory.Exists(runPath)
+                ? Directory.EnumerateFiles(runPath, "*.HED", SearchOption.TopDirectoryOnly).ToList()
+                : [];
+            if (files.Count == 0)
+                throw new FileNotFoundException("no .HED in the run folder – run 'process' first", runPath);
+            foreach (var file in files)
+                AtomicFile.WriteAllLines(file, ReplaceSection(File.ReadAllLines(file), WeatherSection, values));
+        }
+
+        /// <summary>Value of <paramref name="key"/> in the <c>[WEATHER]</c> section of the run's .HED, or <c>null</c>.</summary>
+        public static string? ReadWeatherValue(string runPath, string key)
+        {
+            var file = Directory.Exists(runPath)
+                ? Directory.EnumerateFiles(runPath, "*.HED", SearchOption.TopDirectoryOnly).FirstOrDefault()
+                : null;
+            return file is null ? null : ReadValue(File.ReadAllLines(file), WeatherSection, key);
+        }
+
+        /// <summary>Index of the section header and the end (exclusive) of the section; (-1, -1) if absent.</summary>
+        private static (int Header, int End) FindSection(string[] lines, string section)
+        {
+            var header = Array.FindIndex(lines, l => l.Trim().Equals($"[{section}]", StringComparison.OrdinalIgnoreCase));
+            if (header < 0)
+                return (-1, -1);
+            var end = header + 1;
+            while (end < lines.Length && !lines[end].TrimStart().StartsWith('['))
+                end++;
+            return (header, end);
+        }
+
+        /// <summary>Lines without the section <paramref name="section"/> (header and keys).</summary>
+        public static string[] RemoveSection(string[] lines, string section)
+        {
+            var (header, end) = FindSection(lines, section);
+            return header < 0 ? lines : [.. lines[..header], .. lines[end..]];
+        }
+
+        /// <summary>The section <paramref name="section"/> including its header (empty if absent; blank lines dropped).</summary>
+        public static string[] ReadSection(string[] lines, string section)
+        {
+            var (header, end) = FindSection(lines, section);
+            return header < 0 ? [] : lines[header..end].Where(l => l.Trim().Length > 0).ToArray();
+        }
+
+        /// <summary>Value of <paramref name="key"/> within <paramref name="section"/>, or <c>null</c>.</summary>
+        public static string? ReadValue(string[] lines, string section, string key)
+        {
+            foreach (var line in ReadSection(lines, section).Skip(1))
+            {
+                var eq = line.IndexOf('=');
+                if (eq > 0 && line[..eq].Trim().Equals(key, StringComparison.OrdinalIgnoreCase))
+                    return line[(eq + 1)..].Trim();
+            }
+            return null;
+        }
+
+        /// <summary>Removes <paramref name="section"/> and appends it with <paramref name="values"/> at the end.</summary>
+        public static string[] ReplaceSection(string[] lines, string section, IEnumerable<KeyValuePair<string, string>> values)
+        {
+            var kept = RemoveSection(lines, section).ToList();
+            while (kept.Count > 0 && kept[^1].Trim().Length == 0)
+                kept.RemoveAt(kept.Count - 1);
+            kept.Add($"[{section}]");
+            kept.AddRange(values.Select(v => $"{v.Key} = {v.Value}"));
+            return [.. kept];
+        }
+
+        /// <summary>The run's own section from its current .HED (canonical name preferred), to keep it when the .HED is rewritten.</summary>
+        private static string[] ReadOwnSection(string runPath, string canonicalName, string section)
+        {
+            try
+            {
+                var own = Path.Combine(runPath, canonicalName);
+                var file = File.Exists(own) ? own : FindFirstHedFile(runPath);
+                return file is null ? [] : ReadSection(File.ReadAllLines(file), section);
+            }
+            catch (IOException)
+            {
+                return [];
+            }
         }
 
         /// <summary>Sets the value of a key; if it is missing, it is inserted at the end of the first section.</summary>

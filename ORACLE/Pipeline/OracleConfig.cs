@@ -47,6 +47,9 @@ namespace Ktm.Racing.Oracle
         /// <summary>Track length check before MotoDB (see <see cref="TrackLengthGate"/>).</summary>
         public TrackLengthSettings TrackLength { get; set; } = new();
 
+        /// <summary>Weather during the run from a historical weather model (see <see cref="WeatherService"/>).</summary>
+        public WeatherSettings Weather { get; set; } = new();
+
         /// <summary>
         /// If true, ORACLE canonically renames device folders with spaces in their name
         /// (e.g. <c>"AA 01"</c> → <c>"AA01"</c>) before a rider/session folder is processed.
@@ -111,6 +114,7 @@ namespace Ktm.Racing.Oracle
                 config.Gps ??= new GpsSettings();
                 config.GpsLapSplit ??= new GpsLapSplitSettings();
                 config.TrackLength ??= new TrackLengthSettings();
+                config.Weather ??= new WeatherSettings();
 
                 Console.WriteLine("Configuration loaded from oracle-config.json.");
                 return config;

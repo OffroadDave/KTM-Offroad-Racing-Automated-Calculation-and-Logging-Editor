@@ -82,6 +82,7 @@ nicht ab (Status `stint.failedRuns`, Exit-Code `4`).
 ```text
 ORACLE.exe process  <run|rider> [--force] [--gps-split]   Postprocessing (Metadaten, Calc, XML-Properties)
 ORACLE.exe split-laps <event|session|device|run> [--dry-run] [--undo]   Runs per GPS-Ziellinie in Laps teilen (Abschnitt 9)
+ORACLE.exe weather  <event|session|device|run> [--force]  Wetter während der Runs nachtragen (Abschnitt 10b)
 ORACLE.exe detect   <riderPath>                           Renn-Erkennung (read-only, verändert nichts)
 ORACLE.exe detect-start <riderPath|runPath>               Gültige Starts erkennen (read-only, siehe docs/vch/ValidStart.md)
 ORACLE.exe validate <runPath>                             Datenintegritätsprüfung
@@ -93,7 +94,7 @@ ORACLE.exe <runPath>            [--force] [--gps-split]   Legacy-Modus (= proces
 
 | Flag | Wirkung |
 |---|---|
-| `--force` | Idempotenz-Prüfung (`oracle.status.json`) ignorieren und erneut verarbeiten. |
+| `--force` | Idempotenz-Prüfung (`oracle.status.json`) ignorieren und erneut verarbeiten; bei `weather`: Wetter erneut abrufen. |
 | `--gps-split` | Runs vor den Berechnungen per GPS-Ziellinie in Laps teilen (wie `split-laps`, Abschnitt 9). |
 | `--dry-run` | *(nur `split-laps`)* nur anzeigen, welche Runs wie geteilt würden – schreibt nichts. |
 | `--undo` | *(nur `split-laps`)* Original-Laps der letzten ORACLE-Teilung wiederherstellen. |
@@ -153,7 +154,9 @@ ORACLE.exe sync-motodb
 4. **(optional `--gps-split`)** — Runs per GPS-Ziellinie in Laps teilen (Abschnitt 9); bereits geteilte Runs bleiben unverändert.
 5. **Berechnen & schreiben** — `sVehicle` + per-Lap-Distanz; Lap/Alias/Marker/LapDistance, Track, Fahrer
    direkt in `LapHeader.xml` / `RunLapHeader.xml` / `Car.xml` / `Session.xml`.
-6. **Status schreiben** — `oracle.status.json` im Geräteordner.
+6. **Wetter** — `[WEATHER]` in der `.HED` und `Meteo.xml` je Lap (Abschnitt 10b; ändert nie den Exit-Code).
+7. **Track-Länge prüfen** — Abschnitt 10a.
+8. **Status schreiben** — `oracle.status.json` im Geräteordner.
 
 ---
 
@@ -241,6 +244,22 @@ Fehlt die Datei, gelten die Standardwerte. JSON-Kommentare (`//`) sind erlaubt.
     "MaxRelativeSpread": 0.03,   // max. 3 % Streuung (IQR/Median)
     "RoundToMeters": 1,          // Median in ganzen Metern
     "LockWaitSeconds": 120       // so lange auf eine gesperrte loadChannels.xlsx warten (dann Exit-Code 5)
+  },
+
+  // Wetter während der Runs (Abschnitt 10b)
+  "Weather": {
+    "Enabled": true,             // Schritt "weather" in process (der Befehl weather läuft immer)
+    "BaseUrl": "https://historical-forecast-api.open-meteo.com/v1/forecast",
+    "Model": "",                 // leer = best_match (z.B. ICON-D2 in Mitteleuropa)
+    "TimeoutSeconds": 20,
+    "LoggerClock": "TrackLocal", // Logger-Zeit = Ortszeit der Strecke ("Utc" für UTC-Logger)
+    "DampRainMm": 0.1,           // trackCondition "damp" ab 0,1 mm Regen während des Runs …
+    "WetRainMm": 1.0,            // … "wet" ab 1 mm …
+    "WetRateMmPerHour": 2.0,     // … oder ab 2 mm/h in einem 15-Minuten-Intervall
+    "WriteHed": true,            // .HED-Sektion [WEATHER]
+    "WriteMeteoXml": true,       // Lap_*\Meteo.xml
+    "MeteoPressureUnit": "mbar", // <Bar> in mbar (= hPa) oder "bar"
+    "MeteoWindSpeedUnit": "kmh"  // <WindSp> in km/h oder "ms"
   }
 }
 ```
@@ -384,6 +403,38 @@ das Workbook werden über einen systemweiten Mutex serialisiert.
 
 ---
 
+## 10b. Wetter während der Runs (`process`, `weather`)
+
+ORACLE trägt das Wetter **während jedes Runs** ein – Postprocessing, kein Forecast und kein Vorlauf vor der Session.
+
+| | |
+|---|---|
+| **Ort** | KOMPASS-Koordinate des Tracks (dieselbe wie für den GPS-Split; in KODE pflegen) |
+| **Zeit** | Lap-Start (`STS`/`STMs`) und `LapTime` aus `LapHeader.xml`. Die Logger-Uhr läuft auf **Ortszeit der Strecke** (geprüft mit der GPS-Zeit: RT22 UTC+2, Shanghai UTC+8); die API rechnet mit `timezone=auto` Zeitzone und Sommerzeit selbst. |
+| **Quelle** | Open-Meteo Historical Forecast API (archivierte hochauflösende Modelle, 15-Minuten-Werte, kurz nach der Session verfügbar). Ein Abruf je Session (alle Runs eines Geräteordners), nur das Zeitfenster der Runs. Wetterdaten von Open-Meteo.com, Lizenz CC BY 4.0. |
+| **Ausgabe je Run** | `.HED`-Sektion `[WEATHER]`: `trackCondition` (dry/damp/wet), `airTemp` (Mittel), `airTempStart`, `airTempEnd`, `groundTemp` (Bodenoberfläche ≈ Streckentemperatur), `humidity`, `pressure`, `airDensity`, `powerCorrection` (DIN 70020), `windSpeed`, `windDir`, `rain`, `rainRateMax`, `weatherSource` |
+| **Ausgabe je Lap** | `Lap_*\Meteo.xml` im WinTAX-Format (Meteo-Seite in *Edit Lap Information*, Channel Browser, `$METEOTEMPOUT`, `$METEOHUMOUT`, `$METEOBAR`, `$METEORAIN`, `$METEOWINDSP`, `$METEOWINDDIR` im VCH) |
+| **MotoDB** | `ORACLE.exe sync-motodb` legt die Felder der Gruppe `WEATHER` (mit Einheit) im Sheet HED von `loadChannels.xlsx` an. |
+
+**Streckenzustand** (nur Regen während des Runs): `wet` ab `WetRainMm` (1 mm) oder ab `WetRateMmPerHour` (2 mm/h) in einem
+15-Minuten-Intervall, `damp` ab `DampRainMm` (0,1 mm), sonst `dry`. Wettermodelle verfehlen kurze, lokale Schauer manchmal –
+wer es besser weiß, trägt die Werte in der `.HED` selbst ein und setzt `weatherSource = manual`; ORACLE überschreibt sie dann nie.
+
+**Ablauf:** Der Schritt läuft in `process` nach den Berechnungen und **ändert nie den Exit-Code**. Ohne Internet an der Strecke
+steht im Status `weather: failed`; der nächste `process`-Aufruf holt das Wetter für bereits verarbeitete Runs nach – auch wenn
+die Track-Länge noch fehlt (Exit 6). Nachträglich oder für ganze Events:
+
+```powershell
+ORACLE.exe weather "C:\...\RT22_GER-Teutschenthal"           # alle Sessions/Geräte ohne erfolgreichen Wetter-Schritt
+ORACLE.exe weather "C:\...\RT22_GER-Teutschenthal\R1" --force  # erneut abrufen
+```
+
+Der Befehl braucht eine `.HED` in den Runs (vorher `process`). Exit-Codes: 0 ok, 4 teilweise, 3 keine Runs/keine `.HED`/keine
+Koordinate, 5 Geräteordner gesperrt, 1 Abruf fehlgeschlagen. Ein optionaler API-Key wird aus der Umgebungsvariablen
+`ORACLE_OPENMETEO_APIKEY` gelesen (nie in der Konfiguration).
+
+---
+
 ## 11. Idempotenz
 
 Nach erfolgreicher Verarbeitung schreibt ORACLE `oracle.status.json` in den **Geräteordner**
@@ -443,6 +494,10 @@ Logger am Bike ─► OneDrive/Workstation ─► SENTINEL (download.done)
 | Exit-Code `6` bei `process` | Keine eindeutige Track-Länge (Log `[trackLength]`) → Länge in KODE eintragen bzw. Vorschlag bestätigen, Konflikte gleicher Längen auflösen, erneut ausführen. |
 | Exit-Code `4` / `7`, Log `[discovery] ⚠️ Run skipped …` | Beschädigter `Run_*`-Ordner (Ursache im Log, z.B. Lap-Ordner ohne `cableData.ztx`, mehrfach gesplittete Laps) → Lap-Split in WinTAX reparieren bzw. Run neu vom Logger laden, dann `--force`. |
 | Exit-Code `7`, `KOMPASS is invalid …` | `KOMPASS.json` beschädigt → in KODE öffnen/speichern oder aus `backups` wiederherstellen. |
+| `[weather] ⚠️ Open-Meteo: no connection …` / Status `weather: failed` | Kein Internet → nichts tun; der nächste `process`-Aufruf (oder `ORACLE.exe weather <Pfad>`) holt das Wetter nach. |
+| `[weather] Skipped: no track coordinate in KOMPASS …` | Track in KOMPASS ohne `Latitude`/`Longitude` → in KODE pflegen. |
+| Wetter passt zeitlich nicht (z.B. Regen Stunden zu früh) | Logger-Uhr nicht auf Ortszeit der Strecke → `Weather.LoggerClock` prüfen (`Utc` für UTC-Logger), dann `weather --force`. |
+| Streckenzustand laut Modell falsch | Werte in der `.HED`-Sektion `[WEATHER]` korrigieren und `weatherSource = manual` setzen – ORACLE überschreibt sie nicht mehr. |
 | `riderName` leer, Status `metadata: partial` | Rider (Kürzel/Saison/Team) fehlt in KOMPASS oder Team-Ordner fehlt in `TeamMappings` → in KODE bzw. `oracle-config.json` ergänzen. |
 | `DriverName`/`riderName` falsch (alter Wert aus `.HED`) | Ab Revision 3 ersetzt KOMPASS abweichende `.HED`-Werte automatisch; der Ordner wird beim nächsten Aufruf neu verarbeitet. Bleibt der Wert, steht `PreferHedMetadata: true` in der Konfiguration oder KOMPASS kennt den Rider (Kürzel + Saison) nicht. |
 | `Access denied` beim Umbenennen eines Geräteordners | Ordner liegt in einem offenen VS-Code-Workspace o.ä. (Datei-Lock); non-fatal — oder `NormalizeDeviceFolderName: false`. |

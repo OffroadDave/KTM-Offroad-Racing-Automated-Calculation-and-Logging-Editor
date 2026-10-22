@@ -89,5 +89,27 @@
     "MaxRelativeSpread": 0.03,
     "RoundToMeters": 1,
     "LockWaitSeconds": 120
+  },
+
+  // Weather during the runs (process step "weather", command: ORACLE.exe weather <path> [--force]).
+  // Source: Open-Meteo historical forecast (15-minute values at the KOMPASS track coordinate), only the time of the runs.
+  // Output: .HED section [WEATHER] (MotoDB) and Lap_*\Meteo.xml (WinTAX meteo page, $METEO... in VCH).
+  // Never changes the exit code: without internet the step is retried on the next call. "weatherSource = manual" in the
+  // .HED [WEATHER] section protects hand-maintained values. Optional API key via environment variable ORACLE_OPENMETEO_APIKEY.
+  // LoggerClock: "TrackLocal" (logger runs on the local time of the track) or "Utc".
+  // Track condition: wet from WetRainMm during the run or WetRateMmPerHour in a 15-minute interval, damp from DampRainMm.
+  "Weather": {
+    "Enabled": true,
+    "BaseUrl": "https://historical-forecast-api.open-meteo.com/v1/forecast",
+    "Model": "",
+    "TimeoutSeconds": 20,
+    "LoggerClock": "TrackLocal",
+    "DampRainMm": 0.1,
+    "WetRainMm": 1.0,
+    "WetRateMmPerHour": 2.0,
+    "WriteHed": true,
+    "WriteMeteoXml": true,
+    "MeteoPressureUnit": "mbar",
+    "MeteoWindSpeedUnit": "kmh"
   }
 }

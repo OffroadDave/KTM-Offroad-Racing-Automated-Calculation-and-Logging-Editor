@@ -10,6 +10,7 @@ namespace Ktm.Racing.Oracle
                 "sync-motodb" => ([], ["--kompass", "--workbook"], 1),
                 "process" => (["--force", "--gps-split"], [], 2),
                 "split-laps" => (["--dry-run", "--undo"], [], 2),
+                "weather" => (["--force"], [], 2),
                 "validate" or "detect" or "detect-start" => ([], [], 2),
                 _ => (["--force", "--gps-split"], [], 1), // Legacy: ORACLE.exe <runPath> [--force] [--gps-split]
             };

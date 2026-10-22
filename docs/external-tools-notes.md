@@ -325,6 +325,29 @@ Signaturen per Reflection aus der DLL; Semantik aus `KtmDataHandler.xml` bzw. de
 - **Verbesserung:** `download.done.xsd` ins Repo übernehmen und in einem SENTINEL-Test gegen die XSD validieren; Exit-Code-Mapping
   um native Abstürze ergänzen (§2.1.5 Nr. 13).
 
+### 2.12 Wetterdaten (Open-Meteo, WinTAX Meteo) – ergänzt 22.10.2026
+
+- **WinTAX:** Wetter je Lap in `Lap_*\Meteo.xml` (`docs\Wintax4\DataBrw\DataArchives_Full.md:73`), editierbar auf der Meteo-Seite
+  (`docs\Wintax4\DataBrw\Editing_context_info.md:212-222`), im VCH als `$METEOTEMPOUT`, `$METEOHUMOUT`, `$METEOBAR`, `$METEORAIN`,
+  `$METEOWINDSP`, `$METEOWINDDIR` (`docs\Wintax4\RuntimeAnalysis\VCH\Functions\MatFunc_SystemVariables.md:27-57`). Profi-Weg ist
+  eine Wetterstation, deren `.met`-Datei der Rx-Task *Import Meteo* übernimmt (`docs\Wintax4\Acquisition_Manager\Rx_tasks\Rx_tasks.md:141-160`).
+  Das Dateiformat ist nicht dokumentiert; ein Muster aus WinTAX (RT22 R1 Run_1083) zeigt `<Meteo>` mit `TempIn`, `TempOut`, `WindSp`,
+  `WindDir`, `Bar`, `HumIn`, `HumOut`, `Rain` (CRLF, ohne BOM). Die Einheiten sind widersprüchlich dokumentiert (Rx-Task/VCH: bar,
+  km/h; Automation `predefined_currentdata_properties.md:47-54`: mBar, m/s) → in ORACLE konfigurierbar (`MeteoPressureUnit`,
+  `MeteoWindSpeedUnit`, Standard mbar/km/h). **KtmDataHandler** kann `Meteo.xml` nur löschen (`RemoveMeteoFiles`), nicht schreiben →
+  ORACLE schreibt die Datei selbst (`Weather\MeteoXml.cs`).
+- **Logger-Uhr:** `STS` in `LapHeader.xml` ist nicht UTC, sondern die Ortszeit der Strecke als Unix-Sekunden (RT22: GPS-Kanal
+  `HHMM` 12:52 UTC ↔ `STMs` 14:52; Shanghai: 05:39 UTC ↔ 13:39). ORACLE fragt deshalb mit `timezone=auto` ab.
+- **Open-Meteo Historical Forecast API** (`https://historical-forecast-api.open-meteo.com/v1/forecast`): archivierte Modellläufe
+  (u. a. ICON-D2 2 km, IFS 9 km), `minutely_15` mit `start_minutely_15`/`end_minutely_15`, Niederschlag = Summe des Intervalls bis
+  zum Zeitstempel; verfügbar kurz nach der Session (die ERA5-Reanalyse der Archive-API hat ~5 Tage Verzug und nur Stundenwerte).
+  Lizenz der Daten CC BY 4.0 (Quellenangabe in `oracle.status.json`). Freie API laut Nutzungsbedingungen (https://open-meteo.com/en/terms)
+  für nicht-kommerzielle Nutzung, < 10 000 Aufrufe/Tag; ORACLE braucht einen Aufruf je Session. API-Key optional über
+  `ORACLE_OPENMETEO_APIKEY`.
+- **Genauigkeit:** Modellraster 1–9 km, Bodendruck stimmt mit `pBaro` am Bike überein (RT22 998,4 ↔ 998,5 hPa; Shanghai
+  1017,5 ↔ 1018,5 hPa). `TAir` am Bike ist Ansaugluft (37–42 °C) und **keine** Umgebungstemperatur. Kurze Schauer werden zeitlich
+  bzw. örtlich teils verfehlt → `weatherSource = manual` in der `.HED` schützt korrigierte Werte.
+
 ---
 
 ## 3. Nicht verfügbare Quellen / Connectors
