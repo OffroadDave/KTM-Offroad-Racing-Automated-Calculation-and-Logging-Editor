@@ -105,7 +105,8 @@ Team, Saison, Motorklasse und Disziplin werden am **Muster** der Pfadsegmente er
 | `RunLapHeader.xml` | Liste der Laps (`LapInfo/Path`) | liest/schreibt; SENTINEL prüft damit die Vollständigkeit |
 | `Car.xml`, `Session.xml` | Bike, Rider, Track, `TrackLen` | schreibt |
 | `importData.ztx` | von ORACLE berechnete Kanäle (`sVehicle`) | **wird von ORACLE ersetzt** |
-| `{Saison}{Event}_{Bike}{Session}.HED` | INI-artige Metadaten für MotoDB (UTF-8) | liest/schreibt ([HedFileService.cs](../ORACLE/Metadata/HedFileService.cs)) |
+| `{Saison}{Event}_{Bike}{Session}.HED` | INI-artige Metadaten für MotoDB (UTF-8), inkl. `trackCondition` in `[TRACK]` und Sektion `[WEATHER]` | liest/schreibt ([HedFileService.cs](../ORACLE/Metadata/HedFileService.cs)) |
+| `Lap_*\Meteo.xml` | Wetter je Lap im WinTAX-Format | schreibt ([MeteoXml.cs](../ORACLE/Weather/MeteoXml.cs)) |
 | `download.done` | Freigabe-Marker (XML) von SENTINEL | nur SENTINEL schreibt |
 
 Beispiel `.HED` (aus RT22 R1 AA01):
@@ -147,8 +148,8 @@ riderName = Andrea Adamo
 | 6 | **Funktionstest** | `ORACLE.exe validate "<Run eines früheren Events>"` | Exit-Code `0` → Dongle/Runtime funktionieren |
 
 > Fehlt die Länge eines neuen Tracks, ist das kein Hindernis: ORACLE schätzt sie beim ersten Lauf aus den GPS-Runden
-> (Median, ganze Meter) und legt einen Vorschlag an (siehe [6.2](#62-track-längen-vorschläge-bestätigen)).
-> Für den GPS-Lap-Split ist die **Koordinate** dagegen Pflicht.
+> (Median, ganze Meter) und legt einen Vorschlag an (siehe [6.3](#63-track-längen-vorschläge-bestätigen)).
+> Für den GPS-Lap-Split und das Wetter ist die **Koordinate** dagegen Pflicht.
 
 ---
 
@@ -166,7 +167,8 @@ riderName = Andrea Adamo
 3. **KRAKEN** startet nacheinander `ORACLE.exe sync-motodb`, `ORACLE.exe process "<Run>"` und bei Exit-Code `0`/`4` MotoDB.
 4. **ORACLE `process`** führt für den Run aus ([README, Abschnitt 6](../README.md#6-was-process-tut-in-reihenfolge)):
    Reparatur verwaister Lap-Ordner → Metadaten (KOMPASS gewinnt gegen Platzhalter in der `.HED`) → kanonische `.HED`
-   → optional GPS-Lap-Split → sVehicle und Lap-Distanzen → XML-Properties → Track-Längen-Prüfung → `oracle.status.json`.
+   → optional GPS-Lap-Split → sVehicle und Lap-Distanzen → XML-Properties → **Wetter während der Runs** (`trackCondition` in `[TRACK]`, `[WEATHER]`,
+   `Meteo.xml`; braucht Internet, ändert nie den Exit-Code) → Track-Längen-Prüfung → `oracle.status.json`.
 5. **MotoDB** übernimmt den Run, sofern `trackLength` aus der `.HED` exakt in `CIRCUITS` vorkommt.
 
 ### 5.2 Manuelle Verarbeitung
@@ -228,11 +230,21 @@ Bei mehreren Geräten/Runs gewinnt der schwerwiegendste Code
 ### 6.1 Ergebnis kontrollieren
 
 1. `oracle.status.json` je Gerät: alle Schritte `success`? `discovery.skippedRuns` und `stint.failedRuns` leer?
+   `weather` mit Quelle, Gitterabstand und je Run Streckenzustand/Temperatur/Regen.
 2. Log `{AppDir}\logs\oracle-{yyyyMMdd-HHmmss}-{PID}.log` (Logs älter als 60 Tage werden automatisch gelöscht):
-   Abschnitte `[inputs]` (verwendeter KOMPASS-/loadChannels-Stand mit SHA-256), `[metadata]`, `[trackLength]`, `[gps]`.
-3. Stichprobe in WinTAX: Run öffnen, Lap-Zeiten und Rider prüfen.
+   Abschnitte `[inputs]` (verwendeter KOMPASS-/loadChannels-Stand mit SHA-256), `[metadata]`, `[trackLength]`, `[gps]`, `[weather]`.
+3. Stichprobe in WinTAX: Run öffnen, Lap-Zeiten und Rider prüfen; Wetter je Lap auf der Meteo-Seite (*Edit Lap Information*).
 
-### 6.2 Track-Längen-Vorschläge bestätigen
+### 6.2 Wetter prüfen und nachtragen
+
+- Fehlte an der Strecke das Internet (`weather: failed`), holt der nächste `process`-Aufruf das Wetter nach. Für ganze Events:
+  `ORACLE.exe weather "C:\...\RT22_GER-Teutschenthal"`.
+- Das Modell kennt nur 15-Minuten-Werte im 1–9-km-Raster und verfehlt kurze Schauer manchmal. Stimmt `trackCondition` (Sektion
+  `[TRACK]`) nicht mit den Session-Notizen überein: Wert korrigieren und in `[WEATHER]` `weatherSource = manual` setzen. Die
+  Schwellen für dry/damp/wet stehen in `oracle-config.json` (`Weather.DampRainMm`, `WetRainMm`, `WetRateMmPerHour`).
+- Details: [README, Abschnitt 10b](../README.md#10b-wetter-während-der-runs-process-weather).
+
+### 6.3 Track-Längen-Vorschläge bestätigen
 
 Hat ORACLE eine Länge geschätzt (`trackLength.provisional = true` im Status), liegt ein Vorschlag im Ordner `suggestions`.
 
@@ -241,13 +253,13 @@ Hat ORACLE eine Länge geschätzt (`trackLength.provisional = true` im Status), 
    verarbeitete Runs, ohne `--force` (`trackLength.correctedFrom` im Status).
 3. Abgelehnte Längen verwendet ORACLE nicht mehr.
 
-### 6.3 Defekte Runs nachholen
+### 6.4 Defekte Runs nachholen
 
 1. Ursache aus Log/Status lesen (`[discovery]`, z.B. Lap-Ordner ohne `cableData.ztx`, mehrfach geteilte Laps).
 2. In WinTAX reparieren oder Run neu vom Logger laden.
 3. `ORACLE.exe process "<Geräteordner>" --force`.
 
-### 6.4 Aufräumen
+### 6.5 Aufräumen
 
 - Sicherungen des GPS-Splits (`_ORACLE_original`) erst löschen, wenn die geteilten Runs geprüft sind.
 - Von der Reparatur verschobene Lap-Ordner liegen in `_ORACLE_removed` (mit `README.txt`).
@@ -261,7 +273,7 @@ Hat ORACLE eine Länge geschätzt (`trackLength.provisional = true` im Status), 
 | Exit `1`/`7`, `LoadRun failed` oder Hinweis auf die KTM-Runtime im Log | Suite/Dongle/TelDataX fehlen | Suite unter `C:\KTM Tools\KTM Utils Software Suite` installieren, Dongle stecken |
 | Exit `2` | unbekannte Option oder überzähliges Argument | Pfade in Anführungszeichen; erlaubte Optionen siehe [README, Abschnitt 4](../README.md#4-commands) |
 | Exit `3` | Pfad existiert nicht / keine Runs | Pfad prüfen; Sync abwarten |
-| Exit `4`, `[discovery] ⚠️ Run skipped …` | defekter `Run_*`-Ordner übersprungen | siehe [6.3](#63-defekte-runs-nachholen) |
+| Exit `4`, `[discovery] ⚠️ Run skipped …` | defekter `Run_*`-Ordner übersprungen | siehe [6.4](#64-defekte-runs-nachholen) |
 | Exit `5` | `loadChannels.xlsx` in Excel offen (ORACLE wartet bis `LockWaitSeconds`) oder `oracle.lock` eines anderen Prozesses | Excel schließen / anderen Lauf abwarten, erneut ausführen |
 | Exit `6`, `[trackLength]` | keine eindeutige Track-Länge (fehlt oder von anderem Track belegt) | Länge in KODE eintragen/bestätigen, Längenkonflikte auflösen, erneut ausführen |
 | Exit `7` | `KOMPASS.json` oder `oracle-config.json` ungültig, Run-Ordner beschädigt | KOMPASS in KODE öffnen/speichern oder aus `backups` wiederherstellen; Config korrigieren |
@@ -270,6 +282,8 @@ Hat ORACLE eine Länge geschätzt (`trackLength.provisional = true` im Status), 
 | `[gps-split] … unclear lap structure …` | Grenzen ohne GPS-Position | nicht automatisch geteilt; in WinTAX prüfen |
 | `[gps-split] ❌ … – run unchanged` | Schreiben/Prüfen fehlgeschlagen, Rollback erfolgt | Ursache im Log (z.B. Speicherplatz), erneut ausführen |
 | `[gps] No GPS fix …` | Run ohne gültige Position | sVehicle 0 m, keine Lap-Distanz; Track-Länge kommt aus anderen Runs des Events |
+| `[weather] ⚠️ … no connection` / `weather: failed` | kein Internet beim Verarbeiten | nichts tun – nächster `process`-Aufruf oder `ORACLE.exe weather <Pfad>` holt nach |
+| `[weather] Skipped: no track coordinate …` | Track ohne `Latitude`/`Longitude` in KOMPASS | in KODE pflegen, dann `ORACLE.exe weather <Pfad>` |
 | SENTINEL: Run bleibt `invalid` (z.B. `1 missing file(s) according to RunLapHeader.xml`) | fehlende Datei laut `RunLapHeader.xml`, Platzhalter, 0-Byte-Datei oder Sperre (Grund steht in der Zeile) | OneDrive-Sync prüfen („Immer auf diesem Gerät behalten“), Download wiederholen |
 | ORACLE wurde während `split-laps` abgebrochen (Strom, Kill) | `split-manifest.json` im Sicherungsordner ist noch als „pending“ markiert (Journal) | beim nächsten Aufruf stellt ORACLE die Original-Laps automatisch wieder her (`LapSplitStore.RecoverInterrupted`, [LapSplitStore.cs](../ORACLE/Processing/LapSplitStore.cs)) |
 

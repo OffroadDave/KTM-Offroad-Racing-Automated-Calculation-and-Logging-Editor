@@ -111,6 +111,8 @@ namespace Ktm.Racing.Oracle
                 {
                     Console.WriteLine("[process] Run already processed successfully (oracle.status.json). Skipping.");
                     Console.WriteLine("[process] Use --force to process again.");
+                    // The weather does not depend on the track length: catch it up even while the length is pending.
+                    await CatchUpWeatherAsync([runPath], runPath);
                     return code;
                 }
             }
@@ -198,6 +200,9 @@ namespace Ktm.Racing.Oracle
                 status.Save(runPath);
                 return OracleExitCode.GeneralError;
             }
+
+            // --- Weather during the run (non-fatal, never changes the exit code) ---
+            await ApplyWeatherAsync(validRuns, metadata, status);
 
             // --- Check/estimate track length: MotoDB must not run without an unambiguous length ---
             var lengthExit = FinishTrackLength(lengthGate, knownLength, metadata, validRuns,
@@ -518,6 +523,8 @@ namespace Ktm.Racing.Oracle
                 if (lengthCheck is { } code)
                 {
                     Console.WriteLine("[process-rider] Already processed (oracle.status.json). Skipping. (--force to override)");
+                    // The weather does not depend on the track length: catch it up even while the length is pending.
+                    await CatchUpWeatherAsync(runs, statusFolder);
                     return code == OracleExitCode.Success && corrupt.Count > 0 ? OracleExitCode.PartialSuccess : code;
                 }
             }
@@ -586,6 +593,9 @@ namespace Ktm.Racing.Oracle
                 status.Save(statusFolder);
                 return OracleExitCode.GeneralError;
             }
+
+            // --- Weather during the session (non-fatal, never changes the exit code) ---
+            await ApplyWeatherAsync(runs, metadata, status);
 
             // --- Check/estimate track length: MotoDB must not run without an unambiguous length ---
             var lengthExit = FinishTrackLength(lengthGate, knownLength, metadata, allRuns, statusFolder,
@@ -1086,17 +1096,149 @@ namespace Ktm.Racing.Oracle
         }
 
         /// <summary>
+        /// Writes the weather during the runs (<see cref="WeatherService"/>) and records the step <c>weather</c> in the status.
+        /// Non-fatal: never changes the exit code; failures (e.g. no internet at the track) are caught up on the next call.
+        /// </summary>
+        private async Task ApplyWeatherAsync(IReadOnlyList<string> runs, RunMetadata metadata, OracleStatus status)
+        {
+            if (!_config.Weather.Enabled)
+            {
+                status.SetStep("weather", StepStatus.Skipped, new Dictionary<string, object> { ["message"] = "disabled in oracle-config.json" });
+                return;
+            }
+            var result = await ComputeWeatherAsync(runs, metadata);
+            status.SetStep("weather", result.Status, result.ToDetails());
+        }
+
+        /// <summary>
+        /// For already processed folders: catches up the weather if the step is missing or did not succeed (e.g. no internet
+        /// during the first processing). Only the step <c>weather</c> of the existing status is updated.
+        /// </summary>
+        private async Task CatchUpWeatherAsync(IReadOnlyList<string> runs, string statusFolder)
+        {
+            if (!_config.Weather.Enabled || OracleStatus.Load(statusFolder) is not { } status)
+                return;
+            if (status.Steps.TryGetValue("weather", out var step) && step.Status == StepStatus.Success)
+                return;
+            if (ReadHedMetadata(runs) is not { } metadata)
+                return;
+
+            Console.WriteLine("[weather] Catching up the weather for the already processed runs.");
+            var result = await ComputeWeatherAsync(runs, metadata);
+            status.SetStep("weather", result.Status, result.ToDetails());
+            status.Save(statusFolder);
+        }
+
+        /// <summary>
+        /// Command <c>weather</c>: writes the weather for all runs under <paramref name="path"/> (event, session, device or run),
+        /// per device folder under its lock. Runs need a .HED (run <c>process</c> first). Without <paramref name="force"/>, device
+        /// folders whose status already contains a successful weather step are skipped.
+        /// </summary>
+        public async Task<OracleExitCode> UpdateWeatherAsync(string path, bool force)
+        {
+            Console.WriteLine($"[weather] Path: {path}");
+            if (!Directory.Exists(path))
+            {
+                Console.WriteLine($"The specified path does not exist: {path}");
+                return OracleExitCode.DataNotFound;
+            }
+
+            var runs = _browse.IsRunLocation(path)
+                ? [path]
+                : RunFolders.InOrder(_browse.FindRuns(path) ?? Enumerable.Empty<string>());
+            if (runs.Count == 0)
+            {
+                Console.WriteLine($"No valid runs found in: {path}");
+                return OracleExitCode.DataNotFound;
+            }
+
+            var codes = new List<OracleExitCode>();
+            foreach (var device in runs.GroupBy(r => Path.GetDirectoryName(Path.GetFullPath(r))!, StringComparer.OrdinalIgnoreCase))
+            {
+                var deviceRuns = device.ToList();
+                var name = Path.GetFileName(device.Key);
+                using var deviceLock = ProcessingLock.TryAcquire(device.Key);
+                if (deviceLock is null)
+                {
+                    Console.WriteLine($"[weather] {device.Key} is currently being processed by another ORACLE process – try again later.");
+                    codes.Add(OracleExitCode.ResourceLocked);
+                    continue;
+                }
+
+                // Status lives in the device folder (rider/session processing) or in the run folder (single-run processing).
+                var statusFolders = new[] { device.Key }.Concat(deviceRuns).Where(f => OracleStatus.Load(f) is not null).ToList();
+                if (!force && statusFolders.Count > 0 && statusFolders.All(f =>
+                        OracleStatus.Load(f)!.Steps.TryGetValue("weather", out var s) && s.Status == StepStatus.Success))
+                {
+                    Console.WriteLine($"[weather] {name}: weather already written – skipped (--force to fetch again).");
+                    codes.Add(OracleExitCode.Success);
+                    continue;
+                }
+
+                if (ReadHedMetadata(deviceRuns) is not { } metadata)
+                {
+                    Console.WriteLine($"[weather] {name}: no .HED in the runs – run 'process' first.");
+                    codes.Add(OracleExitCode.DataNotFound);
+                    continue;
+                }
+
+                var result = await ComputeWeatherAsync(deviceRuns, metadata);
+                foreach (var folder in statusFolders)
+                {
+                    var status = OracleStatus.Load(folder)!;
+                    status.SetStep("weather", result.Status, result.ToDetails());
+                    status.Save(folder);
+                }
+                Console.WriteLine($"[weather] {name}: {result.Message}.");
+                codes.Add(result.Status switch
+                {
+                    StepStatus.Success => OracleExitCode.Success,
+                    StepStatus.Partial => OracleExitCode.PartialSuccess,
+                    StepStatus.Skipped => OracleExitCode.DataNotFound,
+                    _ => OracleExitCode.GeneralError,
+                });
+            }
+            return OracleExitCodes.Combine(codes);
+        }
+
+        /// <summary>Track coordinate from KOMPASS and the weather for the runs; exceptions become a failed result.</summary>
+        private async Task<WeatherStepResult> ComputeWeatherAsync(IReadOnlyList<string> runs, RunMetadata metadata)
+        {
+            try
+            {
+                var location = await ResolveFinishLineAsync(metadata, "[weather]");
+                var service = new WeatherService(_config.Weather, new OpenMeteoWeatherSource(_config.Weather));
+                return await service.ApplyAsync(runs, location);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                Console.WriteLine($"[weather] ⚠️ Weather not written: {ex.Message}");
+                return new WeatherStepResult(StepStatus.Failed, ex.Message, []);
+            }
+        }
+
+        /// <summary>Metadata (track, country) from the first .HED of the runs, or <c>null</c>.</summary>
+        private static RunMetadata? ReadHedMetadata(IReadOnlyList<string> runs)
+        {
+            var hedFile = runs
+                .Where(Directory.Exists)
+                .Select(r => Directory.EnumerateFiles(r, "*.HED", SearchOption.TopDirectoryOnly).FirstOrDefault())
+                .FirstOrDefault(f => f is not null);
+            return hedFile is null ? null : new HedFileService().ReadMetadata(hedFile);
+        }
+
+        /// <summary>
         /// Determines the track coordinate (reference for the finish line) from KOMPASS – spelling-tolerant, country preferred.
         /// Returns <c>null</c> if KOMPASS is missing or the track has no lat/lon values.
         /// </summary>
-        private async Task<GeoCoordinate?> ResolveFinishLineAsync(RunMetadata metadata)
+        private async Task<GeoCoordinate?> ResolveFinishLineAsync(RunMetadata metadata, string logPrefix = "[gps-split]")
         {
             if (string.IsNullOrWhiteSpace(metadata.TrackName))
                 return null;
 
             if (!Directory.Exists(_config.DatabaseDirectory))
             {
-                Console.WriteLine($"[gps-split] KOMPASS directory not found: {_config.DatabaseDirectory}");
+                Console.WriteLine($"{logPrefix} KOMPASS directory not found: {_config.DatabaseDirectory}");
                 return null;
             }
 

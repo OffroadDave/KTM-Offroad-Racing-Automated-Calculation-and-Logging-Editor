@@ -20,9 +20,9 @@ Die gemeinsam genutzte Bibliothek `Ktm.Racing.Domain` (`C:\Dev\Ktm.Racing.Domain
 | Angabe | Wert |
 |---|---|
 | Repository | `C:\Dev\KTM Offroad Racing Automated Calculation and Logging Editor` |
-| Git-Commit (`git rev-parse --short HEAD`) | `880ffe2` |
+| Git-Commit (`git rev-parse --short HEAD`) | `5cd69ea` |
 | Erstellt | 2026-10-21 |
-| Hinweis | Zum Erstellungszeitpunkt enthielt das Arbeitsverzeichnis nicht committete Änderungen (Übersetzung von Kommentaren/Texten von Deutsch nach Englisch). Beschreibungen und Zeilennummern beziehen sich auf das Arbeitsverzeichnis zum Erstellungszeitpunkt; zitierte Konsolentexte können inzwischen übersetzt sein. |
+| Hinweis | Zeilennummern werden mit `render.py` automatisch aus dem Code des angegebenen Commits (zzgl. der Änderungen dieses Branches) ermittelt. Konsolen- und Logmeldungen sind englisch und werden wörtlich zitiert. |
 | Zielplattform | .NET 8 (`net8.0`); ORACLE zusätzlich `Platforms AnyCPU;x64` |
 | Nicht enthalten | Testprojekte `ORACLE.Tests`, `SENTINEL.Tests` |
 
@@ -39,6 +39,7 @@ Die gemeinsam genutzte Bibliothek `Ktm.Racing.Domain` (`C:\Dev\Ktm.Racing.Domain
 9. [Modul Detection](#9-modul-detection) – [`RaceSegmentDetector`](#racesegmentdetector), [`RaceClassification.cs`](#raceclassificationcs), [`RaceDetectionThresholds`](#racedetectionthresholds), [`RaceStintProcessor`](#racestintprocessor), [`StartAnalyzer`](#startanalyzer), [`StartDetector`](#startdetector)
 10. [Modul Metadata](#10-modul-metadata) – [`RunMetadata`](#runmetadata), [`HedFileService`](#hedfileservice), [`KompassService`](#kompassservice), [`MetadataMerger`](#metadatamerger), [`PathMetadataParser`](#pathmetadataparser), [`BikeAlias`](#bikealias)
 11. [Modul Runtime](#11-modul-runtime) – [`KtmRuntime`](#ktmruntime), [`KtmDataHandlerFactory`](#ktmdatahandlerfactory), [`ChannelResolver`](#channelresolver), [`KtmWriteErrors`](#ktmwriteerrors)
+    - 11a. [Modul Weather](#11a-modul-weather) – [`WeatherSettings`](#weathersettings), [`OpenMeteoWeatherSource`](#openmeteoweathersource), [`WeatherCalculator`](#weathercalculator), [`MeteoXml`](#meteoxml), [`WeatherService`](#weatherservice)
 12. [SENTINEL](#12-sentinel) – [`Program` (SENTINEL)](#sentinel-program), [`SentinelConfig`](#sentinelconfig), [`RunWatcher`](#runwatcher), [`StabilityTracker`](#stabilitytracker), [`RunSnapshot`](#runsnapshot), [`DownloadDoneWriter`](#downloaddonewriter)
 13. [Verwendete Typen aus Ktm.Racing.Domain](#13-verwendete-typen-aus-ktmracingdomain)
 14. [Externe Abhängigkeiten](#14-externe-abhängigkeiten)
@@ -63,6 +64,7 @@ flowchart TD
     Create --> DRace["DetectRaces (detect)"]
     Create --> DStart["DetectStarts (detect-start)"]
     Create --> SLaps["SplitLapsAsync (split-laps)"]
+    Create --> Wx["UpdateWeatherAsync (weather)"]
     PPath --> PRun["ProcessRunAsync (Run-Ordner)"]
     PPath --> PRider["ProcessRiderAsync (Rider-/Session-/Geräteordner)"]
     PRun --> Meta["Metadata: HedFileService, KompassService, MetadataMerger"]
@@ -75,6 +77,10 @@ flowchart TD
     PRun -->|"--gps-split"| Split["Processing: GpsLapSplitService → LapSplitStore"]
     PRider -->|"--gps-split"| Split
     SLaps --> Split
+    PRun --> WS["Weather: WeatherService → OpenMeteoWeatherSource"]
+    PRider --> WS
+    Wx --> WS
+    WS --> OM[("Open-Meteo Historical Forecast API")]
     DRace --> Det["Detection: RaceSegmentDetector"]
     DStart --> SA["Detection: StartAnalyzer → StartDetector"]
     Calc --> Fac["Runtime: KtmDataHandlerFactory"]
@@ -103,6 +109,8 @@ Zentrale Dateien im Dateisystem (aus dem Code):
 | `loadChannels.xlsx` (Sheets CIRCUITS/HED) | `OracleConfig.MotoDbLoadChannelsPath` | `LoadChannelsWriter` (Domain) über [`TrackLengthGate`](#tracklengthgate), [`MotoDbInputSync`](#motodbinputsync) |
 | Längenvorschläge für KODE | `TrackLengthSettings.SuggestionsDirectory` | `TrackLengthSuggestionStore` (Domain) über [`TrackLengthGate`](#tracklengthgate) |
 | `download.done` | Run-Ordner | SENTINEL [`DownloadDoneWriter`](#downloaddonewriter) |
+| `.HED`: `trackCondition` in `[TRACK]`, Sektion `[WEATHER]` | jeder Run-Ordner | [`HedFileService.SetWeather`](#hedfileservice) über [`WeatherService`](#weatherservice) |
+| `Lap_*\Meteo.xml` | jeder Lap-Ordner | [`MeteoXml`](#meteoxml) über [`WeatherService`](#weatherservice) |
 
 ## 5. Kommandozeile (CLI)
 
@@ -117,6 +125,7 @@ Aufruf: `ORACLE.exe <Befehl> [Argumente]`. Befehle und Optionen werden ohne Beac
 | `detect` | `ORACLE.exe detect <riderPath\|runPath>` | keine | [`OraclePipeline.DetectRaces`](#oraclepipeline) |
 | `detect-start` | `ORACLE.exe detect-start <riderPath\|runPath>` | keine | [`OraclePipeline.DetectStarts`](#oraclepipeline) |
 | `split-laps` | `ORACLE.exe split-laps <event\|session\|device\|run> [--dry-run] [--undo]` | `--dry-run`, `--undo` | [`OraclePipeline.SplitLapsAsync`](#oraclepipeline) |
+| `weather` | `ORACLE.exe weather <event\|session\|device\|run> [--force]` | `--force` | [`OraclePipeline.UpdateWeatherAsync`](#oraclepipeline) |
 | `sync-motodb` | `ORACLE.exe sync-motodb [--kompass <KOMPASS.json>] [--workbook <loadChannels.xlsx>]` | `--kompass <Wert>`, `--workbook <Wert>` | [`MotoDbInputSync.Run`](#motodbinputsync) (ohne `OraclePipeline`) |
 | Legacy | `ORACLE.exe <runPath> [--force] [--gps-split]` | `--force`, `--gps-split` | `Program.HandleLegacyAsync` → `ProcessPathAsync` |
 | `merge` | – | – | entfernt: Meldung „The 'merge' command has been removed.“, Exit-Code 2 |
@@ -125,7 +134,7 @@ Optionen (laut `Program.PrintUsage`):
 
 | Option | Bedeutung |
 |---|---|
-| `--force` | Idempotenz-Prüfung (`oracle.status.json`) ignorieren, erneut verarbeiten |
+| `--force` | Idempotenz-Prüfung (`oracle.status.json`) ignorieren, erneut verarbeiten; bei `weather`: Wetter erneut abrufen |
 | `--gps-split` | Runs vor der Verarbeitung per GPS-Ziellinie in Laps teilen (wie `split-laps`) |
 | `--dry-run` | `split-laps`: nur anzeigen, was geteilt würde |
 | `--undo` | `split-laps`: Original-Laps der letzten Teilung wiederherstellen |
@@ -135,10 +144,10 @@ Optionen (laut `Program.PrintUsage`):
 Regeln der Argumentprüfung (aus `CommandLine.OptionsFor`/`Validate` und `Program`):
 
 - Ohne Argumente: Ausgabe der Verwendung (`PrintUsage`), Exit-Code 2.
-- Die Optionsprüfung beginnt bei `process`, `split-laps`, `validate`, `detect`, `detect-start` ab Index 2 (Index 1 ist der Pfad), bei `sync-motodb` und im Legacy-Modus ab Index 1.
+- Die Optionsprüfung beginnt bei `process`, `split-laps`, `weather`, `validate`, `detect`, `detect-start` ab Index 2 (Index 1 ist der Pfad), bei `sync-motodb` und im Legacy-Modus ab Index 1.
 - Wert-Optionen (`--kompass`, `--workbook`) brauchen einen Folgewert, der nicht mit `--` beginnt („Option … expects a value.“).
 - Ein unbekanntes Argument mit `--` ergibt „Unknown option: …“, sonst „Unexpected argument: … (enclose paths containing spaces in quotes).“
-- Fehlt bei `process`/`validate`/`detect`/`detect-start`/`split-laps` der Pfad, gibt `Program` „Fehler: Pfad fehlt.“ samt Verwendung aus und liefert Exit-Code 2.
+- Fehlt bei `process`/`validate`/`detect`/`detect-start`/`split-laps`/`weather` der Pfad, gibt `Program` „Fehler: Pfad fehlt.“ samt Verwendung aus und liefert Exit-Code 2.
 - Folge aus dem Code: Da die Optionsprüfung bei `process` erst ab Index 2 beginnt, wird z. B. bei `process --force` der Text `--force` als Pfad übernommen; `ProcessPathAsync` meldet dann einen nicht existierenden Pfad (Exit-Code 3).
 - `PrintUsage` nennt bei `detect` nur `<riderPath>`, die Fehlermeldung in `HandleDetect` `<riderPath|runPath>`; der Code akzeptiert beides (Run-Ordner werden über `IsRunLocation` erkannt).
 
@@ -157,14 +166,14 @@ Datei: [Program.cs](../ORACLE/Program.cs). Klasse ohne Namespace (Top-Level, `us
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
 | `Main` (Z. 25) | Einstieg: Logger starten, Argumente prüfen, Befehl routen, Exit-Code ausgeben | `string[] args` | `Task<int>` – Exit-Code als `int` | `OracleLogger.Initialize`, `CommandLine.Validate`, `MotoDbInputSync.Run`, `OracleConfig.Load`, `OraclePipeline.Create` und deren Befehle | Konsole/Log: Startzeile mit Log-Pfad, Argumente, Fehlermeldungen, „ORACLE beendet. Exit-Code N (Name)“. Ohne Argumente → `PrintUsage`, Exit 2; Validierungsfehler → Exit 2. `sync-motodb` wird **vor** `OraclePipeline.Create` behandelt (keine `MarelliDataBrowse`-Instanz). `InvalidDataException` mit Meldungsbeginn „oracle-config.json“ → Exit 7; jede andere Exception → Exit 1 mit Ausgabe der Inner-Exception-Kette und des StackTrace. Erstellt die Log-Datei (über `OracleLogger`). |
-| `HandleProcessAsync` (Z. 94) – privat | Befehl `process` | `string[] args`, `OraclePipeline pipeline` | `Task<OracleExitCode>` | `OraclePipeline.ProcessPathAsync` | Ohne Pfad: Konsole „Fehler: Pfad fehlt.“ + Verwendung, Exit 2. Liest `--force`/`--gps-split` aus allen Argumenten. |
-| `HandleValidate` (Z. 111) – privat | Befehl `validate` | `string[] args`, `OraclePipeline pipeline` | `OracleExitCode` | `OraclePipeline.ValidateRun` | Ohne Pfad: Konsole + Exit 2. |
-| `HandleDetect` (Z. 126) – privat | Befehl `detect` | `string[] args`, `OraclePipeline pipeline` | `OracleExitCode` | `OraclePipeline.DetectRaces` | Ohne Pfad: Konsole + Exit 2. |
-| `HasFlag` (Z. 139) – privat | Prüft, ob ein Schalter in den Argumenten vorkommt (case-insensitive) | `string[] args`, `string flag` | `bool` | – | keine |
-| `GetOption` (Z. 142) – privat | Liefert den Wert hinter der ersten Option `name` | `string[] args`, `string name` | `string?` (`null`, wenn nicht vorhanden) | – | keine |
-| `MissingPath` (Z. 150) – privat | Einheitliche Meldung bei fehlendem Pfad (für `detect-start`, `split-laps`) | `string usage` | `OracleExitCode.InvalidArguments` (2) | – | Konsole: „Fehler: Pfad fehlt.“ + Verwendung |
-| `HandleLegacyAsync` (Z. 163) – privat | Legacy-Modus: `args[0]` ist der Run-Pfad, Ablauf wie `process` | `string[] args`, `OraclePipeline pipeline` | `Task<OracleExitCode>` | `OraclePipeline.ProcessPathAsync` | Konsole: „[legacy] Kein Command erkannt …“ |
-| `PrintUsage` (Z. 177) – privat | Gibt Verwendung, Optionen und Exit-Codes 0–7 aus | – | `void` | – | Konsole/Log |
+| `HandleProcessAsync` (Z. 97) – privat | Befehl `process` | `string[] args`, `OraclePipeline pipeline` | `Task<OracleExitCode>` | `OraclePipeline.ProcessPathAsync` | Ohne Pfad: Konsole „Fehler: Pfad fehlt.“ + Verwendung, Exit 2. Liest `--force`/`--gps-split` aus allen Argumenten. |
+| `HandleValidate` (Z. 114) – privat | Befehl `validate` | `string[] args`, `OraclePipeline pipeline` | `OracleExitCode` | `OraclePipeline.ValidateRun` | Ohne Pfad: Konsole + Exit 2. |
+| `HandleDetect` (Z. 129) – privat | Befehl `detect` | `string[] args`, `OraclePipeline pipeline` | `OracleExitCode` | `OraclePipeline.DetectRaces` | Ohne Pfad: Konsole + Exit 2. |
+| `HasFlag` (Z. 142) – privat | Prüft, ob ein Schalter in den Argumenten vorkommt (case-insensitive) | `string[] args`, `string flag` | `bool` | – | keine |
+| `GetOption` (Z. 145) – privat | Liefert den Wert hinter der ersten Option `name` | `string[] args`, `string name` | `string?` (`null`, wenn nicht vorhanden) | – | keine |
+| `MissingPath` (Z. 153) – privat | Einheitliche Meldung bei fehlendem Pfad (für `detect-start`, `split-laps`) | `string usage` | `OracleExitCode.InvalidArguments` (2) | – | Konsole: „Fehler: Pfad fehlt.“ + Verwendung |
+| `HandleLegacyAsync` (Z. 166) – privat | Legacy-Modus: `args[0]` ist der Run-Pfad, Ablauf wie `process` | `string[] args`, `OraclePipeline pipeline` | `Task<OracleExitCode>` | `OraclePipeline.ProcessPathAsync` | Konsole: „[legacy] Kein Command erkannt …“ |
+| `PrintUsage` (Z. 180) – privat | Gibt Verwendung, Optionen und Exit-Codes 0–7 aus | – | `void` | – | Konsole/Log |
 
 #### `CommandLine`
 
@@ -172,8 +181,8 @@ Datei: [CommandLine.cs](../ORACLE/CommandLine.cs). Statische Klasse zur Validier
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `OptionsFor` (Z. 7) | Erlaubte Schalter, Wert-Optionen und Startindex der Optionsprüfung je Befehl | `string command` | `(string[] Flags, string[] ValueOptions, int FirstOptionIndex)`: `sync-motodb` → ([], [`--kompass`, `--workbook`], 1); `process` → ([`--force`, `--gps-split`], [], 2); `split-laps` → ([`--dry-run`, `--undo`], [], 2); `validate`/`detect`/`detect-start` → ([], [], 2); sonst (Legacy) → ([`--force`, `--gps-split`], [], 1) | – | keine |
-| `Validate` (Z. 18) | Prüft alle Argumente | `string[] args` | `string?` – Fehlermeldung oder `null` (gültig; auch bei leerem `args`) | `OptionsFor` | keine (Meldung wird von `Program.Main` ausgegeben). `merge` → „The 'merge' command has been removed.“ |
+| `OptionsFor` (Z. 7) | Erlaubte Schalter, Wert-Optionen und Startindex der Optionsprüfung je Befehl | `string command` | `(string[] Flags, string[] ValueOptions, int FirstOptionIndex)`: `sync-motodb` → ([], [`--kompass`, `--workbook`], 1); `process` → ([`--force`, `--gps-split`], [], 2); `split-laps` → ([`--dry-run`, `--undo`], [], 2); `weather` → ([`--force`], [], 2); `validate`/`detect`/`detect-start` → ([], [], 2); sonst (Legacy) → ([`--force`, `--gps-split`], [], 1) | – | keine |
+| `Validate` (Z. 19) | Prüft alle Argumente | `string[] args` | `string?` – Fehlermeldung oder `null` (gültig; auch bei leerem `args`) | `OptionsFor` | keine (Meldung wird von `Program.Main` ausgegeben). `merge` → „The 'merge' command has been removed.“ |
 
 ## 7. Modul Pipeline
 
@@ -187,38 +196,43 @@ Statusschritte (`OracleStatus.SetStep`), die die Pipeline schreibt: `inputs`, `d
 |---|---|---|---|---|---|
 | Konstruktor (Z. 40) | Pipeline mit expliziten Abhängigkeiten (u. a. für Tests) | `IMarelliDataBrowse browse`, `OracleConfig config` | – | – | `ArgumentNullException` bei `null` |
 | `Create` (Z. 53) | Factory mit Standardabhängigkeiten | – | `OraclePipeline` | `new MarelliDataBrowse()` (KtmDataHandler), `OracleConfig.Load()` | Konsole (Konfigurationsmeldung); wirft `InvalidDataException` bei ungültiger `oracle-config.json` |
-| `ProcessRunAsync` (Z. 76) | Vollständige Verarbeitung eines einzelnen Run-Ordners: Sperren, Idempotenz, Metadaten, .HED, optional GPS-Split, Berechnung + XML je Run, Track-Länge, Status | `string runPath`, `bool force = false`, `bool gpsSplit = false` | `Task<OracleExitCode>`: 3 (Pfad fehlt, Metadaten ohne KOMPASS-Fehler, keine gültigen Runs), Code aus `RecoverInterruptedSplits` (1/5), 5 (Geräte- oder Run-Sperre belegt; Track-Länge: `loadChannels.xlsx` gesperrt), Code aus `CheckProcessedTrackLength` bei bereits verarbeitetem Run, 7 (KOMPASS ungültig), 1 (keine einzige Berechnung erfolgreich), 6 (keine eindeutige Track-Länge bei `Enforce`), 4 (nicht alle Runs berechnet), 0 | `RecoverInterruptedSplits`, `ProcessingLock`, `OracleStatus`, `CheckProcessedTrackLength`, `_browse.IsRunLocation`, `RecordInputs`, `ResolveMetadataAsync`, `SetMetadataStep`, `DiscoverRuns`, `TrackLengthGate.FromConfig`, `ResolveKnownTrackLength`, `HedFileService.EnsureHedInAllRuns`, `RunGpsLapSplitAsync`, `ImportDataCalculator.RunCalculationPipeline`, `XmlRunEditor.SetRunProperties`, `FinishTrackLength` | Sperren `oracle.lock` im Geräteordner (Elternordner) **und** im Run-Ordner. Konsole/Log. Schreibt `.HED` (atomar, löscht abweichend benannte `.HED`), Import-Daten über `AddImportDataToRun`, `Car.xml`/`Session.xml`/`LapHeader.xml`/`RunLapHeader.xml` (atomar), ggf. CIRCUITS in `loadChannels.xlsx` und Längenvorschlag, `oracle.status.json` im Run-Ordner (atomar, auch bei Fehlschlägen). Liest KOMPASS. Ist der Pfad kein WinTAX-Run, nur Warnung (Verarbeitung läuft weiter). |
-| `ValidateRun` (Z. 236) | Integritätsprüfung eines Runs: Existenz, WinTAX-Run, `Lap_*`-Ordner, `cableData.ztx` (> 0 Bytes), Ladbarkeit und Kanäle | `string runPath` | `OracleExitCode`: 0, 3 (Ordner fehlt, kein WinTAX-Run, keine Laps, keine gültige `cableData.ztx`), 7 (`LoadRun` ≤ 0, keine Kanäle, Exception beim Laden) | `_browse.IsRunLocation`, `KtmDataHandlerFactory.CreateReader` (`SetDataLocation`, `LoadRun`, `GetChannelsNames`, `ReleaseObjects`) | Nur lesend. Konsole/Log mit Prüfergebnissen. |
-| `DetectStarts` (Z. 336) | Befehl `detect-start`: gültige Gatterstarts erkennen (read-only) | `string path` | `OracleExitCode`: 3 (Pfad fehlt) oder Ergebnis von `StartAnalyzer.Run` | `StartAnalyzer` | Konsole/Log; lesender Zugriff über KtmDataHandler |
-| `DetectRaces` (Z. 346) | Befehl `detect`: Renn-Erkennung (read-only) mit Tabellenausgabe je Run | `string folderPath` | `OracleExitCode`: 3 (Pfad fehlt oder keine Runs), sonst 0 | `RaceSegmentDetector` (`_config.RaceDetection`, `_config.Gps`; ohne Track-Länge) | Konsole/Log: Distanz, vGPS, Gas, Drehzahl, Urteil (`RENNEN`/`FEHLER`/`-`, „(review)“ bei geringer Konfidenz). Lesender Zugriff über KtmDataHandler. Hinweis: Der XML-Kommentar über `DetectStarts` gehört inhaltlich zu `DetectRaces`. |
-| `ProcessPathAsync` (Z. 388) | Befehl `process`/Legacy: Vorbereitung und Routing auf Run- oder Rider-Verarbeitung | `string path`, `bool force = false`, `bool gpsSplit = false` | `Task<OracleExitCode>`: 3 (Pfad fehlt), Code aus `RecoverInterruptedSplits`, sonst Ergebnis von `ProcessRunAsync`/`ProcessRiderAsync` | `NormalizeDeviceFolders` (wenn `NormalizeDeviceFolderName`), `RecoverInterruptedSplits`, `RunRepair.RepairAll` (wenn `RepairOrphanLapFolders`), `_browse.IsRunLocation` | Kann Geräteordner umbenennen (`Directory.Move`) und verwaiste Lap-Ordner nach `_ORACLE_removed` verschieben – beides **vor** dem ersten Zugriff über die WinTAX-API. Füllt `_repairs`. |
-| `ProcessRiderAsync` (Z. 422) | Renn-bewusste Verarbeitung eines Rider-/Session-/Geräteordners („Option C“): Renn-Runs mit durchgehender `sVehicle`-Distanz und fortlaufender Lap-Nummer; bei mehreren Geräteordnern rekursiv je Gerät | `string riderPath`, `bool force = false`, `bool gpsSplit = false` | `Task<OracleExitCode>`: bei mehreren Geräten `OracleExitCodes.Combine`; ohne verarbeitbare Runs 0 (nur leere Runs), 7 (beschädigte Runs) oder 3; 5 (Sperre belegt / `loadChannels.xlsx` gesperrt); Idempotenz-Code (0 wird bei beschädigten Runs zu 4); 7/3 (Metadaten); 1 (kein Run berechnet, aber Fehler); 6; 4 (beschädigte oder fehlgeschlagene Runs); 0 | `NormalizeDeviceFolders`, `RecoverInterruptedSplits`, `_browse.FindRuns`, `RunFolderInspector.FindSkipped`, `DetermineStatusFolder`, `ProcessingLock`, `OracleStatus`, `CheckProcessedTrackLength`, `RecordInputs`, `ResolveMetadataAsync` (repräsentativ mit dem ersten Run), `SetMetadataStep`, `TrackLengthGate`, `ResolveKnownTrackLength`, `HedFileService.EnsureHedInAllRuns`, `SetEmptyRunProperties`, `RunGpsLapSplitAsync`, `ParseTrackLength`, `RaceStintProcessor.ProcessRider`, `FinishTrackLength` | Sperre `oracle.lock` im Status-/Geräteordner. `oracle.status.json` im Geräteordner (bzw. `riderPath`, wenn Runs über mehrere Geräteordner verteilt sind oder keine Runs gefunden wurden). `.HED` in allen Runs inkl. leerer Runs; XML-Metadaten in leeren Runs; Import-Daten und XML in allen berechneten Runs; ggf. CIRCUITS/Vorschlag. Konsole/Log inkl. Liste übersprungener (beschädigter) und leerer Runs sowie Zusammenfassung. |
-| `SetEmptyRunProperties` (Z. 616) – privat | Setzt Run-Metadaten (`Car.xml`, `Session.xml`) in leeren Runs | `IReadOnlyList<string> emptyRuns`, `RunMetadata metadata` | `void` | `XmlRunEditor.SetRunProperties` (ohne Rundendistanzen) | XML-Schreiben (atomar); Fehler je Run nur als Warnung in Konsole/Log |
-| `SetMetadataStep` (Z. 633) – privat | Statusschritt `metadata`: `success`, wenn Rider und Track gesetzt, sonst `partial` | `OracleStatus status`, `RunMetadata metadata` | `void` | `OracleStatus.SetStep` | Konsole: Warnung bei unvollständigen Metadaten („in KODE pflegen“) |
-| `RecordInputs` (Z. 651) – privat | Protokolliert den Datenstand von KOMPASS und `loadChannels.xlsx` | `OracleStatus status` | `void` | `InputFingerprint.Describe` | Liest beide Dateien (Hash); Konsole/Log; Statusschritt `inputs` |
-| `DetermineStatusFolder` (Z. 669) – privat | Ordner für `oracle.status.json`: gemeinsamer Elternordner der Runs, sonst `riderPath` | `string riderPath`, `IReadOnlyList<string> runs` | `string` | – | keine |
-| `ParseTrackLength` (Z. 684) – internal | Track-Länge (Text) → Meter wie die Längenprüfung | `string trackLength` | `double` (0 bei unbekannt/ungültig) | `TrackLengthRules.Parse` (Domain) | keine |
-| `ResolveKnownTrackLength` (Z. 691) – privat | Bestimmt die bekannte Track-Länge vor den Berechnungen und übernimmt sie in die Metadaten | `TrackLengthGate gate`, `RunMetadata metadata` | `TrackLengthDecision` | `TrackLengthGate.ResolveKnown` | Setzt `metadata.TrackLength`; Konsole/Log; liest KOMPASS, CIRCUITS und Vorschlagsordner |
-| `FinishTrackLength` (Z. 706) – privat | Schließt die Längenprüfung nach den Berechnungen ab (ggf. Schätzung, auch mit Runden anderer verarbeiteter Runs desselben Events) | `TrackLengthGate gate`, `TrackLengthDecision known`, `RunMetadata metadata`, `IReadOnlyList<string> runs`, `string hedFolder`, `IEnumerable<IReadOnlyList<double>> lapDistances`, `string origin`, `OracleStatus status` | `OracleExitCode`: 5 (`Locked`), 6 (`Missing` und `TrackLength.Enforce`), 0 (`Missing` ohne `Enforce`, oder OK) | `LapHistory.FindEventFolder`, `LapHistory.ReadProcessedLapDistances`, `TrackLengthGate.Complete`, `HedFileService.EnsureHedInAllRuns`, `XmlRunEditor.SetTrackLength` | Bei geänderter Länge: `.HED` aller Runs neu (atomar) und `Session.xml/TrackLen` (atomar). Über `Complete`: ggf. Schreiben von CIRCUITS in `loadChannels.xlsx` (unter Mutex) und Vorschlagsdatei. Statusschritt `trackLength`. Konsole/Log inkl. Warnungen. |
-| `CheckProcessedTrackLength` (Z. 762) – privat | Bei bereits verarbeitetem Ordner (Idempotenz-Skip): Track-Länge prüfen/nachholen ohne Vollverarbeitung | `IReadOnlyList<string> runs`, `string origin` (Statusordner) | `OracleExitCode?`: `null` = neu verarbeiten (keine `.HED`; oder keine Länge, keine gespeicherten Rundendistanzen und vorheriger Exit nicht 5/6); 5; 6 bzw. 0 (ohne `Enforce`); 0 | `HedFileService.ReadMetadata`, `_browse.GetEventName`, `TrackLengthGate`, `OracleStatus.Load`, `LapHistory.ReadLapDistances`/`FindEventFolder`/`ReadProcessedLapDistances`, `HedFileService.SetTrackLength`/`SetTrackSurface`, `XmlRunEditor.SetTrackLength` | Bei geänderter Länge: `.HED` und `Session.xml` aller Runs (atomar). Aktualisiert bei Änderung oder vorherigem Exit 5/6 den vorhandenen Status (Schritt `trackLength` mit `correctedAtUtc`, ggf. `correctedFrom`; Exit 5/6 → 0 bzw. 4) und speichert ihn. Aktualisiert `surface` in `.HED`, wenn KOMPASS einen anderen Untergrund liefert. Über `Complete` ggf. CIRCUITS/Vorschlag. Konsole/Log. |
-| `RunGpsLapSplitAsync` (Z. 853) – privat | Teilt Runs per GPS-Ziellinie in Laps (eine Linie je Track aus der KOMPASS-Koordinate) | `IReadOnlyList<string> runs`, `RunMetadata metadata`, `OracleStatus? status`, `bool dryRun = false`, `bool lockRuns = false` | `Task<IReadOnlyList<GpsLapSplitOutcome>>` (leer ohne Koordinate) | `ResolveFinishLineAsync`, `GpsLapSplitService` (`_config.GpsLapSplit`, `_config.Gps`, `beforeSwap` = `InvalidateProcessedStatus`) | Siehe [`GpsLapSplitService`](#gpslapsplitservice): Verschieben/Schreiben von Lap-Ordnern, Backup, Manifest, ggf. Invalidierung von `oracle.status.json`. Konsole/Log je Run; Statusschritt `gpsSplit` (`skipped`/`partial`/`success`). Ohne Koordinate: Hinweis „Lat/Lon in KODE eintragen“. |
-| `SplitLapsAsync` (Z. 908) | Befehl `split-laps`: alle Runs unter einem Event-/Session-/Geräte-/Run-Ordner teilen, Probelauf oder Rückgängig | `string path`, `bool dryRun`, `bool undo` | `Task<OracleExitCode>`: 3 (Pfad fehlt, keine Run-Ordner, keine Ergebnisse); 5 (kein Geräteordner sperrbar); 7 (keine Ergebnisse und KOMPASS ungültig); Undo: 4 bei Fehlern oder gesperrten Geräten, sonst 0; Split: 1 (alle fehlgeschlagen), 4 (einzelne Fehler, Sperren, nicht ermittelbarer Track, nicht wiederhergestellte Unterbrechungen), 0 | `RunFolderInspector.FindRunFolders`, `ProcessingLock`, `LapSplitStore.RecoverInterruptedLocked`/`FindLatestSplit`, `UndoSplit`, `InvalidateProcessedStatus`, `KompassService.ParseEventFromPath`, `ResolveMetadataAsync` (nur ohne `--dry-run`), `RunGpsLapSplitAsync` (`lockRuns: true`) | Sperrt alle betroffenen Geräteordner (`oracle.lock`) bis zum Ende. Ohne `--dry-run` bzw. mit `--undo`: Wiederherstellung unterbrochener Teilungen. Undo: Run-Sperre, Wiederherstellung der Original-Laps, Invalidierung von `oracle.status.json`. Split: Schreiben der Laps (siehe `GpsLapSplitService`). `ResolveMetadataAsync` kann `.HED` kopieren/schreiben. Konsole/Log. Fehlerzählung beim Undo nur, wenn noch eine Teilung existiert. |
-| `RecoverInterruptedSplits` (Z. 1038) – privat | Rollt unterbrochene GPS-Lap-Teilungen aller Runs unter `root` zurück | `string root` | `OracleExitCode?`: 1 (Wiederherstellung fehlgeschlagen), 5 (Run gesperrt), `null` (nichts offen) | `LapSplitStore.RecoverInterruptedLocked`, `RunFolderInspector.FindRunFolders` | Geräte-/Run-Sperren, Verschieben/Löschen von Lap-Ordnern, Kopieren von `RunLapHeader.xml`, Manifest-Update; Konsole/Log |
-| `UndoSplit` (Z. 1060) – privat | Letzte Teilung eines Runs rückgängig machen; vorher Status invalidieren | `string run` | `SplitUndoResult` | `LapSplitStore.FindLatestSplit`/`Undo`, `InvalidateProcessedStatus` | Status-Invalidierung (atomar); scheitert sie, bleibt der Run unverändert. Siehe `LapSplitStore.Undo`. |
-| `InvalidateProcessedStatus` (Z. 1080) – privat | Markiert den Status von Run und Geräteordner als veraltet | `string runPath`, `string reason` | `void` | `OracleStatus.MarkOutdated` | Schreibt `oracle.status.json` (atomar, nur wenn vorhanden); wirft bei Schreibfehlern; Konsole/Log |
-| `ResolveFinishLineAsync` (Z. 1092) – privat | Track-Koordinate (Referenz der Ziellinie) aus KOMPASS | `RunMetadata metadata` | `Task<GeoCoordinate?>` | `KompassService.LoadAsync`, `FindFinishLineByTrack` | Liest KOMPASS; Konsole bei fehlendem Verzeichnis |
-| `EnrichTrackMetadataAsync` (Z. 1114) – privat | Ergänzt fehlenden Untergrund (`Surface`) aus KOMPASS | `RunMetadata metadata` | `Task` | `KompassService.LoadAsync`, `FindTrackSurface` | Liest KOMPASS (nur wenn `Surface` leer und Track bekannt) |
-| `NormalizeDeviceFolders` (Z. 1135) – privat | Benennt Geräteordner mit Leerraum kanonisch um (`AA 01` → `AA01`), tiefste zuerst | `string root` | `string` – ggf. neuer `root`-Pfad | `FindDeviceFolders`, `TryRenameDeviceFolder` | `Directory.Move`; Exceptions nur als Warnung (Konsole/Log) |
-| `FindDeviceFolders` (Z. 1176) – privat | Breitensuche nach Ordnern mit direktem `Run_*`-Unterordner (ohne KtmDataHandler) | `string root` | `List<string>` | – | Nur lesend (Verzeichnisliste) |
-| `TryRenameDeviceFolder` (Z. 1201) – privat | Benennt einen Geräteordner um, wenn nicht kanonisch und Ziel frei | `string deviceFolder` | `string?` – neuer Pfad oder `null` | `BikeAlias.IsCanonical`/`Normalize` | `Directory.Move`; Konsole/Log (auch bei belegtem Ziel oder Fehler) |
-| `ResolveMetadataAsync` (Z. 1237) – privat | Run-Metadaten aus `.HED` (Rider- oder Run-Ordner) oder aus Pfad + KOMPASS | `string runPath` | `Task<(RunMetadata? Metadata, bool KompassInvalid)>` – `null` bei fehlendem Rider-Ordner, fehlendem KOMPASS-Verzeichnis oder Ladefehler; `KompassInvalid` aus `KompassService.LastLoadInvalid` | `HedFileService.FindAndPrepareHedFile`/`ReadMetadata`/`WriteHedFile`, `EnrichPathMetadata`, `CompleteFromKompassAsync`, `KompassService.LoadAsync`/`BuildMetadata`, `EnrichTrackMetadataAsync` | Kopiert ggf. die `.HED` des Rider-Ordners in den Run (`File.Copy`, nicht atomar) oder schreibt eine neue `.HED` (atomar). Liest KOMPASS. Konsole/Log. |
-| `CompleteFromKompassAsync` (Z. 1291) – privat | Gleicht `.HED`-Metadaten mit Pfad + KOMPASS ab | `RunMetadata metadata`, `string runPath` | `Task` | `KompassService.LoadAsync`/`CompleteFromPathAndKompass`, `MetadataMerger.Merge` (`_config.PreferHedMetadata`) | Ändert `metadata`; liest KOMPASS; Konsole/Log je Abweichung (Warnung bei `PreferHedMetadata`) |
-| `EnrichPathMetadata` (Z. 1322) – privat | Füllt fehlende `EventName`, `SessionName`, `BikeName`, `SeasonName` aus dem Pfad | `RunMetadata metadata`, `string runPath` | `void` | `_browse.GetEventName`/`GetSessionName`/`GetDeviceName`, `BikeAlias.Normalize`, `PathMetadataParser.Parse` | Ändert `metadata` |
-| `DiscoverRuns` (Z. 1337) – privat | Gültige WinTAX-Runs eines Pfads | `string runPath` | `List<string>` | `_browse.IsRunLocation`, `_browse.FindRuns` | Nur lesend (KtmDataHandler) |
+| `ProcessRunAsync` (Z. 76) | Vollständige Verarbeitung eines einzelnen Run-Ordners: Sperren, Idempotenz, Metadaten, .HED, optional GPS-Split, Berechnung + XML je Run, Track-Länge, Status | `string runPath`, `bool force = false`, `bool gpsSplit = false` | `Task<OracleExitCode>`: 3 (Pfad fehlt, Metadaten ohne KOMPASS-Fehler, keine gültigen Runs), Code aus `RecoverInterruptedSplits` (1/5), 5 (Geräte- oder Run-Sperre belegt; Track-Länge: `loadChannels.xlsx` gesperrt), Code aus `CheckProcessedTrackLength` bei bereits verarbeitetem Run, 7 (KOMPASS ungültig), 1 (keine einzige Berechnung erfolgreich), 6 (keine eindeutige Track-Länge bei `Enforce`), 4 (nicht alle Runs berechnet), 0 | `RecoverInterruptedSplits`, `ProcessingLock`, `OracleStatus`, `CheckProcessedTrackLength`, `_browse.IsRunLocation`, `RecordInputs`, `ResolveMetadataAsync`, `SetMetadataStep`, `DiscoverRuns`, `TrackLengthGate.FromConfig`, `ResolveKnownTrackLength`, `HedFileService.EnsureHedInAllRuns`, `RunGpsLapSplitAsync`, `ImportDataCalculator.RunCalculationPipeline`, `XmlRunEditor.SetRunProperties`, `ApplyWeatherAsync`, `FinishTrackLength`; bei bereits verarbeitetem Run `CatchUpWeatherAsync` | Sperren `oracle.lock` im Geräteordner (Elternordner) **und** im Run-Ordner. Konsole/Log. Schreibt `.HED` (atomar, löscht abweichend benannte `.HED`), Import-Daten über `AddImportDataToRun`, `Car.xml`/`Session.xml`/`LapHeader.xml`/`RunLapHeader.xml` (atomar), ggf. CIRCUITS in `loadChannels.xlsx` und Längenvorschlag, `oracle.status.json` im Run-Ordner (atomar, auch bei Fehlschlägen). Liest KOMPASS. Ist der Pfad kein WinTAX-Run, nur Warnung (Verarbeitung läuft weiter). |
+| `ValidateRun` (Z. 241) | Integritätsprüfung eines Runs: Existenz, WinTAX-Run, `Lap_*`-Ordner, `cableData.ztx` (> 0 Bytes), Ladbarkeit und Kanäle | `string runPath` | `OracleExitCode`: 0, 3 (Ordner fehlt, kein WinTAX-Run, keine Laps, keine gültige `cableData.ztx`), 7 (`LoadRun` ≤ 0, keine Kanäle, Exception beim Laden) | `_browse.IsRunLocation`, `KtmDataHandlerFactory.CreateReader` (`SetDataLocation`, `LoadRun`, `GetChannelsNames`, `ReleaseObjects`) | Nur lesend. Konsole/Log mit Prüfergebnissen. |
+| `DetectStarts` (Z. 341) | Befehl `detect-start`: gültige Gatterstarts erkennen (read-only) | `string path` | `OracleExitCode`: 3 (Pfad fehlt) oder Ergebnis von `StartAnalyzer.Run` | `StartAnalyzer` | Konsole/Log; lesender Zugriff über KtmDataHandler |
+| `DetectRaces` (Z. 351) | Befehl `detect`: Renn-Erkennung (read-only) mit Tabellenausgabe je Run | `string folderPath` | `OracleExitCode`: 3 (Pfad fehlt oder keine Runs), sonst 0 | `RaceSegmentDetector` (`_config.RaceDetection`, `_config.Gps`; ohne Track-Länge) | Konsole/Log: Distanz, vGPS, Gas, Drehzahl, Urteil (`RENNEN`/`FEHLER`/`-`, „(review)“ bei geringer Konfidenz). Lesender Zugriff über KtmDataHandler. Hinweis: Der XML-Kommentar über `DetectStarts` gehört inhaltlich zu `DetectRaces`. |
+| `ProcessPathAsync` (Z. 393) | Befehl `process`/Legacy: Vorbereitung und Routing auf Run- oder Rider-Verarbeitung | `string path`, `bool force = false`, `bool gpsSplit = false` | `Task<OracleExitCode>`: 3 (Pfad fehlt), Code aus `RecoverInterruptedSplits`, sonst Ergebnis von `ProcessRunAsync`/`ProcessRiderAsync` | `NormalizeDeviceFolders` (wenn `NormalizeDeviceFolderName`), `RecoverInterruptedSplits`, `RunRepair.RepairAll` (wenn `RepairOrphanLapFolders`), `_browse.IsRunLocation` | Kann Geräteordner umbenennen (`Directory.Move`) und verwaiste Lap-Ordner nach `_ORACLE_removed` verschieben – beides **vor** dem ersten Zugriff über die WinTAX-API. Füllt `_repairs`. |
+| `ProcessRiderAsync` (Z. 427) | Renn-bewusste Verarbeitung eines Rider-/Session-/Geräteordners („Option C“): Renn-Runs mit durchgehender `sVehicle`-Distanz und fortlaufender Lap-Nummer; bei mehreren Geräteordnern rekursiv je Gerät | `string riderPath`, `bool force = false`, `bool gpsSplit = false` | `Task<OracleExitCode>`: bei mehreren Geräten `OracleExitCodes.Combine`; ohne verarbeitbare Runs 0 (nur leere Runs), 7 (beschädigte Runs) oder 3; 5 (Sperre belegt / `loadChannels.xlsx` gesperrt); Idempotenz-Code (0 wird bei beschädigten Runs zu 4); 7/3 (Metadaten); 1 (kein Run berechnet, aber Fehler); 6; 4 (beschädigte oder fehlgeschlagene Runs); 0 | `NormalizeDeviceFolders`, `RecoverInterruptedSplits`, `_browse.FindRuns`, `RunFolderInspector.FindSkipped`, `DetermineStatusFolder`, `ProcessingLock`, `OracleStatus`, `CheckProcessedTrackLength`, `RecordInputs`, `ResolveMetadataAsync` (repräsentativ mit dem ersten Run), `SetMetadataStep`, `TrackLengthGate`, `ResolveKnownTrackLength`, `HedFileService.EnsureHedInAllRuns`, `SetEmptyRunProperties`, `RunGpsLapSplitAsync`, `ParseTrackLength`, `RaceStintProcessor.ProcessRider`, `ApplyWeatherAsync`, `FinishTrackLength`; bei bereits verarbeitetem Ordner `CatchUpWeatherAsync` | Sperre `oracle.lock` im Status-/Geräteordner. `oracle.status.json` im Geräteordner (bzw. `riderPath`, wenn Runs über mehrere Geräteordner verteilt sind oder keine Runs gefunden wurden). `.HED` in allen Runs inkl. leerer Runs; XML-Metadaten in leeren Runs; Import-Daten und XML in allen berechneten Runs; ggf. CIRCUITS/Vorschlag. Konsole/Log inkl. Liste übersprungener (beschädigter) und leerer Runs sowie Zusammenfassung. |
+| `SetEmptyRunProperties` (Z. 626) – privat | Setzt Run-Metadaten (`Car.xml`, `Session.xml`) in leeren Runs | `IReadOnlyList<string> emptyRuns`, `RunMetadata metadata` | `void` | `XmlRunEditor.SetRunProperties` (ohne Rundendistanzen) | XML-Schreiben (atomar); Fehler je Run nur als Warnung in Konsole/Log |
+| `SetMetadataStep` (Z. 643) – privat | Statusschritt `metadata`: `success`, wenn Rider und Track gesetzt, sonst `partial` | `OracleStatus status`, `RunMetadata metadata` | `void` | `OracleStatus.SetStep` | Konsole: Warnung bei unvollständigen Metadaten („in KODE pflegen“) |
+| `RecordInputs` (Z. 661) – privat | Protokolliert den Datenstand von KOMPASS und `loadChannels.xlsx` | `OracleStatus status` | `void` | `InputFingerprint.Describe` | Liest beide Dateien (Hash); Konsole/Log; Statusschritt `inputs` |
+| `DetermineStatusFolder` (Z. 679) – privat | Ordner für `oracle.status.json`: gemeinsamer Elternordner der Runs, sonst `riderPath` | `string riderPath`, `IReadOnlyList<string> runs` | `string` | – | keine |
+| `ParseTrackLength` (Z. 694) – internal | Track-Länge (Text) → Meter wie die Längenprüfung | `string trackLength` | `double` (0 bei unbekannt/ungültig) | `TrackLengthRules.Parse` (Domain) | keine |
+| `ResolveKnownTrackLength` (Z. 701) – privat | Bestimmt die bekannte Track-Länge vor den Berechnungen und übernimmt sie in die Metadaten | `TrackLengthGate gate`, `RunMetadata metadata` | `TrackLengthDecision` | `TrackLengthGate.ResolveKnown` | Setzt `metadata.TrackLength`; Konsole/Log; liest KOMPASS, CIRCUITS und Vorschlagsordner |
+| `FinishTrackLength` (Z. 716) – privat | Schließt die Längenprüfung nach den Berechnungen ab (ggf. Schätzung, auch mit Runden anderer verarbeiteter Runs desselben Events) | `TrackLengthGate gate`, `TrackLengthDecision known`, `RunMetadata metadata`, `IReadOnlyList<string> runs`, `string hedFolder`, `IEnumerable<IReadOnlyList<double>> lapDistances`, `string origin`, `OracleStatus status` | `OracleExitCode`: 5 (`Locked`), 6 (`Missing` und `TrackLength.Enforce`), 0 (`Missing` ohne `Enforce`, oder OK) | `LapHistory.FindEventFolder`, `LapHistory.ReadProcessedLapDistances`, `TrackLengthGate.Complete`, `HedFileService.EnsureHedInAllRuns`, `XmlRunEditor.SetTrackLength` | Bei geänderter Länge: `.HED` aller Runs neu (atomar) und `Session.xml/TrackLen` (atomar). Über `Complete`: ggf. Schreiben von CIRCUITS in `loadChannels.xlsx` (unter Mutex) und Vorschlagsdatei. Statusschritt `trackLength`. Konsole/Log inkl. Warnungen. |
+| `CheckProcessedTrackLength` (Z. 772) – privat | Bei bereits verarbeitetem Ordner (Idempotenz-Skip): Track-Länge prüfen/nachholen ohne Vollverarbeitung | `IReadOnlyList<string> runs`, `string origin` (Statusordner) | `OracleExitCode?`: `null` = neu verarbeiten (keine `.HED`; oder keine Länge, keine gespeicherten Rundendistanzen und vorheriger Exit nicht 5/6); 5; 6 bzw. 0 (ohne `Enforce`); 0 | `HedFileService.ReadMetadata`, `_browse.GetEventName`, `TrackLengthGate`, `OracleStatus.Load`, `LapHistory.ReadLapDistances`/`FindEventFolder`/`ReadProcessedLapDistances`, `HedFileService.SetTrackLength`/`SetTrackSurface`, `XmlRunEditor.SetTrackLength` | Bei geänderter Länge: `.HED` und `Session.xml` aller Runs (atomar). Aktualisiert bei Änderung oder vorherigem Exit 5/6 den vorhandenen Status (Schritt `trackLength` mit `correctedAtUtc`, ggf. `correctedFrom`; Exit 5/6 → 0 bzw. 4) und speichert ihn. Aktualisiert `surface` in `.HED`, wenn KOMPASS einen anderen Untergrund liefert. Über `Complete` ggf. CIRCUITS/Vorschlag. Konsole/Log. |
+| `RunGpsLapSplitAsync` (Z. 863) – privat | Teilt Runs per GPS-Ziellinie in Laps (eine Linie je Track aus der KOMPASS-Koordinate) | `IReadOnlyList<string> runs`, `RunMetadata metadata`, `OracleStatus? status`, `bool dryRun = false`, `bool lockRuns = false` | `Task<IReadOnlyList<GpsLapSplitOutcome>>` (leer ohne Koordinate) | `ResolveFinishLineAsync`, `GpsLapSplitService` (`_config.GpsLapSplit`, `_config.Gps`, `beforeSwap` = `InvalidateProcessedStatus`) | Siehe [`GpsLapSplitService`](#gpslapsplitservice): Verschieben/Schreiben von Lap-Ordnern, Backup, Manifest, ggf. Invalidierung von `oracle.status.json`. Konsole/Log je Run; Statusschritt `gpsSplit` (`skipped`/`partial`/`success`). Ohne Koordinate: Hinweis „Lat/Lon in KODE eintragen“. |
+| `SplitLapsAsync` (Z. 918) | Befehl `split-laps`: alle Runs unter einem Event-/Session-/Geräte-/Run-Ordner teilen, Probelauf oder Rückgängig | `string path`, `bool dryRun`, `bool undo` | `Task<OracleExitCode>`: 3 (Pfad fehlt, keine Run-Ordner, keine Ergebnisse); 5 (kein Geräteordner sperrbar); 7 (keine Ergebnisse und KOMPASS ungültig); Undo: 4 bei Fehlern oder gesperrten Geräten, sonst 0; Split: 1 (alle fehlgeschlagen), 4 (einzelne Fehler, Sperren, nicht ermittelbarer Track, nicht wiederhergestellte Unterbrechungen), 0 | `RunFolderInspector.FindRunFolders`, `ProcessingLock`, `LapSplitStore.RecoverInterruptedLocked`/`FindLatestSplit`, `UndoSplit`, `InvalidateProcessedStatus`, `KompassService.ParseEventFromPath`, `ResolveMetadataAsync` (nur ohne `--dry-run`), `RunGpsLapSplitAsync` (`lockRuns: true`) | Sperrt alle betroffenen Geräteordner (`oracle.lock`) bis zum Ende. Ohne `--dry-run` bzw. mit `--undo`: Wiederherstellung unterbrochener Teilungen. Undo: Run-Sperre, Wiederherstellung der Original-Laps, Invalidierung von `oracle.status.json`. Split: Schreiben der Laps (siehe `GpsLapSplitService`). `ResolveMetadataAsync` kann `.HED` kopieren/schreiben. Konsole/Log. Fehlerzählung beim Undo nur, wenn noch eine Teilung existiert. |
+| `UpdateWeatherAsync` (Z. 1137) | Befehl `weather`: Wetter für alle Runs unter einem Event-/Session-/Geräte-/Run-Ordner, je Geräteordner | `string path`, `bool force` | `Task<OracleExitCode>` über `OracleExitCodes.Combine`: 3 (Pfad fehlt, keine Runs, keine `.HED`, Schritt übersprungen), 5 (Geräteordner gesperrt), 4 (teilweise), 1 (alle Abrufe fehlgeschlagen), 0 | `_browse.IsRunLocation`/`FindRuns`, `RunFolders.InOrder`, `ProcessingLock`, `OracleStatus.Load`, `ReadHedMetadata`, `ComputeWeatherAsync` | Sperre `oracle.lock` je Geräteordner. Ohne `--force` werden Geräte übersprungen, deren Status bereits einen erfolgreichen Schritt `weather` hat. Aktualisiert nur den Schritt `weather` vorhandener `oracle.status.json` (Geräte- und Run-Ordner); legt keinen neuen Status an. Schreibt `.HED`/`Meteo.xml` (siehe [`WeatherService`](#weatherservice)). Konsole/Log. |
+| `ApplyWeatherAsync` (Z. 1102) – privat | Wetter-Schritt in `process` | `IReadOnlyList<string> runs`, `RunMetadata metadata`, `OracleStatus status` | `Task` | `ComputeWeatherAsync` | Setzt Schritt `weather` im Status (bei `Weather.Enabled = false`: `skipped`). Ändert nie den Exit-Code. |
+| `CatchUpWeatherAsync` (Z. 1117) – privat | Holt das Wetter für bereits verarbeitete Ordner nach, wenn der Schritt fehlt oder nicht erfolgreich war (auch bei Exit 5/6) | `IReadOnlyList<string> runs`, `string statusFolder` | `Task` | `OracleStatus.Load`/`Save`, `ReadHedMetadata`, `ComputeWeatherAsync` | Aktualisiert nur den Schritt `weather` der vorhandenen `oracle.status.json` (atomar); Konsole/Log. |
+| `ComputeWeatherAsync` (Z. 1205) – privat | KOMPASS-Koordinate auflösen und `WeatherService.ApplyAsync` ausführen | `IReadOnlyList<string> runs`, `RunMetadata metadata` | `Task<WeatherStepResult>` (Exception → `failed`) | `ResolveFinishLineAsync` (`[weather]`), `WeatherService`, `OpenMeteoWeatherSource` | HTTP-Abruf, Dateischreibzugriffe über `WeatherService`; Konsole/Log |
+| `ReadHedMetadata` (Z. 1221) – privat | Metadaten (Track, Land) aus der ersten `.HED` der Runs | `IReadOnlyList<string> runs` | `RunMetadata?` | `HedFileService.ReadMetadata` | Liest Dateien |
+| `RecoverInterruptedSplits` (Z. 1048) – privat | Rollt unterbrochene GPS-Lap-Teilungen aller Runs unter `root` zurück | `string root` | `OracleExitCode?`: 1 (Wiederherstellung fehlgeschlagen), 5 (Run gesperrt), `null` (nichts offen) | `LapSplitStore.RecoverInterruptedLocked`, `RunFolderInspector.FindRunFolders` | Geräte-/Run-Sperren, Verschieben/Löschen von Lap-Ordnern, Kopieren von `RunLapHeader.xml`, Manifest-Update; Konsole/Log |
+| `UndoSplit` (Z. 1070) – privat | Letzte Teilung eines Runs rückgängig machen; vorher Status invalidieren | `string run` | `SplitUndoResult` | `LapSplitStore.FindLatestSplit`/`Undo`, `InvalidateProcessedStatus` | Status-Invalidierung (atomar); scheitert sie, bleibt der Run unverändert. Siehe `LapSplitStore.Undo`. |
+| `InvalidateProcessedStatus` (Z. 1090) – privat | Markiert den Status von Run und Geräteordner als veraltet | `string runPath`, `string reason` | `void` | `OracleStatus.MarkOutdated` | Schreibt `oracle.status.json` (atomar, nur wenn vorhanden); wirft bei Schreibfehlern; Konsole/Log |
+| `ResolveFinishLineAsync` (Z. 1234) – privat | Track-Koordinate (Referenz der Ziellinie, auch Ort für das Wetter) aus KOMPASS | `RunMetadata metadata`, `string logPrefix = "[gps-split]"` | `Task<GeoCoordinate?>` | `KompassService.LoadAsync`, `FindFinishLineByTrack` | Liest KOMPASS; Konsole bei fehlendem Verzeichnis |
+| `EnrichTrackMetadataAsync` (Z. 1256) – privat | Ergänzt fehlenden Untergrund (`Surface`) aus KOMPASS | `RunMetadata metadata` | `Task` | `KompassService.LoadAsync`, `FindTrackSurface` | Liest KOMPASS (nur wenn `Surface` leer und Track bekannt) |
+| `NormalizeDeviceFolders` (Z. 1277) – privat | Benennt Geräteordner mit Leerraum kanonisch um (`AA 01` → `AA01`), tiefste zuerst | `string root` | `string` – ggf. neuer `root`-Pfad | `FindDeviceFolders`, `TryRenameDeviceFolder` | `Directory.Move`; Exceptions nur als Warnung (Konsole/Log) |
+| `FindDeviceFolders` (Z. 1318) – privat | Breitensuche nach Ordnern mit direktem `Run_*`-Unterordner (ohne KtmDataHandler) | `string root` | `List<string>` | – | Nur lesend (Verzeichnisliste) |
+| `TryRenameDeviceFolder` (Z. 1343) – privat | Benennt einen Geräteordner um, wenn nicht kanonisch und Ziel frei | `string deviceFolder` | `string?` – neuer Pfad oder `null` | `BikeAlias.IsCanonical`/`Normalize` | `Directory.Move`; Konsole/Log (auch bei belegtem Ziel oder Fehler) |
+| `ResolveMetadataAsync` (Z. 1379) – privat | Run-Metadaten aus `.HED` (Rider- oder Run-Ordner) oder aus Pfad + KOMPASS | `string runPath` | `Task<(RunMetadata? Metadata, bool KompassInvalid)>` – `null` bei fehlendem Rider-Ordner, fehlendem KOMPASS-Verzeichnis oder Ladefehler; `KompassInvalid` aus `KompassService.LastLoadInvalid` | `HedFileService.FindAndPrepareHedFile`/`ReadMetadata`/`WriteHedFile`, `EnrichPathMetadata`, `CompleteFromKompassAsync`, `KompassService.LoadAsync`/`BuildMetadata`, `EnrichTrackMetadataAsync` | Kopiert ggf. die `.HED` des Rider-Ordners in den Run (`File.Copy`, nicht atomar) oder schreibt eine neue `.HED` (atomar). Liest KOMPASS. Konsole/Log. |
+| `CompleteFromKompassAsync` (Z. 1433) – privat | Gleicht `.HED`-Metadaten mit Pfad + KOMPASS ab | `RunMetadata metadata`, `string runPath` | `Task` | `KompassService.LoadAsync`/`CompleteFromPathAndKompass`, `MetadataMerger.Merge` (`_config.PreferHedMetadata`) | Ändert `metadata`; liest KOMPASS; Konsole/Log je Abweichung (Warnung bei `PreferHedMetadata`) |
+| `EnrichPathMetadata` (Z. 1464) – privat | Füllt fehlende `EventName`, `SessionName`, `BikeName`, `SeasonName` aus dem Pfad | `RunMetadata metadata`, `string runPath` | `void` | `_browse.GetEventName`/`GetSessionName`/`GetDeviceName`, `BikeAlias.Normalize`, `PathMetadataParser.Parse` | Ändert `metadata` |
+| `DiscoverRuns` (Z. 1479) – privat | Gültige WinTAX-Runs eines Pfads | `string runPath` | `List<string>` | `_browse.IsRunLocation`, `_browse.FindRuns` | Nur lesend (KtmDataHandler) |
 
 #### `OracleConfig`
 
-Datei: [OracleConfig.cs](../ORACLE/Pipeline/OracleConfig.cs). Konfiguration von ORACLE, geladen aus `oracle-config.json` im Anwendungsverzeichnis (`AppContext.BaseDirectory`); ohne Datei Standardwerte. Die Datei enthält außerdem [`GpsSettings`](#gpssettings), [`GpsLapSplitSettings`](#gpslapsplitsettings) und [`TrackLengthSettings`](#tracklengthsettings).
+Datei: [OracleConfig.cs](../ORACLE/Pipeline/OracleConfig.cs). Konfiguration von ORACLE, geladen aus `oracle-config.json` im Anwendungsverzeichnis (`AppContext.BaseDirectory`); ohne Datei Standardwerte. Die Datei enthält außerdem [`GpsSettings`](#gpssettings), [`GpsLapSplitSettings`](#gpslapsplitsettings) [`TrackLengthSettings`](#tracklengthsettings) und [`WeatherSettings`](#weathersettings).
 
 | Property | Typ | Standardwert | Bedeutung |
 |---|---|---|---|
@@ -230,15 +244,16 @@ Datei: [OracleConfig.cs](../ORACLE/Pipeline/OracleConfig.cs). Konfiguration von 
 | `Gps` | [`GpsSettings`](#gpssettings) | `new()` | GPS-Kanäle und -Aufbereitung |
 | `GpsLapSplit` | [`GpsLapSplitSettings`](#gpslapsplitsettings) | `new()` | Schwellen des GPS-Lap-Splits |
 | `TrackLength` | [`TrackLengthSettings`](#tracklengthsettings) | `new()` | Track-Längen-Prüfung |
+| `Weather` | [`WeatherSettings`](#weathersettings) | `new()` | Wetter während der Runs |
 | `NormalizeDeviceFolderName` | `bool` | `true` | Geräteordner mit Leerraum umbenennen |
 | `RepairOrphanLapFolders` | `bool` | `true` | Verwaiste Lap-Ordner nach `_ORACLE_removed` verschieben |
 | `PreferHedMetadata` | `bool` | `false` | `true`: abweichende `.HED`-Werte behalten (nur Warnung) |
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `DatabaseFilePath` (Z. 74) – Property | Vollständiger KOMPASS-Pfad | – | `string` = `DatabaseDirectory` + `DatabaseFileName` | – | keine |
-| `Load()` (Z. 81) | Lädt `oracle-config.json` aus dem Anwendungsverzeichnis | – | `OracleConfig` | `Load(string)` | siehe `Load(string)` |
-| `Load(string)` (Z. 85) | Lädt und normalisiert eine Konfigurationsdatei (JSON, case-insensitive Namen, Kommentare und nachgestellte Kommas erlaubt) | `string configPath` | `OracleConfig` (Standardwerte, wenn die Datei fehlt) | `System.Text.Json` | Liest die Datei; Konsole/Log („Keine oracle-config.json gefunden …“ bzw. „… geladen.“). Wirft `InvalidDataException` („oracle-config.json is empty.“ / „oracle-config.json is invalid (…)“) bei `JsonException`, `NotSupportedException`, `ArgumentException` → in `Program.Main` Exit 7. Ersetzt `null`-Unterabschnitte durch Standardobjekte; `TeamMappings` wird case-insensitive neu aufgebaut. |
+| `DatabaseFilePath` (Z. 77) – Property | Vollständiger KOMPASS-Pfad | – | `string` = `DatabaseDirectory` + `DatabaseFileName` | – | keine |
+| `Load()` (Z. 84) | Lädt `oracle-config.json` aus dem Anwendungsverzeichnis | – | `OracleConfig` | `Load(string)` | siehe `Load(string)` |
+| `Load(string)` (Z. 88) | Lädt und normalisiert eine Konfigurationsdatei (JSON, case-insensitive Namen, Kommentare und nachgestellte Kommas erlaubt) | `string configPath` | `OracleConfig` (Standardwerte, wenn die Datei fehlt) | `System.Text.Json` | Liest die Datei; Konsole/Log („Keine oracle-config.json gefunden …“ bzw. „… geladen.“). Wirft `InvalidDataException` („oracle-config.json is empty.“ / „oracle-config.json is invalid (…)“) bei `JsonException`, `NotSupportedException`, `ArgumentException` → in `Program.Main` Exit 7. Ersetzt `null`-Unterabschnitte durch Standardobjekte; `TeamMappings` wird case-insensitive neu aufgebaut. |
 
 #### `GpsSettings`
 
@@ -248,8 +263,8 @@ Properties: `LatitudeChannel` (`Lat_dez`), `LongitudeChannel` (`Lon_dez`), `MaxS
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `ToCleanOptions` (Z. 148) | Optionen für `GpsCleaner` | – | `GpsCleanOptions` (Domain) | – | keine |
-| `Resolve` (Z. 156) – statisch | Kanal exakt (Groß/Klein egal) in der Kanalliste finden | `IEnumerable<string> names`, `string channel` | `string?` | `ChannelResolver.Find` | keine |
+| `ToCleanOptions` (Z. 152) | Optionen für `GpsCleaner` | – | `GpsCleanOptions` (Domain) | – | keine |
+| `Resolve` (Z. 160) – statisch | Kanal exakt (Groß/Klein egal) in der Kanalliste finden | `IEnumerable<string> names`, `string channel` | `string?` | `ChannelResolver.Find` | keine |
 
 #### `GpsLapSplitSettings`
 
@@ -259,9 +274,9 @@ Properties (Standard): `MinLapSeconds` (20), `MaxSampleGapSeconds` (1), `MinCros
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `ToOptions` (Z. 200) | Optionen der Durchfahrtserkennung (Sprungschwellen aus `GpsSettings`) | `GpsSettings? gps = null` | `GpsLapSplitOptions` (Domain) | – | keine |
-| `ToLineOptions` (Z. 215) | Optionen zur Platzierung der Ziellinie | – | `FinishLineBuildOptions` (Domain) | – | keine |
-| `ToDetectorOptions` (Z. 222) | Optionen der Erkennung „bereits geteilt“ | – | `LapSplitDetectorOptions` (Domain) | – | keine |
+| `ToOptions` (Z. 204) | Optionen der Durchfahrtserkennung (Sprungschwellen aus `GpsSettings`) | `GpsSettings? gps = null` | `GpsLapSplitOptions` (Domain) | – | keine |
+| `ToLineOptions` (Z. 219) | Optionen zur Platzierung der Ziellinie | – | `FinishLineBuildOptions` (Domain) | – | keine |
+| `ToDetectorOptions` (Z. 226) | Optionen der Erkennung „bereits geteilt“ | – | `LapSplitDetectorOptions` (Domain) | – | keine |
 
 #### `TrackLengthSettings`
 
@@ -271,8 +286,8 @@ Properties (Standard): `Enforce` (`true`), `SuggestionsDirectory` (`%OneDriveCom
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| `ResolvedSuggestionsDirectory` (Z. 276) – Property | Vorschlagsordner mit expandierten Umgebungsvariablen | – | `string` (leer, wenn danach noch `%` enthalten ist) | `Environment.ExpandEnvironmentVariables` | keine |
-| `ToOptions` (Z. 286) | Optionen für `TrackLengthEstimator` | – | `TrackLengthEstimateOptions` (Domain) | – | keine |
+| `ResolvedSuggestionsDirectory` (Z. 280) – Property | Vorschlagsordner mit expandierten Umgebungsvariablen | – | `string` (leer, wenn danach noch `%` enthalten ist) | `Environment.ExpandEnvironmentVariables` | keine |
+| `ToOptions` (Z. 290) | Optionen für `TrackLengthEstimator` | – | `TrackLengthEstimateOptions` (Domain) | – | keine |
 
 #### `OracleExitCode`
 
@@ -584,14 +599,14 @@ Datei: [RaceSegmentDetector.cs](../ORACLE/Detection/RaceSegmentDetector.cs). Erk
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
-| Konstruktor (Z. 35) | Detektor mit expliziten Abhängigkeiten | `IMarelliDataBrowse browse`, `RaceDetectionThresholds thresholds`, `GpsSettings? gps = null` | – | – | `ArgumentNullException` bei `null` |
-| `Gps` (Z. 45) – Property | GPS-Einstellungen (werden auch für die Berechnungen der Renn-Runs verwendet) | – | `GpsSettings` | – | keine |
-| `DetectRaces` (Z. 52) | Klassifiziert alle Runs unter einem Rider-/Session-Ordner (oder einen Run) | `string folderPath`, `double trackLengthMeters = 0` (für die relative Distanzschwelle) | `RaceDetectionResult` (leer, wenn der Ordner fehlt) | `_browse.IsRunLocation`/`FindRuns`, `RunFolders.InOrder`, `ClassifyRun` | Nur lesend (KtmDataHandler) |
-| `ClassifyRun` (Z. 84) | Lädt die benötigten Kanäle eines Runs, berechnet Kennwerte und klassifiziert; Fehler → `Verdict = Error` statt Exception | `string runPath`, `double trackLengthMeters = 0` | `RunRaceFeatures` (inkl. `Data` für die spätere Berechnung) | `KtmDataHandlerFactory.CreateAccess` (`SetDataLocation`, `LoadRun`, `GetChannelsNames`, `GetLastSampleTime`, `GetChannels`, `GetLapMarks`, `ReleaseObjects`), `ChannelResolver.Find`, `GpsSettings.Resolve`, `GpsDistance`, `Mean`, `Classify` | Nur lesend; Konsole/Log bei fehlenden Kanälen („criterion skipped“). Mindestdistanz = `max(DistanceMinMeters, TrackLengthFactor × Track-Länge)`, wenn die Länge bekannt ist. GPS nutzbar, wenn (`ValidSat` fehlt oder Mittel > 0) und gültige GPS-Samples > `MinValidGpsSamples`. Fehlende Kanäle setzen bei einem „Rennen“ `LowConfidence`. |
-| `Classify` (Z. 186) – statisch | Dreistufige Klassifikation: Motor-Guard (`rpm < EngineOnMinRpm` → kein Rennen), GPS-Pfad (Distanz > Mindestdistanz **und** Geschwindigkeit > `SpeedMinKph` **und** Gas > `ThrottleMinPercent`), Fallback ohne GPS (Gas > `ThrottleFallbackPercent` und Drehzahl > `RpmRaceMin`, fehlende Kanäle werden übersprungen; ohne beide → kein Rennen) | `RaceDetectionThresholds thresholds`, `double distanceM`, `double speedKph`, `double throttlePct`, `double rpm` (`NaN` = unbekannt), `bool gpsUsable`, `double minDistanceM` | `(RaceRunVerdict Verdict, string Reason, bool LowConfidence)` | – | keine |
-| `GetData` (Z. 230) / `Mean` (Z. 236) – privat | Datenarray eines Kanals; Mittelwert ohne `NaN`/`Infinity` (0 bei leer) | – | `double[]?` / `double` | – | keine |
-| `GpsDistance` (Z. 249) – privat | GPS-Distanz über aufbereitete Fixes; gibt die Zahl gültiger Samples zurück | `IDataset? ds`, `string? latName`, `string? lonName`, `out int validSamples` | `double` | `GpsCleaner.Clean` | keine |
-| `ErrorResult` (Z. 262) – privat | Ergebnis mit `Verdict = Error` | `string runPath`, `string folder`, `string reason` | `RunRaceFeatures` | – | keine |
+| Konstruktor (Z. 36) | Detektor mit expliziten Abhängigkeiten | `IMarelliDataBrowse browse`, `RaceDetectionThresholds thresholds`, `GpsSettings? gps = null` | – | – | `ArgumentNullException` bei `null` |
+| `Gps` (Z. 46) – Property | GPS-Einstellungen (werden auch für die Berechnungen der Renn-Runs verwendet) | – | `GpsSettings` | – | keine |
+| `DetectRaces` (Z. 54) | Klassifiziert alle Runs unter einem Rider-/Session-Ordner (oder einen Run) | `string folderPath`, `double trackLengthMeters = 0` (für die relative Distanzschwelle) | `RaceDetectionResult` (leer, wenn der Ordner fehlt) | `_browse.IsRunLocation`/`FindRuns`, `RunFolders.InOrder`, `ClassifyRun` | Nur lesend (KtmDataHandler) |
+| `ClassifyRun` (Z. 93) | Lädt die benötigten Kanäle eines Runs, berechnet Kennwerte und klassifiziert; Fehler → `Verdict = Error` statt Exception | `string runPath`, `double trackLengthMeters = 0` | `RunRaceFeatures` (inkl. `Data` für die spätere Berechnung) | `KtmDataHandlerFactory.CreateAccess` (`SetDataLocation`, `LoadRun`, `GetChannelsNames`, `GetLastSampleTime`, `GetChannels`, `GetLapMarks`, `ReleaseObjects`), `ChannelResolver.Find`, `GpsSettings.Resolve`, `GpsDistance`, `Mean`, `Classify` | Nur lesend; Konsole/Log bei fehlenden Kanälen („criterion skipped“). Mindestdistanz = `max(DistanceMinMeters, TrackLengthFactor × Track-Länge)`, wenn die Länge bekannt ist. GPS nutzbar, wenn (`ValidSat` fehlt oder Mittel > 0) und gültige GPS-Samples > `MinValidGpsSamples`. Fehlende Kanäle setzen bei einem „Rennen“ `LowConfidence`. |
+| `Classify` (Z. 197) – statisch | Dreistufige Klassifikation: Motor-Guard (`rpm < EngineOnMinRpm` → kein Rennen), GPS-Pfad (Distanz > Mindestdistanz **und** Geschwindigkeit > `SpeedMinKph` **und** Gas > `ThrottleMinPercent`), Fallback ohne GPS (Gas > `ThrottleFallbackPercent` und Drehzahl > `RpmRaceMin`, fehlende Kanäle werden übersprungen; ohne beide → kein Rennen) | `RaceDetectionThresholds thresholds`, `double distanceM`, `double speedKph`, `double throttlePct`, `double rpm` (`NaN` = unbekannt), `bool gpsUsable`, `double minDistanceM` | `(RaceRunVerdict Verdict, string Reason, bool LowConfidence)` | – | keine |
+| `GetData` (Z. 241) / `Mean` (Z. 247) – privat | Datenarray eines Kanals; Mittelwert ohne `NaN`/`Infinity` (0 bei leer) | – | `double[]?` / `double` | – | keine |
+| `GpsDistance` (Z. 277) – privat | GPS-Distanz über aufbereitete Fixes; gibt die Zahl gültiger Samples zurück | `IDataset? ds`, `string? latName`, `string? lonName`, `out int validSamples` | `double` | `GpsCleaner.Clean` | keine |
+| `ErrorResult` (Z. 290) – privat | Ergebnis mit `Verdict = Error` | `string runPath`, `string folder`, `string reason` | `RunRaceFeatures` | – | keine |
 
 #### `RaceClassification.cs`
 
@@ -675,25 +690,30 @@ Datei: [RunMetadata.cs](../ORACLE/Metadata/RunMetadata.cs). Datenmodell aller Me
 
 #### `HedFileService`
 
-Datei: [HedFileService.cs](../ORACLE/Metadata/HedFileService.cs). Suchen, Kopieren, Lesen und Schreiben von `.HED`-Dateien (INI-ähnlich, Sektionen `[KTM_NAMING]` und `[TRACK]`).
+Datei: [HedFileService.cs](../ORACLE/Metadata/HedFileService.cs). Suchen, Kopieren, Lesen und Schreiben von `.HED`-Dateien (INI-ähnlich, Sektionen `[KTM_NAMING]`, `[TRACK]` und `[WEATHER]`). Konstanten: `WeatherSection = "WEATHER"`, `TrackSection = "TRACK"`, `TrackConditionKey = "trackCondition"`, `ManualWeatherSource = "manual"`.
 
 | Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
 |---|---|---|---|---|---|
 | `FindAndPrepareHedFile` (Z. 22) | Sucht die `.HED` zuerst im Rider-Ordner (dann Kopie in den Run), sonst im Run-Ordner | `string runPath`, `string riderPath` | `string?` – Pfad der `.HED` im Run-Ordner; `null`, wenn keine gefunden oder das Kopieren fehlschlug | `FindFirstHedFile`, `CopyToRunFolder` | Ggf. `File.Copy` in den Run-Ordner (nicht atomar); Konsole/Log |
 | `ReadMetadata` (Z. 50) | Liest die Stammdaten der `.HED` in `RunMetadata` (Event, Session, Run bleiben leer – kommen aus dem Pfad) | `string hedFilePath` | `RunMetadata` | `ParseHedFile`, `BikeAlias` | Liest Datei; Warnung bei `bikeName` mit Leerraum |
 | `BuildHedFileName` (Z. 83) – statisch | Kanonischer Name `{SeasonName}{EventName}_{BikeName}{SessionName}.HED` | `RunMetadata metadata` | `string` | – | keine |
-| `EnsureHedInAllRuns` (Z. 92) | Genau eine kanonisch benannte `.HED` mit normalisiertem Inhalt in jedem Run | `IReadOnlyList<string> runPaths`, `string riderPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `FindFirstHedFile`, `ApplyMetadataToLines`, `BuildHedContent`, `EnsureTrackSurfaceLine`, `EnsureTrackLengthLine`, `SetValue` | Je Run: `.HED` atomar schreiben (UTF-8 ohne BOM, `runNumber` = Ordnername), danach alle anders benannten `*.HED` im Run löschen (`File.Delete`); Fehler je Run nur als Warnung; Konsole/Log. Quelle: kanonische `.HED` eines Runs → neueste `.HED` der Runs → `.HED` des Rider-Ordners → aus Metadaten erzeugt. |
-| `SetValue` (Z. 133) – internal | Setzt einen Schlüssel oder fügt ihn am Ende der ersten Sektion ein | `string[] lines`, `string key`, `string value` | `string[]` | – | keine |
-| `ApplyMetadataToLines` (Z. 157) – statisch | Übernimmt nicht leere Metadaten in vorhandene Schlüssel (fehlende Schlüssel werden nicht ergänzt) | `string[] lines`, `RunMetadata metadata` | `string[]` | – | keine |
-| `SetTrackSurface` (Z. 192) | Setzt `surface` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string surface` | `void` | `EnsureTrackSurfaceLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
-| `EnsureTrackSurfaceLine` (Z. 214) – privat | `surface`-Zeile aktualisieren, in vorhandene `[TRACK]`-Sektion einfügen oder Sektion anhängen | `string[] lines`, `string surface` | `string[]` | – | keine |
-| `SetTrackLength` (Z. 245) | Setzt `trackLength` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string trackLength` | `void` | `EnsureTrackLengthLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
-| `EnsureTrackLengthLine` (Z. 267) – statisch | `trackLength`-Zeile aktualisieren oder nach `trackName` (sonst am Ende der ersten Sektion) einfügen | `string[] lines`, `string trackLength` | `string[]` | – | keine |
-| `ParseHedFile` (Z. 307) | Alle Schlüssel/Wert-Paare (ohne Sektionen, Leerzeilen, leere Werte) | `string hedFilePath` | `Dictionary<string,string>` (case-insensitive) | – | Liest Datei |
-| `WriteHedFile` (Z. 339) | Neue `.HED` aus Metadaten im Run-Ordner | `string runPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `BuildHedContent`, `AtomicFile.WriteAllText` | Datei atomar schreiben; Konsole/Log |
-| `BuildHedContent` (Z. 347) – privat | Vollständiger `.HED`-Inhalt (`[KTM_NAMING]` mit 17 Schlüsseln, `[TRACK]` mit `surface`) | `RunMetadata metadata` | `string` | – | keine |
-| `FindFirstHedFile` (Z. 374) – privat | Zuletzt geänderte `*.HED` eines Ordners (nicht rekursiv) | `string directory` | `string?` | – | Nur lesend |
-| `CopyToRunFolder` (Z. 389) – privat | Kopiert eine `.HED` in den Run, falls dort nicht gleichnamig vorhanden | `string sourceHedFile`, `string runPath` | `string?` (`null` bei Kopierfehler) | – | `File.Copy` (nicht atomar); Konsole/Log |
+| `EnsureHedInAllRuns` (Z. 92) | Genau eine kanonisch benannte `.HED` mit normalisiertem Inhalt in jedem Run | `IReadOnlyList<string> runPaths`, `string riderPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `FindFirstHedFile`, `ApplyMetadataToLines`, `BuildHedContent`, `EnsureTrackSurfaceLine`, `EnsureTrackLengthLine`, `SetValue`, `RemoveSection`, `RemoveKey`, `SetSectionValue`, `ReadOwnHed` | Je Run: `.HED` atomar schreiben (UTF-8 ohne BOM, `runNumber` = Ordnername; die run-eigenen Werte `trackCondition` in `[TRACK]` und die Sektion `[WEATHER]` bleiben erhalten und werden nie aus der Vorlage in andere Runs kopiert), danach alle anders benannten `*.HED` im Run löschen (`File.Delete`); Fehler je Run nur als Warnung; Konsole/Log. Quelle: kanonische `.HED` eines Runs → neueste `.HED` der Runs → `.HED` des Rider-Ordners → aus Metadaten erzeugt. |
+| `SetValue` (Z. 295) – internal | Setzt einen Schlüssel oder fügt ihn am Ende der ersten Sektion ein | `string[] lines`, `string key`, `string value` | `string[]` | – | keine |
+| `ApplyMetadataToLines` (Z. 319) – statisch | Übernimmt nicht leere Metadaten in vorhandene Schlüssel (fehlende Schlüssel werden nicht ergänzt) | `string[] lines`, `RunMetadata metadata` | `string[]` | – | keine |
+| `SetTrackSurface` (Z. 354) | Setzt `surface` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string surface` | `void` | `EnsureTrackSurfaceLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
+| `EnsureTrackSurfaceLine` (Z. 376) – privat | `surface`-Zeile aktualisieren, in vorhandene `[TRACK]`-Sektion einfügen oder Sektion anhängen | `string[] lines`, `string surface` | `string[]` | – | keine |
+| `SetTrackLength` (Z. 407) | Setzt `trackLength` in allen `.HED` eines Runs (non-fatal) | `string runPath`, `string trackLength` | `void` | `EnsureTrackLengthLine`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; Fehler als Warnung |
+| `EnsureTrackLengthLine` (Z. 429) – statisch | `trackLength`-Zeile aktualisieren oder nach `trackName` (sonst am Ende der ersten Sektion) einfügen | `string[] lines`, `string trackLength` | `string[]` | – | keine |
+| `ParseHedFile` (Z. 469) | Alle Schlüssel/Wert-Paare (ohne Sektionen, Leerzeilen, leere Werte) | `string hedFilePath` | `Dictionary<string,string>` (case-insensitive) | – | Liest Datei |
+| `WriteHedFile` (Z. 501) | Neue `.HED` aus Metadaten im Run-Ordner | `string runPath`, `RunMetadata metadata` | `void` | `BuildHedFileName`, `BuildHedContent`, `AtomicFile.WriteAllText` | Datei atomar schreiben; Konsole/Log |
+| `BuildHedContent` (Z. 509) – privat | Vollständiger `.HED`-Inhalt (`[KTM_NAMING]` mit 17 Schlüsseln, `[TRACK]` mit `surface`) | `RunMetadata metadata` | `string` | – | keine |
+| `FindFirstHedFile` (Z. 536) – privat | Zuletzt geänderte `*.HED` eines Ordners (nicht rekursiv) | `string directory` | `string?` | – | Nur lesend |
+| `CopyToRunFolder` (Z. 551) – privat | Kopiert eine `.HED` in den Run, falls dort nicht gleichnamig vorhanden | `string sourceHedFile`, `string runPath` | `string?` (`null` bei Kopierfehler) | – | `File.Copy` (nicht atomar); Konsole/Log |
+| `SetWeather` (Z. 155) | Setzt `trackCondition` in `[TRACK]` und ersetzt die Sektion `[WEATHER]` (am Dateiende) in allen `.HED` eines Runs | `string runPath`, `IReadOnlyList<KeyValuePair<string,string>> values`, `string trackCondition` (leer = unverändert) | `void` | `SetSectionValue`, `ReplaceSection`, `AtomicFile.WriteAllLines` | `.HED` atomar schreiben; `FileNotFoundException` ohne `.HED` |
+| `ReadRunValue` (Z. 172) – statisch | Wert eines Schlüssels einer Sektion der neuesten `.HED` eines Runs | `string runPath`, `string section`, `string key` | `string?` | `FindFirstHedFile`, `ReadValue` | Liest Datei |
+| `RemoveKey` (Z. 228) / `SetSectionValue` (Z. 248) – statisch | Schlüssel in einer Sektion entfernen; Schlüssel in einer Sektion setzen (sonst am Sektionsende einfügen, fehlende Sektion vor `[WEATHER]` anlegen) | `string[] lines`, `string section`, `string key` (+ `string value`) | `string[]` | `FindSection` | keine |
+| `RemoveSection` (Z. 191) / `ReadSection` (Z. 198) / `ReadValue` (Z. 205) / `ReplaceSection` (Z. 217) – statisch | Sektion entfernen, lesen (inkl. Kopfzeile), Wert lesen, ersetzen (entfernen + am Ende anhängen) | `string[] lines`, `string section` (+ `key` bzw. `values`) | `string[]` / `string?` | `FindSection` | keine |
+| `ReadOwnHed` (Z. 280) – privat | Aktuelle `.HED` des Runs (kanonischer Name bevorzugt), um run-eigene Werte beim Neuschreiben zu behalten | `string runPath`, `string canonicalName` | `string[]` | `FindFirstHedFile` | Liest Datei |
 
 #### `KompassService`
 
@@ -781,6 +801,68 @@ Datei: [KtmWriteErrors.cs](../ORACLE/Runtime/KtmWriteErrors.cs). Interpretiert d
 |---|---|---|---|---|---|
 | `Describe` (Z. 13) | Lesbare Beschreibung aller fehlerhaften Einträge | `IEnumerable<(uint, uint, uint, string)>? results`, `string unit = "entry"` | `IReadOnlyList<string>` (leer = alles geschrieben) | `Clean` | keine |
 | `Clean` (Z. 21) | Druckbaren Anfang einer nativen Meldung behalten | `string? message` | `string` („unknown error“ bei leer) | – | keine |
+
+## 11a. Modul Weather
+
+Wetter während der Runs aus einem historischen Wettermodell (kein Forecast, kein Vorlauf vor der Session). Ort ist die KOMPASS-Track-Koordinate, Zeit sind die Lap-Startzeiten aus `LapHeader.xml` (Logger-Uhr = Ortszeit der Strecke, Abfrage mit `timezone=auto`). Ergebnis: je Run `trackCondition` in der `.HED`-Sektion `[TRACK]` und die Sektion `[WEATHER]` (für MotoDB), je Lap `Lap_*\Meteo.xml` (WinTAX). Alle Werte stammen aus dem Wettermodell (auch der Luftdruck). Wetterdaten von Open-Meteo.com (CC BY 4.0).
+
+#### `WeatherSettings`
+
+Datei: [WeatherSettings.cs](../ORACLE/Weather/WeatherSettings.cs). Abschnitt `Weather` in `oracle-config.json`.
+
+| Property | Typ | Standardwert | Bedeutung |
+|---|---|---|---|
+| `Enabled` | `bool` | `true` | Wetter-Schritt in `process` (der Befehl `weather` läuft unabhängig davon) |
+| `BaseUrl` | `string` | `https://historical-forecast-api.open-meteo.com/v1/forecast` | API-Endpunkt |
+| `Model` | `string` | leer (= `best_match`) | Wettermodell, z. B. `icon_d2` |
+| `ApiKeyEnvironmentVariable` | `string` | `ORACLE_OPENMETEO_APIKEY` | Umgebungsvariable mit optionalem API-Key |
+| `TimeoutSeconds` | `int` | 20 | Timeout je Abruf |
+| `LoggerClock` | `string` | `TrackLocal` | Uhr der Logger-Zeitstempel: `TrackLocal` oder `Utc` |
+| `DampRainMm` / `WetRainMm` / `WetRateMmPerHour` | `double` | 0,1 / 1,0 / 2,0 | Schwellen für `trackCondition`: `damp` ab `DampRainMm` [mm], `wet` ab `WetRainMm` [mm] oder `WetRateMmPerHour` [mm/h] in einem 15-Minuten-Intervall |
+| `WriteHed` / `WriteMeteoXml` | `bool` | `true` / `true` | Ausgaben |
+
+#### `OpenMeteoWeatherSource`
+
+Datei: [OpenMeteoWeatherSource.cs](../ORACLE/Weather/OpenMeteoWeatherSource.cs). Implementiert `IWeatherSource` (Z. 44); Ergebnis ist eine `WeatherSeries` (Z. 14) mit 15-Minuten-Werten (Niederschlag = Summe des Intervalls, das am Zeitstempel endet) und stündlicher Bodentemperatur. Fehler werden als `WeatherUnavailableException` (Z. 55) gemeldet.
+
+| Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
+|---|---|---|---|---|---|
+| `GetAsync` (Z. 71) | Wetterreihe für ein Zeitfenster abrufen | `GeoCoordinate location`, `DateTime from`, `DateTime to`, `CancellationToken` | `Task<WeatherSeries>` | `BuildUrl`, `Parse`, statischer `HttpClient` | HTTP-GET; bis zu 2 Versuche (Wiederholung nur bei 5xx, Timeout, Verbindungsfehler); `WeatherUnavailableException` bei Fehler |
+| `BuildUrl` (Z. 116) – internal | Anfrage-URL: `minutely_15` (Temperatur, Feuchte, Niederschlag, Wind, Bodendruck) vom Intervall vor `from` bis ein Intervall nach `to`, `hourly` Bodentemperatur, `timezone=auto` bzw. `GMT`, optional `models`/`apikey` | `WeatherSettings`, `GeoCoordinate`, `DateTime from`, `DateTime to`, `string? apiKey` | `string` | – | keine |
+| `Parse` (Z. 144) – internal | Antwort lesen; `null`-Werte → `NaN` | `string json`, `string model` | `WeatherSeries` | `System.Text.Json` | `WeatherUnavailableException` bei Fehlerantwort oder ohne 15-Minuten-Werte |
+
+#### `WeatherCalculator`
+
+Datei: [WeatherCalculator.cs](../ORACLE/Weather/WeatherCalculator.cs). Reine Berechnungen ohne I/O; Ergebnis `WeatherSummary` (Z. 4).
+
+| Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
+|---|---|---|---|---|---|
+| `Summarize` (Z. 32) | Wetter über ein Zeitfenster (Run oder Lap): Mittel, Start-/Endtemperatur, Bodentemperatur, Feuchte, Druck, Luftdichte, Wind, Regen, max. Regenrate, Streckenzustand | `WeatherSeries`, `DateTime start`, `DateTime end`, `WeatherSettings` | `WeatherSummary` | übrige Methoden | keine |
+| `Classify` (Z. 66) | `wet` ab `WetRainMm` oder `WetRateMmPerHour`, `damp` ab `DampRainMm`, sonst `dry`; leer bei unbekanntem Regen | `double rainMm`, `double rateMmPerHour`, `WeatherSettings` | `string` | – | keine |
+| `ValueAt` (Z. 76) / `Mean` (Z. 103) / `MeanDirection` (Z. 126) | Lineare Interpolation; zeitgewichtetes Mittel (Trapez); Vektormittel der Windrichtung | Zeitreihe, Zeitpunkt bzw. Fenster | `double` (`NaN` ohne Daten) | – | keine |
+| `RainSum` (Z. 142) / `MaxRate` (Z. 158) | Niederschlag im Fenster (anteilig nach Überlappung je Intervall); höchste Rate [mm/h] der überlappenden Intervalle | Zeitreihe, Intervalllänge, Fenster | `double` | – | keine |
+| `AirDensity` (Z. 175) / `SaturationVaporPressureHpa` (Z. 171) | Dichte feuchter Luft [kg/m³]; Sättigungsdampfdruck (Magnus) | Temperatur [°C], Druck [hPa], rel. Feuchte [%] | `double` | – | keine |
+| `DistanceKm` (Z. 185) | Großkreisabstand (Gitterpunkt des Modells ↔ Track) | 2 × Lat/Lon | `double` | – | keine |
+
+#### `MeteoXml`
+
+Datei: [MeteoXml.cs](../ORACLE/Weather/MeteoXml.cs). WinTAX-Lap-Datei `Meteo.xml` (Elemente `TempIn`, `TempOut`, `WindSp`, `WindDir`, `Bar`, `HumIn`, `HumOut`, `Rain`; CRLF, ohne BOM, wie von WinTAX geschrieben). `TempIn`/`HumIn` = Außenwerte. WinTAX speichert keine Einheiten; geschrieben wird wie in der `.HED`: °C, %, hPa, km/h, `WindDir` −180…+180 (Ost positiv), Regen in mm je Lap.
+
+| Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
+|---|---|---|---|---|---|
+| `Build` (Z. 23) | Inhalt für eine Lap (kulturunabhängig) | `WeatherSummary lap` | `string?` (`null`, wenn Temperatur, Feuchte, Druck, Wind oder Regen unbekannt) | – | keine |
+| `Write` (Z. 52) | Datei in den Lap-Ordner schreiben | `string lapFolder`, `WeatherSummary lap` | `bool` | `Build`, `AtomicFile.WriteAllText` | `Meteo.xml` atomar schreiben |
+
+#### `WeatherService`
+
+Datei: [WeatherService.cs](../ORACLE/Weather/WeatherService.cs). Orchestriert den Wetter-Schritt; Ergebnis `WeatherStepResult` (Z. 14) mit je Run `RunWeatherResult` (Z. 11); Lap-Fenster als `LapWindow` (Z. 8).
+
+| Methode | Zweck | Parameter | Rückgabe | Abhängigkeiten | Seiteneffekte |
+|---|---|---|---|---|---|
+| `ApplyAsync` (Z. 55) | Lap-Zeiten aller Runs lesen, Wetter **einmal je Session-Fenster** abrufen (Runs mit mehr als 6 h Abstand getrennt), je Run `trackCondition` (`[TRACK]`) und `[WEATHER]`, je Lap `Meteo.xml` schreiben | `IReadOnlyList<string> runs`, `GeoCoordinate? location`, `CancellationToken` | `Task<WeatherStepResult>`: `skipped` (keine Koordinate / keine Lap-Zeiten), `success`, `partial`, `failed` | `ReadLapWindows`, `IWeatherSource.GetAsync`, `WeatherCalculator.Summarize`, `HedFileService.SetWeather`, `MeteoXml.Write` | Runs mit `weatherSource = manual` bleiben unverändert. Abruffehler werden nicht geworfen. Konsole/Log je Run. |
+| `ApplyToRun` (Z. 107) – privat | Zusammenfassung des Runs und der Laps schreiben | Run, Lap-Fenster, Reihe, Quellentext | `RunWeatherResult` | s. o. | `.HED` und `Meteo.xml` atomar schreiben; I/O-Fehler → `failed` |
+| `HedValues` (Z. 117) – internal | Schlüssel/Werte der Sektion `[WEATHER]` in Katalogreihenfolge (`airTemp`, `airTempStart`, `airTempEnd`, `groundTemp`, `humidity`, `pressure`, `airDensity`, `windSpeed`, `windDir`, `rain`, `rainRateMax`, `weatherSource`); `trackCondition` geht separat nach `[TRACK]` | `WeatherSummary`, `string sourceText` | `IReadOnlyList<KeyValuePair<string,string>>` | – | keine |
+| `ReadLapWindows` (Z. 169) | Laps in Datenreihenfolge mit Start (`STS`+`STNs`, sonst `STMs`) und Ende (Start + `LapTime`) | `string runPath` | `IReadOnlyList<LapWindow>` | `LapSplitStore.ReadLapFolders` | Liest `LapHeader.xml` |
 
 ## 12. SENTINEL
 
@@ -870,6 +952,7 @@ ORACLE referenziert das Projekt `..\..\Ktm.Racing.Domain\src\Ktm.Racing.Domain\K
 | `Ktm.Racing.Domain.Kompass` | `TrackLengthRules` | `TrackLengthGate`, `OraclePipeline.ParseTrackLength` |
 | `Ktm.Racing.Domain.Kompass` | `TrackNames` | `TrackLengthGate`, `KompassService` |
 | `Ktm.Racing.Domain.Kompass` | `TrackLengthSuggestionStore`, `TrackLengthSuggestion` | `TrackLengthGate` |
+| `Ktm.Racing.Domain.MotoDb` | `HedFieldCatalog` (inkl. `TrackConditionField` in Gruppe `TRACK`, `WeatherFields` in Gruppe `WEATHER`) | `WeatherTests` (Abgleich der `[WEATHER]`-Schlüssel); `LoadChannelsWriter` legt die Felder im Sheet HED an (`sync-motodb`) |
 | `Ktm.Racing.Domain.MotoDb` | `LoadChannelsWriter`, `LoadChannelsOptions`, `LoadChannelsSyncResult`, `LoadChannelsSyncStatus`, `CircuitEntry` | `TrackLengthGate`, `WorkbookGuard`, `MotoDbInputSync` |
 | `Ktm.Racing.Domain.Telemetry` | `GpsCleaner`, `GpsCleanOptions`, `GpsCleanResult`, `GpsTrace` | `OracleConfig` (`GpsSettings`), `ImportDataCalculator`, `RaceSegmentDetector`, `GpsLapSplitService` |
 | `Ktm.Racing.Domain.Telemetry` | `GpsLapSplitter`, `GpsLapSplitOptions`, `GpsLapSplitResult`, `GpsLapSplitStatus` | `OracleConfig`, `GpsLapSplitService` |
@@ -891,6 +974,7 @@ Nur soweit im Code bzw. in den Projektdateien verwendet.
 | **System.Configuration.ConfigurationManager** 9.0.9 | `PackageReference` | Kein Code-Zugriff in ORACLE; laut Projektkommentar Laufzeitabhängigkeit (log4net) von KtmSharedUtils/KtmDataHandler. |
 | **ClosedXML** | transitiv über `Ktm.Racing.Domain` (`PackageReference ClosedXML 0.105.1` in der Domain) | Kein ClosedXML-Typ im ORACLE-Code; `loadChannels.xlsx` wird ausschließlich über `LoadChannelsWriter` (Domain) gelesen/geschrieben. |
 | **Ktm.Racing.Domain** | `ProjectReference` | siehe [Abschnitt 13](#13-verwendete-typen-aus-ktmracingdomain) |
+| **Open-Meteo Historical Forecast API** | HTTPS (`System.Net.Http.HttpClient`), Konfiguration `Weather.BaseUrl` | [`OpenMeteoWeatherSource`](#openmeteoweathersource); Lizenz der Daten CC BY 4.0 (Quellenangabe im Status-Schritt `weather`) |
 | **Windows-API** | P/Invoke | `kernel32.dll!SetDllDirectory` in `KtmRuntime` |
 | **Konfigurations-/Datendateien** | `oracle-config.json` (`Content`, `PreserveNewest`), `sentinel-config.json` (`Content`, `PreserveNewest`) | gelesen von `OracleConfig.Load` bzw. `SentinelConfig.Load` |
 | SENTINEL | – | keine externen Pakete oder Projektreferenzen (nur .NET-Basisbibliothek) |
